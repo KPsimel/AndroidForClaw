@@ -21,6 +21,7 @@ class FeishuSender(
     }
 
     private val gson = Gson()
+    private val media = FeishuMedia(config, client)
 
     /**
      * 发送文本消息
@@ -156,6 +157,59 @@ class FeishuSender(
 
         } catch (e: Exception) {
             Log.e(TAG, "Failed to delete message", e)
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * 发送图片消息
+     * 对齐 OpenClaw src/send.ts sendImage()
+     */
+    suspend fun sendImage(
+        receiveId: String,
+        imageKey: String,
+        receiveIdType: String = "open_id"
+    ): Result<SendResult> = withContext(Dispatchers.IO) {
+        try {
+            val content = gson.toJson(mapOf("image_key" to imageKey))
+            sendMessageInternal(receiveId, "image", content, receiveIdType)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to send image", e)
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * 上传图片并发送
+     * 对齐 OpenClaw 逻辑：upload file -> get image_key -> send image
+     */
+    suspend fun uploadAndSendImage(
+        receiveId: String,
+        filePath: String,
+        receiveIdType: String = "open_id"
+    ): Result<SendResult> = withContext(Dispatchers.IO) {
+        try {
+            val file = java.io.File(filePath)
+            if (!file.exists()) {
+                return@withContext Result.failure(Exception("File not found: $filePath"))
+            }
+
+            // 1. 上传图片获取 image_key
+            val uploadResult = media.uploadImage(file)
+            if (uploadResult.isFailure) {
+                return@withContext Result.failure(uploadResult.exceptionOrNull()!!)
+            }
+
+            val imageKey = uploadResult.getOrNull()?.key
+                ?: return@withContext Result.failure(Exception("Missing image_key"))
+
+            Log.d(TAG, "Image uploaded: $imageKey")
+
+            // 2. 发送图片消息
+            sendImage(receiveId, imageKey, receiveIdType)
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to upload and send image", e)
             Result.failure(e)
         }
     }

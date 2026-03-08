@@ -1146,8 +1146,10 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                 return
             }
 
-            // 检测是否包含截图路径（格式：路径: /storage/.../screenshot_xxx.png）
-            val screenshotPathRegex = Regex("""路径:\s*(/storage/[^\s\n]+\.png)""")
+            // 检测是否包含截图路径（支持文件路径和 Content URI）
+            // 格式1: 路径: /storage/.../screenshot_xxx.png
+            // 格式2: 路径: content://com.xiaomo.androidforclaw.accessibility.fileprovider/...
+            val screenshotPathRegex = Regex("""路径:\s*((?:/storage/|/sdcard/|content://)[^\s\n]+\.png)""")
             val screenshotMatch = screenshotPathRegex.find(cleanContent)
 
             if (screenshotMatch != null) {
@@ -1155,8 +1157,27 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                 Log.i(TAG, "📸 检测到截图路径: $screenshotPath")
 
                 // 1. 上传并发送图片
-                val imageFile = java.io.File(screenshotPath)
-                if (imageFile.exists()) {
+                val imageFile = if (screenshotPath.startsWith("content://")) {
+                    // Content URI - 需要通过 ContentResolver 转换为临时文件
+                    try {
+                        val uri = android.net.Uri.parse(screenshotPath)
+                        val inputStream = contentResolver.openInputStream(uri)
+                        val tempFile = java.io.File(cacheDir, "temp_screenshot_${System.currentTimeMillis()}.png")
+                        inputStream?.use { input ->
+                            tempFile.outputStream().use { output ->
+                                input.copyTo(output)
+                            }
+                        }
+                        tempFile
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Failed to convert Content URI to file", e)
+                        null
+                    }
+                } else {
+                    java.io.File(screenshotPath)
+                }
+
+                if (imageFile != null && imageFile.exists()) {
                     try {
                         Log.i(TAG, "📤 上传图片到飞书...")
 
