@@ -12,6 +12,7 @@ import com.xiaomo.androidforclaw.providers.llm.FunctionDefinition as NewFunction
 import com.xiaomo.androidforclaw.providers.llm.ParametersSchema as NewParametersSchema
 import com.xiaomo.androidforclaw.providers.llm.PropertySchema as NewPropertySchema
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -93,10 +94,50 @@ class UnifiedLLMProvider(private val context: Context) {
         modelRef: String? = null,
         temperature: Double = DEFAULT_TEMPERATURE,
         maxTokens: Int? = null,
-        reasoningEnabled: Boolean = false
+        reasoningEnabled: Boolean = false,
+        maxRetries: Int = 3
     ): LLMResponse = withContext(Dispatchers.IO) {
         // 转换工具定义到新格式
         val newTools = tools?.map { convertToolDefinition(it) }
+
+        // 重试逻辑
+        var lastException: Exception? = null
+
+        for (attempt in 1..maxRetries) {
+            try {
+                return@withContext performRequest(
+                    messages, newTools, modelRef, temperature, maxTokens, reasoningEnabled
+                )
+            } catch (e: LLMException) {
+                lastException = e
+
+                // 判断是否可重试
+                if (!isRetryable(e) || attempt == maxRetries) {
+                    throw e
+                }
+
+                // 指数退避
+                val delayMs = 100L * (1 shl (attempt - 1))  // 100ms, 200ms, 400ms
+                Log.w(TAG, "⚠️ LLM request failed (attempt $attempt/$maxRetries), retrying in ${delayMs}ms: ${e.message}")
+                delay(delayMs)
+            }
+        }
+
+        // 不应该到这里
+        throw lastException!!
+    }
+
+    /**
+     * 执行实际的 LLM 请求
+     */
+    private suspend fun performRequest(
+        messages: List<Message>,
+        tools: List<com.xiaomo.androidforclaw.providers.llm.ToolDefinition>?,
+        modelRef: String?,
+        temperature: Double,
+        maxTokens: Int?,
+        reasoningEnabled: Boolean
+    ): LLMResponse {
         try {
             // 解析模型引用
             val (providerName, modelId) = parseModelRef(modelRef)
@@ -121,7 +162,7 @@ class UnifiedLLMProvider(private val context: Context) {
                 provider = provider,
                 model = model,
                 messages = messages,
-                tools = newTools,
+                tools = tools,
                 temperature = temperature,
                 maxTokens = maxTokens,
                 reasoningEnabled = reasoningEnabled
@@ -158,7 +199,7 @@ class UnifiedLLMProvider(private val context: Context) {
             val api = model.api ?: provider.api
             val parsed = ApiAdapter.parseResponse(api, responseBody)
 
-            LLMResponse(
+            return LLMResponse(
                 content = parsed.content,
                 toolCalls = parsed.toolCalls?.map { tc ->
                     LLMToolCall(
@@ -181,6 +222,30 @@ class UnifiedLLMProvider(private val context: Context) {
         } catch (e: Exception) {
             Log.e(TAG, "❌ LLM request failed", e)
             throw LLMException("LLM request failed: ${e.message}", e)
+        }
+    }
+
+    /**
+     * 判断错误是否可重试
+     */
+    private fun isRetryable(exception: LLMException): Boolean {
+        val message = exception.message?.lowercase() ?: ""
+
+        return when {
+            // Rate limiting
+            message.contains("rate limit") || message.contains("429") -> true
+            // Service unavailable
+            message.contains("503") || message.contains("service unavailable") -> true
+            // Timeout
+            message.contains("timeout") || message.contains("timed out") -> true
+            // Server errors
+            message.contains("500") || message.contains("502") || message.contains("504") -> true
+            // Connection issues
+            message.contains("connection") || message.contains("network") -> true
+            // Overloaded
+            message.contains("overloaded") -> true
+            // Default: not retryable
+            else -> false
         }
     }
 
