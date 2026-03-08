@@ -48,12 +48,19 @@ class AgentIntegrationTest {
             configDir.mkdirs()
         }
 
-        // 创建测试用的models.json
-        val modelsFile = java.io.File(configDir, "models.json")
-        if (!modelsFile.exists()) {
-            modelsFile.writeText("""
+        // 创建测试用的openclaw.json - 包含providers (models.json已废弃)
+        val openClawFile = java.io.File(configDir, "openclaw.json")
+        if (!openClawFile.exists()) {
+            openClawFile.writeText("""
                 {
-                    "mode": "merge",
+                    "version": "1.0.0",
+                    "agent": {
+                        "name": "androidforclaw-test",
+                        "maxIterations": 20
+                    },
+                    "thinking": {
+                        "enabled": true
+                    },
                     "providers": {
                         "anthropic": {
                             "baseUrl": "https://api.anthropic.com/v1",
@@ -61,22 +68,16 @@ class AgentIntegrationTest {
                             "api": "openai-completions",
                             "models": [
                                 {
-                                    "id": "claude-opus-4",
-                                    "name": "Claude Opus 4"
+                                    "id": "claude-opus-4-6",
+                                    "name": "Claude Opus 4.6",
+                                    "reasoning": true,
+                                    "input": ["text", "image"],
+                                    "contextWindow": 200000,
+                                    "maxTokens": 16384
                                 }
                             ]
                         }
-                    }
-                }
-            """.trimIndent())
-        }
-
-        // 创建测试用的openclaw.json - 不包含providers,让ConfigLoader从models.json读取
-        val openClawFile = java.io.File(configDir, "openclaw.json")
-        if (!openClawFile.exists()) {
-            openClawFile.writeText("""
-                {
-                    "providers": {},
+                    },
                     "gateway": {
                         "feishu": {
                             "enabled": false,
