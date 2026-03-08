@@ -215,13 +215,13 @@ adb install phoneforclaw-v2.4.3.apk
 创建 Skills 目录：
 
 ```bash
-adb shell mkdir -p /sdcard/AndroidForClaw/workspace/skills/
+adb shell mkdir -p /sdcard/.androidforclaw/workspace/skills/
 ```
 
 上传自定义 Skill：
 
 ```bash
-adb push my-skill.md /sdcard/AndroidForClaw/workspace/skills/
+adb push my-skill.md /sdcard/.androidforclaw/workspace/skills/
 ```
 
 ### 模块化构建
@@ -275,11 +275,11 @@ phoneforclaw 支持模块化构建：
 **解决**:
 1. 确认配置文件存在：
    ```bash
-   adb shell ls /sdcard/AndroidForClaw/config/
+   adb shell ls /sdcard/.androidforclaw/config/
    ```
 2. 重新部署配置：
    ```bash
-   adb push config/models.json /sdcard/AndroidForClaw/config/
+   adb push config/models.json /sdcard/.androidforclaw/config/
    ```
 3. 重启应用
 

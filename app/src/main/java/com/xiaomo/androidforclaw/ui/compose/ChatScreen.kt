@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -376,7 +377,8 @@ fun MessageComposer(
                     onValueChange = onValueChange,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                        .padding(horizontal = 16.dp, vertical = 12.dp)
+                        .testTag("chat_input"),
                     textStyle = TextStyle(
                         fontSize = 15.sp,
                         color = Color.Black,
@@ -416,7 +418,9 @@ fun MessageComposer(
 
             // 发送按钮 - Stream Chat 风格
             Surface(
-                modifier = Modifier.size(44.dp),
+                modifier = Modifier
+                    .size(44.dp)
+                    .testTag("send_button"),
                 shape = CircleShape,
                 color = if (value.isNotBlank()) Color(0xFF005FFF) else Color(0xFFE0E0E0),
                 onClick = {

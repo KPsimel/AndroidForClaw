@@ -567,7 +567,7 @@ data class TokenInfo(
     val lastUsed: Long?
 )
 
-// Config: /sdcard/AndroidForClaw/config/openclaw.json
+// Config: /sdcard/.androidforclaw/config/openclaw.json
 {
   "gateway": {
     "port": 8765,

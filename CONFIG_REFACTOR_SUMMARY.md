@@ -91,20 +91,20 @@
 
 ✅ **配置文件数量**: 1 个 (openclaw.json)
 ✅ **配置结构**: models 内嵌在主配置中
-✅ **配置路径**: `/sdcard/AndroidForClaw/config/openclaw.json`
-✅ **推送命令**: `adb push config/openclaw.json /sdcard/AndroidForClaw/config/openclaw.json`
+✅ **配置路径**: `/sdcard/.androidforclaw/config/openclaw.json`
+✅ **推送命令**: `adb push config/openclaw.json /sdcard/.androidforclaw/config/openclaw.json`
 
 ### 简化的使用流程
 
 **之前** (双配置文件):
 ```bash
-adb push config/openclaw.json /sdcard/AndroidForClaw/config/
-adb push config/models.json /sdcard/AndroidForClaw/config/
+adb push config/openclaw.json /sdcard/.androidforclaw/config/
+adb push config/models.json /sdcard/.androidforclaw/config/
 ```
 
 **现在** (单配置文件):
 ```bash
-adb push config/openclaw.json /sdcard/AndroidForClaw/config/
+adb push config/openclaw.json /sdcard/.androidforclaw/config/
 ```
 
 ### 代码简化

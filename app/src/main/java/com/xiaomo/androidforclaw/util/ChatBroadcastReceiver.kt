@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.util.Log
+import com.xiaomo.androidforclaw.core.MyApplication
 
 /**
  * Chat Broadcast Receiver - ADB 测试接口
@@ -17,9 +18,15 @@ import android.util.Log
  * 示例:
  * adb shell am broadcast -a PHONE_FORCLAW_SEND_MESSAGE --es message "使用browser搜索openclaw"
  */
-class ChatBroadcastReceiver(
-    private val onMessageReceived: (String) -> Unit
-) : BroadcastReceiver() {
+class ChatBroadcastReceiver() : BroadcastReceiver() {
+
+    // 可选的回调,用于动态注册时
+    private var onMessageReceived: ((String) -> Unit)? = null
+
+    // 提供带回调的构造函数用于动态注册
+    constructor(onMessageReceived: (String) -> Unit) : this() {
+        this.onMessageReceived = onMessageReceived
+    }
 
     companion object {
         private const val TAG = "ChatBroadcastReceiver"
@@ -41,7 +48,15 @@ class ChatBroadcastReceiver(
             Log.d(TAG, "📨 消息内容: $message")
             if (message != null && message.isNotBlank()) {
                 Log.d(TAG, "✅ 收到 ADB 消息: $message")
-                onMessageReceived(message)
+
+                // 优先使用回调
+                if (onMessageReceived != null) {
+                    onMessageReceived?.invoke(message)
+                } else {
+                    // 通过全局方式发送消息
+                    Log.d(TAG, "⚙️ 通过 MyApplication 发送消息")
+                    MyApplication.handleChatBroadcast(message)
+                }
             } else {
                 Log.w(TAG, "⚠️ 收到空消息")
             }

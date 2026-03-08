@@ -14,7 +14,7 @@
 
 **旧路径** → **新路径**:
 ```
-/sdcard/AndroidForClaw/          → /sdcard/.androidforclaw/
+/sdcard/.androidforclaw/          → /sdcard/.androidforclaw/
 /sdcard/androidforclaw-workspace → /sdcard/.androidforclaw/workspace
 ```
 
@@ -229,7 +229,7 @@ assets/skills/
 
 ### 优化前:
 ```
-- 使用旧路径: /sdcard/AndroidForClaw/
+- 使用旧路径: /sdcard/.androidforclaw/
 - 依赖models.json + openclaw.json两个配置文件
 - 路径不统一,与OpenClaw架构不一致
 - 配置加载逻辑复杂

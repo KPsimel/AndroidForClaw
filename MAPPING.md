@@ -47,24 +47,19 @@
 | `src/gateway/gateway-service.ts` | `gateway/GatewayService.kt` |
 | `src/gateway/session-router.ts` | - |
 | `src/gateway/websocket-server.ts` | - |
+| `src/gateway/methods/` | `gateway/methods/SessionMethods.kt` |
 | - | `gateway/MainEntryAgentHandler.kt` |
 
 ### Config
 
-| OpenClaw | AndroidForClaw | 说明 |
-|----------|----------------|------|
-| `src/config/` | `app/src/main/java/com/xiaomo/androidforclaw/config/` | 配置代码 |
-| `src/config/models-config.ts` | `config/ModelConfig.kt` | 模型配置类 |
-| `src/config/openclaw-config.ts` | - | AClaw 不使用 |
-| `src/config/config-loader.ts` | `config/ConfigLoader.kt` | 配置加载器 |
-| `~/.openclaw/config/models.json` | `/sdcard/AndroidForClaw/config/models.json` | LLM providers |
-| `~/.openclaw/config/openclaw.json` | - | AClaw 不使用此文件 |
-
-**配置差异说明**:
-- **OpenClaw**: 使用两个配置文件
-  - `models.json` - LLM providers 配置
-  - `openclaw.json` - Agent/Gateway/Skills/Tools 配置
-- **AndroidForClaw**: 仅使用 `models.json` (包含所有配置)
+| OpenClaw | AndroidForClaw |
+|----------|----------------|
+| `src/config/` | `app/src/main/java/com/xiaomo/androidforclaw/config/` |
+| `src/config/models-config.ts` | `config/ModelConfig.kt` |
+| `src/config/openclaw-config.ts` | - |
+| `src/config/config-loader.ts` | `config/ConfigLoader.kt` |
+| `~/.openclaw/openclaw.json` | `/sdcard/.androidforclaw/config/openclaw.json` |
+| `~/.openclaw/config/models.json` | `/sdcard/.androidforclaw/config/models.json` |
 
 ### Memory
 
@@ -79,9 +74,12 @@
 
 | OpenClaw | AndroidForClaw |
 |----------|----------------|
+| `src/sessions/` | `app/src/main/java/com/xiaomo/androidforclaw/session/` |
 | `src/sessions/` | `app/src/main/java/com/xiaomo/androidforclaw/agent/session/` |
+| `src/sessions/session-manager.ts` | `session/JsonlSessionStorage.kt` |
 | `src/sessions/session-manager.ts` | `agent/session/SessionManager.kt` |
-| `src/sessions/session-store.ts` | - |
+| `src/sessions/session-store.ts` | `session/JsonlSessionStorage.kt` |
+| - | `gateway/methods/SessionMethods.kt` |
 
 ### Channels
 
@@ -219,8 +217,8 @@
 | `skills/core/` | `assets/skills/core/` |
 | `skills/browser/` | - |
 | `skills/coding/` | - |
-| `~/.openclaw/workspace/skills/` | `/sdcard/androidforclaw-workspace/skills/` |
-| `~/.openclaw/.skills/` | `/sdcard/AndroidForClaw/.skills/` |
+| `~/.openclaw/workspace/skills/` | `/sdcard/.androidforclaw/workspace/skills/` |
+| `~/.openclaw/.skills/` | `/sdcard/.androidforclaw/.skills/` |
 
 ---
 
@@ -249,11 +247,11 @@
 
 | OpenClaw | AndroidForClaw |
 |----------|----------------|
-| `~/.openclaw/` | `/sdcard/AndroidForClaw/` |
-| `~/.openclaw/workspace/` | `/sdcard/androidforclaw-workspace/` |
-| `~/.openclaw/config/` | `/sdcard/AndroidForClaw/config/` |
-| `~/.openclaw/sessions/` | - |
-| `~/.openclaw/memory/` | `/sdcard/androidforclaw-workspace/memory/` |
+| `~/.openclaw/` | `/sdcard/.androidforclaw/` |
+| `~/.openclaw/workspace/` | `/sdcard/.androidforclaw/workspace/` |
+| `~/.openclaw/config/` | `/sdcard/.androidforclaw/config/` |
+| `~/.openclaw/agents/main/sessions/` | `/sdcard/.androidforclaw/agents/main/sessions/` |
+| `~/.openclaw/memory/` | `/sdcard/.androidforclaw/workspace/memory/` |
 
 ---
 

@@ -56,9 +56,9 @@
 3. **Configure API**
    - Push config to device:
      ```bash
-     adb push config/openclaw.json /sdcard/AndroidForClaw/config/openclaw.json
+     adb push config/openclaw.json /sdcard/.androidforclaw/config/openclaw.json
      ```
-   - Or edit directly on phone: `/sdcard/AndroidForClaw/config/openclaw.json`
+   - Or edit directly on phone: `/sdcard/.androidforclaw/config/openclaw.json`
 
 4. **Grant Permissions**
    - Open **S4Claw** app and enable:
@@ -136,7 +136,7 @@
 
 ## 🛠️ Configuration
 
-**Config File**: `/sdcard/AndroidForClaw/config/openclaw.json` (single config file, aligned with OpenClaw)
+**Config File**: `/sdcard/.androidforclaw/config/openclaw.json` (single config file, aligned with OpenClaw)
 
 **Configuration includes**:
 - Agent settings (maxIterations, defaultModel, timeout, mode)
@@ -165,7 +165,7 @@
   },
   "skills": {
     "bundledPath": "assets://skills/",
-    "workspacePath": "/sdcard/AndroidForClaw/workspace/skills/",
+    "workspacePath": "/sdcard/.androidforclaw/workspace/skills/",
     "autoLoad": ["mobile-operations"]
   },
   "models": {
@@ -206,7 +206,7 @@ See [config/openclaw.json.example](config/openclaw.json.example) for full option
 
 ### Via Feishu (Lark)
 
-1. Configure Feishu bot in `/sdcard/AndroidForClaw/config/openclaw.json`:
+1. Configure Feishu bot in `/sdcard/.androidforclaw/config/openclaw.json`:
    ```json
    {
      "gateway": {
@@ -223,7 +223,7 @@ See [config/openclaw.json.example](config/openclaw.json.example) for full option
 
 ### Via Discord
 
-1. Configure Discord bot in `/sdcard/AndroidForClaw/config/openclaw.json`
+1. Configure Discord bot in `/sdcard/.androidforclaw/config/openclaw.json`
 2. Invite bot to server
 3. Send message: `@Bot open WeChat`
 

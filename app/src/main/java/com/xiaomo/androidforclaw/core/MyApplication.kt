@@ -134,6 +134,25 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                 Log.e(TAG, "检查测试任务状态失败: ${e.message}", e)
             }
         }
+
+        /**
+         * 处理来自 ChatBroadcastReceiver 的消息
+         * 通过发送本地广播让MainActivityCompose处理
+         */
+        fun handleChatBroadcast(message: String) {
+            Log.d(TAG, "📨 handleChatBroadcast: $message")
+            try {
+                // 发送本地广播给MainActivityCompose处理
+                val intent = Intent("com.xiaomo.androidforclaw.CHAT_MESSAGE_FROM_BROADCAST")
+                intent.putExtra("message", message)
+                androidx.localbroadcastmanager.content.LocalBroadcastManager
+                    .getInstance(application)
+                    .sendBroadcast(intent)
+                Log.d(TAG, "✅ 已发送本地广播")
+            } catch (e: Exception) {
+                Log.e(TAG, "发送本地广播失败: ${e.message}", e)
+            }
+        }
     }
 
     override fun onCreate() {

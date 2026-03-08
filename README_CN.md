@@ -56,9 +56,9 @@
 3. **配置 API**
    - 推送配置到设备:
      ```bash
-     adb push config/openclaw.json /sdcard/AndroidForClaw/config/openclaw.json
+     adb push config/openclaw.json /sdcard/.androidforclaw/config/openclaw.json
      ```
-   - 或在手机上直接编辑: `/sdcard/AndroidForClaw/config/openclaw.json`
+   - 或在手机上直接编辑: `/sdcard/.androidforclaw/config/openclaw.json`
 
 4. **授予权限**
    - 打开 **S4Claw** 应用并启用:
@@ -136,7 +136,7 @@
 
 ## 🛠️ 配置说明
 
-**配置文件**: `/sdcard/AndroidForClaw/config/openclaw.json` (单一配置文件,与 OpenClaw 对齐)
+**配置文件**: `/sdcard/.androidforclaw/config/openclaw.json` (单一配置文件,与 OpenClaw 对齐)
 
 **配置包含**:
 - Agent 设置 (maxIterations, defaultModel, timeout, mode)
@@ -165,7 +165,7 @@
   },
   "skills": {
     "bundledPath": "assets://skills/",
-    "workspacePath": "/sdcard/AndroidForClaw/workspace/skills/",
+    "workspacePath": "/sdcard/.androidforclaw/workspace/skills/",
     "autoLoad": ["mobile-operations"]
   },
   "models": {
@@ -206,7 +206,7 @@
 
 ### 通过飞书
 
-1. 在 `/sdcard/AndroidForClaw/config/openclaw.json` 中配置飞书机器人:
+1. 在 `/sdcard/.androidforclaw/config/openclaw.json` 中配置飞书机器人:
    ```json
    {
      "gateway": {
@@ -223,7 +223,7 @@
 
 ### 通过 Discord
 
-1. 在 `/sdcard/AndroidForClaw/config/openclaw.json` 中配置 Discord 机器人
+1. 在 `/sdcard/.androidforclaw/config/openclaw.json` 中配置 Discord 机器人
 2. 邀请机器人到服务器
 3. 发送消息: `@Bot 打开微信`
 

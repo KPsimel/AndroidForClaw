@@ -119,7 +119,7 @@
 
 **Skills 系统** (部分实现)
 - 内置 Skills: `assets/skills/` (随应用打包)
-- 工作区 Skills: `/sdcard/.androidforclaw/workspace/skills/` (用户自定义,对齐 OpenClaw)
+- 工作区 Skills: `/sdcard/.androidforclaw/workspace/skills/` (用户自定义)
 - AgentSkills.io 兼容格式
 
 **Gateway** (基础已实现,持续完善中)

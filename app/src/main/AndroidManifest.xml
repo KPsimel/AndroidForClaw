@@ -222,6 +222,15 @@
                 <action android:name="com.xiaomo.androidforclaw.ACTION_EXECUTE_AGENT" />
             </intent-filter>
         </receiver>
+        <!-- Chat消息广播接收器 (用于ADB测试) -->
+        <receiver
+            android:name="com.xiaomo.androidforclaw.util.ChatBroadcastReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="PHONE_FORCLAW_SEND_MESSAGE" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

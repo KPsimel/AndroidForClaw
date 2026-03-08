@@ -246,7 +246,7 @@ assertTrue(result.content.contains("Invalid argument") ||
 #### 4. testConfigLoader_findsProviders
 **现象**: 找不到anthropic provider
 **可能原因**:
-- `/sdcard/AndroidForClaw/config/models.json` 文件不存在
+- `/sdcard/.androidforclaw/config/models.json` 文件不存在
 - 测试设备上配置文件未创建
 - ConfigLoader路径配置错误
 
@@ -255,7 +255,7 @@ assertTrue(result.content.contains("Invalid argument") ||
 @Before
 fun setup() {
     // 创建测试配置文件
-    val configDir = File("/sdcard/AndroidForClaw/config")
+    val configDir = File("/sdcard/.androidforclaw/config")
     configDir.mkdirs()
     val modelsFile = File(configDir, "models.json")
     modelsFile.writeText("""

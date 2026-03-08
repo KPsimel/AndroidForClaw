@@ -1,5 +1,6 @@
 package com.xiaomo.androidforclaw.ui.activity
 
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -79,6 +80,7 @@ class MainActivityCompose : ComponentActivity() {
     }
 
     private var chatBroadcastReceiver: ChatBroadcastReceiver? = null
+    private var localBroadcastReceiver: BroadcastReceiver? = null
     private var chatViewModel: ChatViewModel? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -120,6 +122,7 @@ class MainActivityCompose : ComponentActivity() {
 
         // 注册 ADB 测试接口
         registerChatBroadcastReceiver()
+        registerLocalBroadcastReceiver()
     }
 
     override fun onResume() {
@@ -137,6 +140,7 @@ class MainActivityCompose : ComponentActivity() {
     override fun onDestroy() {
         super.onDestroy()
         unregisterChatBroadcastReceiver()
+        unregisterLocalBroadcastReceiver()
     }
 
     /**
@@ -167,6 +171,42 @@ class MainActivityCompose : ComponentActivity() {
         chatBroadcastReceiver?.let {
             try {
                 unregisterReceiver(it)
+            } catch (e: Exception) {
+                // Ignore
+            }
+        }
+    }
+
+    /**
+     * 注册本地广播接收器 - 接收来自静态BroadcastReceiver的消息
+     */
+    private fun registerLocalBroadcastReceiver() {
+        localBroadcastReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                val message = intent?.getStringExtra("message")
+                if (!message.isNullOrBlank()) {
+                    Log.d(TAG, "📨 [LocalBroadcast] 收到消息: $message")
+                    chatViewModel?.sendMessage(message)
+                }
+            }
+        }
+
+        val filter = IntentFilter("com.xiaomo.androidforclaw.CHAT_MESSAGE_FROM_BROADCAST")
+        androidx.localbroadcastmanager.content.LocalBroadcastManager
+            .getInstance(this)
+            .registerReceiver(localBroadcastReceiver!!, filter)
+        Log.i(TAG, "✅ 注册本地广播接收器")
+    }
+
+    /**
+     * 注销本地广播接收器
+     */
+    private fun unregisterLocalBroadcastReceiver() {
+        localBroadcastReceiver?.let {
+            try {
+                androidx.localbroadcastmanager.content.LocalBroadcastManager
+                    .getInstance(this)
+                    .unregisterReceiver(it)
             } catch (e: Exception) {
                 // Ignore
             }

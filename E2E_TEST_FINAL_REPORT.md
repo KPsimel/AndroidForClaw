@@ -195,7 +195,7 @@ BitmapFactory: Unable to decode file: java.io.FileNotFoundException: ... open fa
 ```
 
 **解决方案**:
-- 将截图保存到共享存储 `/sdcard/AndroidForClaw/screenshots/`
+- 将截图保存到共享存储 `/sdcard/.androidforclaw/screenshots/`
 - 或使用ContentProvider共享文件
 
 ### 2. Protobuf版本冲突 ⚠️

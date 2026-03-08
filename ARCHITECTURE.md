@@ -194,7 +194,7 @@ metadata:
    - 类似 OpenClaw 的 `~/.openclaw/workspace/`
    - 覆盖内置和托管 skills
 
-2. **托管 Skills** (中等) - `/sdcard/AndroidForClaw/.skills/`
+2. **托管 Skills** (中等) - `/sdcard/.androidforclaw/.skills/`
    - 通过包管理器安装 (未来)
 
 3. **内置 Skills** (最低) - `app/src/main/assets/skills/`
@@ -358,7 +358,7 @@ com.xiaomo.androidforclaw/
 
 ### 1. 模型配置
 
-**文件**: `/sdcard/AndroidForClaw/config/models.json`
+**文件**: `/sdcard/.androidforclaw/config/models.json`
 
 **格式** (与 OpenClaw 相同):
 ```json
@@ -390,7 +390,7 @@ com.xiaomo.androidforclaw/
 
 ### 2. OpenClaw 配置
 
-**文件**: `/sdcard/AndroidForClaw/config/openclaw.json`
+**文件**: `/sdcard/.androidforclaw/config/openclaw.json`
 
 **内容**:
 - Agent 设置
