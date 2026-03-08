@@ -146,6 +146,9 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
         MMKV.initialize(this)
         registerActivityLifecycleCallbacks(this)
 
+        // 初始化 Workspace (对齐 OpenClaw)
+        initializeWorkspace()
+
         // 注册全局异常处理器
         Thread.setDefaultUncaughtExceptionHandler(GlobalExceptionHandler())
 
@@ -285,6 +288,37 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
     /**
      * 测试配置系统
      */
+    /**
+     * 初始化 Workspace (对齐 OpenClaw)
+     */
+    private fun initializeWorkspace() {
+        try {
+            val initializer = com.xiaomo.androidforclaw.workspace.WorkspaceInitializer(this)
+
+            if (!initializer.isWorkspaceInitialized()) {
+                Log.i(TAG, "========================================")
+                Log.i(TAG, "📁 首次启动 - 初始化 Workspace...")
+                Log.i(TAG, "========================================")
+
+                val success = initializer.initializeWorkspace()
+
+                if (success) {
+                    Log.i(TAG, "✅ Workspace 初始化成功")
+                    Log.i(TAG, "   路径: ${initializer.getWorkspacePath()}")
+                    Log.i(TAG, "   Device ID: ${initializer.getDeviceId()}")
+                    Log.i(TAG, "   文件: BOOTSTRAP.md, IDENTITY.md, USER.md, SOUL.md, AGENTS.md, TOOLS.md")
+                } else {
+                    Log.e(TAG, "❌ Workspace 初始化失败")
+                }
+            } else {
+                Log.d(TAG, "Workspace 已初始化: ${initializer.getWorkspacePath()}")
+            }
+
+        } catch (e: Exception) {
+            Log.e(TAG, "初始化 Workspace 失败", e)
+        }
+    }
+
     private fun testConfigSystem() {
         try {
             Log.d(TAG, "========================================")

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- App基本信息 -->
-    <string name="app_name">AClaw</string>
+    <string name="app_name">AndroidClaw</string>
 
     <!-- 通用操作 -->
     <string name="bookmarks">Bookmarks</string>
