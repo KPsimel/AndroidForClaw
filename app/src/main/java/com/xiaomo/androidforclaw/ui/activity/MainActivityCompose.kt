@@ -1,5 +1,6 @@
 package com.xiaomo.androidforclaw.ui.activity
 
+import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.net.Uri
@@ -19,6 +20,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -30,6 +32,34 @@ import com.xiaomo.androidforclaw.util.MediaProjectionHelper
 import com.xiaomo.androidforclaw.ui.float.SessionFloatWindow
 import com.tencent.mmkv.MMKV
 import com.xiaomo.androidforclaw.util.MMKVKeys
+
+/**
+ * 检查 S4Claw (observer扩展) 的无障碍服务是否已启用
+ */
+fun isS4ClawAccessibilityEnabled(context: Context): Boolean {
+    return try {
+        val accessibilityEnabled = Settings.Secure.getInt(
+            context.contentResolver,
+            Settings.Secure.ACCESSIBILITY_ENABLED,
+            0
+        ) == 1
+
+        if (!accessibilityEnabled) return false
+
+        val enabledServices = Settings.Secure.getString(
+            context.contentResolver,
+            Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+        ) ?: return false
+
+        // S4Claw 的无障碍服务包名
+        val s4clawServiceName = "com.xiaomo.androidforclaw.accessibility/com.xiaomo.androidforclaw.accessibility.service.PhoneAccessibilityService"
+
+        enabledServices.contains(s4clawServiceName)
+    } catch (e: Exception) {
+        Log.e("MainActivityCompose", "检查 S4Claw 无障碍服务失败", e)
+        false
+    }
+}
 
 /**
  * MainActivity - Compose 版本
@@ -336,7 +366,9 @@ fun StatusTab(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PermissionsCard(onClick: () -> Unit) {
-    val accessibility = PhoneAccessibilityService.isAccessibilityServiceEnabled()
+    val context = LocalContext.current
+    // 检查 S4Claw (observer) 的无障碍服务
+    val accessibility = isS4ClawAccessibilityEnabled(context)
     // 这里简化处理，实际应该从context获取
     val overlay = true // Settings.canDrawOverlays(context)
     val screenCapture = MediaProjectionHelper.isMediaProjectionGranted()
