@@ -34,7 +34,7 @@ class FeishuClient(private val config: FeishuConfig) {
     private var tokenExpireTime: Long = 0
 
     /**
-     * 获取 tenant_access_token
+     * 获取 tenant_access_token (协程版本)
      */
     suspend fun getTenantAccessToken(): Result<String> = withContext(Dispatchers.IO) {
         try {
@@ -91,6 +91,66 @@ class FeishuClient(private val config: FeishuConfig) {
         } catch (e: Exception) {
             Log.e(TAG, "Failed to get tenant access token", e)
             Result.failure(e)
+        }
+    }
+
+    /**
+     * 获取 tenant_access_token (同步版本)
+     * 用于在 IO 线程中直接调用
+     */
+    fun getTenantAccessTokenSync(): String? {
+        try {
+            // 检查缓存
+            val now = System.currentTimeMillis()
+            if (cachedAccessToken != null && now < tokenExpireTime) {
+                return cachedAccessToken
+            }
+
+            // 请求新 token
+            val url = "$baseUrl/open-apis/auth/v3/tenant_access_token/internal"
+            val requestBody = mapOf(
+                "app_id" to config.appId,
+                "app_secret" to config.appSecret
+            )
+
+            val body = gson.toJson(requestBody)
+                .toRequestBody("application/json".toMediaType())
+
+            val request = Request.Builder()
+                .url(url)
+                .post(body)
+                .build()
+
+            val response = httpClient.newCall(request).execute()
+            val responseBody = response.body?.string() ?: ""
+
+            if (!response.isSuccessful) {
+                Log.e(TAG, "Failed to get tenant access token: $responseBody")
+                return null
+            }
+
+            val json = gson.fromJson(responseBody, JsonObject::class.java)
+            val code = json.get("code")?.asInt ?: -1
+
+            if (code != 0) {
+                val msg = json.get("msg")?.asString ?: "Unknown error"
+                Log.e(TAG, "Feishu API error: $msg")
+                return null
+            }
+
+            val token = json.get("tenant_access_token")?.asString ?: return null
+            val expire = json.get("expire")?.asInt ?: 7200
+
+            // 缓存 token（提前 5 分钟过期）
+            cachedAccessToken = token
+            tokenExpireTime = now + (expire - 300) * 1000L
+
+            Log.d(TAG, "Got tenant access token (sync), expires in ${expire}s")
+            return token
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to get tenant access token (sync)", e)
+            return null
         }
     }
 

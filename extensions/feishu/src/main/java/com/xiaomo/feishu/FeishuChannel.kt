@@ -109,26 +109,25 @@ class FeishuChannel(private val config: FeishuConfig) {
         }
 
         return try {
-            val media = com.xiaomo.feishu.messaging.FeishuMedia(config, client)
+            // 使用新的 FeishuImageUploadTool 上传图片
+            val uploadTool = com.xiaomo.feishu.tools.media.FeishuImageUploadTool(config, client)
 
             // 1. 上传图片
             Log.d(TAG, "Uploading image: ${imageFile.name} (${imageFile.length()} bytes)")
-            val uploadResult = media.uploadImage(imageFile)
+            val toolResult = uploadTool.execute(mapOf("image_path" to imageFile.absolutePath))
 
-            if (uploadResult.isFailure) {
-                val error = uploadResult.exceptionOrNull()
-                Log.e(TAG, "Failed to upload image", error)
-                return Result.failure(error ?: Exception("Upload failed"))
+            if (!toolResult.success) {
+                Log.e(TAG, "Failed to upload image: ${toolResult.error}")
+                return Result.failure(Exception(toolResult.error ?: "Upload failed"))
             }
 
-            val mediaResult = uploadResult.getOrNull()
-                ?: return Result.failure(Exception("Upload succeeded but no result"))
-
-            val imageKey = mediaResult.key
+            val imageKey = toolResult.data as? String
+                ?: return Result.failure(Exception("Upload succeeded but no image_key"))
 
             Log.d(TAG, "Image uploaded successfully. image_key: $imageKey")
 
-            // 2. 发送图片消息
+            // 2. 发送图片消息 (仍使用 FeishuMedia)
+            val media = com.xiaomo.feishu.messaging.FeishuMedia(config, client)
             Log.d(TAG, "Sending image to ${context.receiveId} (type: ${context.receiveIdType})")
             val sendResult = media.sendImage(
                 receiveId = context.receiveId,
@@ -331,16 +330,19 @@ class FeishuChannel(private val config: FeishuConfig) {
         receiveIdType: String = "open_id"
     ): Result<String> {
         return try {
-            val media = com.xiaomo.feishu.messaging.FeishuMedia(config, client)
+            // 使用新的 FeishuImageUploadTool 上传图片
+            val uploadTool = com.xiaomo.feishu.tools.media.FeishuImageUploadTool(config, client)
 
             // 1. 上传图片
-            val uploadResult = media.uploadImage(imageFile)
-            if (uploadResult.isFailure) {
-                return Result.failure(uploadResult.exceptionOrNull()!!)
+            val toolResult = uploadTool.execute(mapOf("image_path" to imageFile.absolutePath))
+            if (!toolResult.success) {
+                return Result.failure(Exception(toolResult.error ?: "Upload failed"))
             }
-            val imageKey = uploadResult.getOrNull()!!.key
+            val imageKey = toolResult.data as? String
+                ?: return Result.failure(Exception("Upload succeeded but no image_key"))
 
             // 2. 发送图片消息
+            val media = com.xiaomo.feishu.messaging.FeishuMedia(config, client)
             media.sendImage(receiveId, imageKey, receiveIdType)
         } catch (e: Exception) {
             Log.e(TAG, "Failed to upload and send image", e)

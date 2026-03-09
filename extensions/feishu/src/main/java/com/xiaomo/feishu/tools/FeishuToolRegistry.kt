@@ -6,6 +6,7 @@ import com.xiaomo.feishu.tools.bitable.FeishuBitableTools
 import com.xiaomo.feishu.tools.chat.FeishuChatTools
 import com.xiaomo.feishu.tools.doc.FeishuDocTools
 import com.xiaomo.feishu.tools.drive.FeishuDriveTools
+import com.xiaomo.feishu.tools.media.FeishuMediaTools
 import com.xiaomo.feishu.tools.perm.FeishuPermTools
 import com.xiaomo.feishu.tools.task.FeishuTaskTools
 import com.xiaomo.feishu.tools.urgent.FeishuUrgentTools
@@ -27,6 +28,7 @@ class FeishuToolRegistry(
     private val chatTools = FeishuChatTools(config, client)
     private val permTools = FeishuPermTools(config, client)
     private val urgentTools = FeishuUrgentTools(config, client)
+    private val mediaTools = FeishuMediaTools(config, client)
 
     /**
      * 获取所有工具
@@ -41,6 +43,7 @@ class FeishuToolRegistry(
             addAll(chatTools.getAllTools())
             addAll(permTools.getAllTools())
             addAll(urgentTools.getAllTools())
+            addAll(mediaTools.getAllTools())
         }
     }
 
@@ -92,7 +95,8 @@ class FeishuToolRegistry(
                 "task" to taskTools.getAllTools().size,
                 "chat" to chatTools.getAllTools().size,
                 "perm" to permTools.getAllTools().size,
-                "urgent" to urgentTools.getAllTools().size
+                "urgent" to urgentTools.getAllTools().size,
+                "media" to mediaTools.getAllTools().size
             )
         )
     }

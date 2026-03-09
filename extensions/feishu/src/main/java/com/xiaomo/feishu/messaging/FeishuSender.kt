@@ -194,13 +194,15 @@ class FeishuSender(
                 return@withContext Result.failure(Exception("File not found: $filePath"))
             }
 
-            // 1. 上传图片获取 image_key
-            val uploadResult = media.uploadImage(file)
-            if (uploadResult.isFailure) {
-                return@withContext Result.failure(uploadResult.exceptionOrNull()!!)
+            // 1. 上传图片获取 image_key (使用新的 FeishuImageUploadTool)
+            val uploadTool = com.xiaomo.feishu.tools.media.FeishuImageUploadTool(config, client)
+            val toolResult = uploadTool.execute(mapOf("image_path" to file.absolutePath))
+
+            if (!toolResult.success) {
+                return@withContext Result.failure(Exception(toolResult.error ?: "Upload failed"))
             }
 
-            val imageKey = uploadResult.getOrNull()?.key
+            val imageKey = toolResult.data as? String
                 ?: return@withContext Result.failure(Exception("Missing image_key"))
 
             Log.d(TAG, "Image uploaded: $imageKey")
