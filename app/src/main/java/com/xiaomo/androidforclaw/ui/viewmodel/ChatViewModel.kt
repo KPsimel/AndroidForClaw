@@ -234,6 +234,9 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             // Wait a moment before removing thinking message
             delay(500)
             uiSessionManager.removeMessageFromCurrentSession(thinkingMessage.id)
+
+            // Force sync from backend to get AI response
+            syncFromBackend()
         }
 
         // Auto-generate session title

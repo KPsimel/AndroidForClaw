@@ -555,7 +555,11 @@ class AgentLoop(
                             Log.e(TAG, "❌ 上下文恢复失败: ${recoveryResult.reason}")
                             _progressFlow.emit(ProgressUpdate.Error("Context overflow: ${recoveryResult.reason}"))
 
-                            finalContent = "执行异常: ${recoveryResult.reason}"
+                            finalContent = buildString {
+                                append("❌ 上下文溢出\n\n")
+                                append("**错误**: ${recoveryResult.reason}\n\n")
+                                append("**建议**: 对话历史过长，请使用 /new 或 /reset 开始新对话")
+                            }
                             break
                         }
                     }
@@ -569,8 +573,32 @@ class AgentLoop(
                         writeLog("Timeout error, retrying...")
                         continue
                     } else {
-                        // Other errors, stop loop
-                        finalContent = "执行异常: ${e.message}"
+                        // Other errors, stop loop and format error message
+                        writeLog("❌ Agent loop failed: ${e.message}")
+                        Log.e(TAG, "Agent loop failed", e)
+
+                        // Build friendly error message (aligned with OpenClaw error formatting)
+                        finalContent = buildString {
+                            append("❌ 执行出错\n\n")
+
+                            // Error type
+                            when (e) {
+                                is com.xiaomo.androidforclaw.providers.LLMException -> {
+                                    append("**错误类型**: API 调用失败\n")
+                                    append("**错误信息**: ${e.message}\n\n")
+                                    append("**建议**: 请检查模型配置和 API Key 是否正确\n")
+                                    append("**配置文件**: /sdcard/.androidforclaw/openclaw.json\n")
+                                }
+                                else -> {
+                                    append("**错误信息**: ${e.message}\n")
+                                }
+                            }
+
+                            // Add stack trace for debugging (first 800 chars)
+                            append("\n**调试信息**:\n```\n")
+                            append(e.stackTraceToString().take(800))
+                            append("\n```")
+                        }
                         break
                     }
                 }
@@ -589,8 +617,17 @@ class AgentLoop(
         writeLog("Iterations: $iteration")
         writeLog("Tools used: ${toolsUsed.joinToString(", ")}")
 
+        // Add final content as assistant message if not empty
+        val effectiveFinalContent = finalContent ?: "无响应"
+        if (effectiveFinalContent.isNotEmpty()) {
+            messages.add(com.xiaomo.androidforclaw.providers.llm.Message(
+                role = "assistant",
+                content = effectiveFinalContent
+            ))
+        }
+
         val result = AgentResult(
-            finalContent = finalContent ?: "无响应",
+            finalContent = effectiveFinalContent,
             toolsUsed = toolsUsed,
             messages = messages,
             iterations = iteration

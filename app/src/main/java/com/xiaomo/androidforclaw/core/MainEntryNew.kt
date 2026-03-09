@@ -28,6 +28,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
+import android.os.Environment
+import java.io.File
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
@@ -124,11 +126,16 @@ object MainEntryNew {
             )
             Log.d(TAG, "✓ ContextBuilder initialized")
 
-            // 5. Initialize session manager
+            // 5. Initialize session manager (use workspace directory, aligned with OpenClaw)
+            val workspaceDir = File(Environment.getExternalStorageDirectory(), ".androidforclaw/workspace")
+            if (!workspaceDir.exists()) {
+                workspaceDir.mkdirs()
+                Log.d(TAG, "Created workspace directory: ${workspaceDir.absolutePath}")
+            }
             sessionManager = SessionManager(
-                workspace = application.filesDir
+                workspace = workspaceDir
             )
-            Log.d(TAG, "✓ SessionManager initialized")
+            Log.d(TAG, "✓ SessionManager initialized (workspace: ${workspaceDir.absolutePath})")
 
             // 6. Initialize context manager (OpenClaw-aligned context overflow handling)
             val contextManager = com.xiaomo.androidforclaw.agent.context.ContextManager(llmProvider)
@@ -248,8 +255,47 @@ object MainEntryNew {
                 progressJob.cancel()
 
             },
-            {
-                Log.e(TAG, "❌ Agent session execution failed", it)
+            { exception ->
+                Log.e(TAG, "❌ Agent session execution failed", exception)
+
+                // 构建友好的错误消息
+                val errorMessage = buildString {
+                    append("❌ 执行出错:\n\n")
+                    append("**错误**: ${exception.message}\n\n")
+
+                    // 如果是 LLM 异常，添加更详细的信息
+                    if (exception is com.xiaomo.androidforclaw.providers.LLMException) {
+                        append("**类型**: API 调用失败\n")
+                        append("**建议**: 请检查模型配置和 API key\n\n")
+                    }
+
+                    // 添加堆栈跟踪 (前500字符)
+                    append("**堆栈跟踪**:\n```\n")
+                    append(exception.stackTraceToString().take(500))
+                    append("\n```")
+                }
+
+                // 广播错误消息到聊天界面
+                try {
+                    com.xiaomo.androidforclaw.gateway.GatewayServer.broadcastChatMessage(
+                        effectiveSessionId, "assistant", errorMessage
+                    )
+                    Log.d(TAG, "📤 [Broadcast] Error message sent to user")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to broadcast error message", e)
+                }
+
+                // 保存错误到 session
+                try {
+                    session.addMessage(com.xiaomo.androidforclaw.providers.LegacyMessage(
+                        role = "assistant",
+                        content = errorMessage
+                    ))
+                    sessionManager.save(session)
+                    Log.d(TAG, "💾 [Session] Error saved to session")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to save error to session", e)
+                }
             }
         )
     }
