@@ -163,14 +163,14 @@ curl -X POST http://phone-ip:8080/gateway \
    ```
    androidforclaw-v2.4.3-release.apk                (Main app, ~31MB)
    androidforclaw-accessibility-v2.4.3-release.apk  (S4Claw: Accessibility & Screenshot, ~4.3MB)
-   B4Claw-v1.0.0.apk                                (Browser4Claw: Browser for AI, Optional)
+   BClaw-universal-release.apk                      (Browser4Claw: Browser for AI, ~8.4MB, Optional)
    ```
 
 2. **Install**
    ```bash
    adb install androidforclaw-v2.4.3-release.apk
    adb install androidforclaw-accessibility-v2.4.3-release.apk
-   adb install B4Claw-v1.0.0.apk  # Optional
+   adb install BClaw-universal-release.apk  # Optional
    ```
 
 3. **Configure API**
