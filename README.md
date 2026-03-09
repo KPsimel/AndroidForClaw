@@ -1,7 +1,7 @@
 # 📱 AndroidForClaw — OpenClaw for Android, Now Available
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Release](https://img.shields.io/badge/Release-v2.4.3-blue.svg)](https://github.com/xiaomochn/AndroidForClaw/releases/tag/v2.4.3)
+[![Release](https://img.shields.io/badge/Release-v2.4.5-blue.svg)](https://github.com/xiaomochn/AndroidForClaw/releases/tag/v2.4.5)
 [![Android](https://img.shields.io/badge/Platform-Android%208.0%2B-green.svg)](https://www.android.com/)
 [![Kotlin](https://img.shields.io/badge/Kotlin-1.9%2B-blue.svg)](https://kotlinlang.org/)
 
@@ -157,21 +157,21 @@ curl -X POST http://phone-ip:8080/gateway \
 
 ### Method 1: Download Pre-built APK (Recommended)
 
-**📥 Latest Release**: [v2.4.3](https://github.com/xiaomochn/AndroidForClaw/releases/tag/v2.4.3) | **📦 Browse Files**: [releases/](https://github.com/xiaomochn/AndroidForClaw/tree/main/releases)
+**📥 Latest Release**: [v2.4.5](https://github.com/xiaomochn/AndroidForClaw/releases/tag/v2.4.5) | **📦 Browse Files**: [releases/](https://github.com/xiaomochn/AndroidForClaw/tree/main/releases)
 
 1. **Download APK**
    ```
-   androidforclaw-v2.4.3-release.apk                (Main app, ~31MB)
-   androidforclaw-accessibility-v2.4.3-release.apk  (S4Claw: Accessibility & Screenshot, ~4.3MB)
-   BClaw-universal-release.apk                      (Browser4Claw: Browser for AI, ~8.4MB, Optional)
+   androidforclaw-v2.4.5-release.apk   (Main app, ~31MB)
+   Screen4Claw-v2.4.5-release.apk      (S4Claw: Accessibility & Screenshot, ~4.4MB)
+   BClaw-universal-release.apk         (Browser4Claw: Browser for AI, ~8.4MB, Optional)
    ```
 
    **📖 Detailed Installation Guide**: See [releases/README.md](releases/README.md) for complete setup instructions.
 
 2. **Install**
    ```bash
-   adb install androidforclaw-v2.4.3-release.apk
-   adb install androidforclaw-accessibility-v2.4.3-release.apk
+   adb install androidforclaw-v2.4.5-release.apk
+   adb install Screen4Claw-v2.4.5-release.apk
    adb install BClaw-universal-release.apk  # Optional
    ```
 
@@ -508,19 +508,30 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📋 Version History
 
-### Latest Release: v2.4.3 (2026-03-09)
+### Latest Release: v2.4.5 (2026-03-09)
+
+**🐛 Bug Fixes**:
+- ✅ Fixed Feishu image upload HTTP 400 error
+- ✅ Corrected `image_type` parameter: "image" → "message"
+- ✅ Refactored image upload as standalone FeishuImageUploadTool
+
+**🔧 Technical Improvements**:
+- Added retry mechanism (3 attempts) with exponential backoff
+- Complete file validation (size, format, permissions)
+- Detailed 4-step logging for debugging
+- Removed redundant upload code from FeishuMedia
+- Added sync token method: `getTenantAccessTokenSync()`
+
+**📥 Download**: [v2.4.5 Release](https://github.com/xiaomochn/AndroidForClaw/releases/tag/v2.4.5)
+
+---
+
+### v2.4.3 (2026-03-09)
 
 **🎉 New Features**:
 - ✅ Full ClawHub integration (skills.search, skills.install, skills.status)
 - 🌐 Browser Tool improvements with Baidu search examples
 - 🔐 Unified signing configuration
-
-**🔧 Technical Improvements**:
-- Fixed BrowserForClaw port configuration (8765)
-- Added [CLAWHUB_GUIDE.md](CLAWHUB_GUIDE.md) documentation
-- UI optimizations in ConfigActivity and ChatScreen
-
-**📥 Download**: [v2.4.3 Release](https://github.com/xiaomochn/AndroidForClaw/releases/tag/v2.4.3)
 
 ---
 
