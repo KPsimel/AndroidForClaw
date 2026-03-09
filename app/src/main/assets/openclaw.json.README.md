@@ -4,7 +4,7 @@
 
 应用运行时会在以下位置创建配置文件：
 ```
-/data/data/com.xiaomo.androidforclaw/files/config/openclaw.json
+/sdcard/.androidforclaw/config/openclaw.json
 ```
 
 如果配置文件不存在，应用会自动从 `assets/openclaw.json.default` 复制默认配置。
@@ -75,17 +75,20 @@
 
 ## 配置修改
 
-1. **通过 ADB 修改**：
+1. **通过文件管理器修改**：
+   直接在手机文件管理器中打开 `内部存储/.androidforclaw/config/openclaw.json` 编辑
+
+2. **通过 ADB 修改**：
    ```bash
-   adb pull /data/data/com.xiaomo.androidforclaw/files/config/openclaw.json
+   adb pull /sdcard/.androidforclaw/config/openclaw.json
    # 编辑文件
-   adb push openclaw.json /data/data/com.xiaomo.androidforclaw/files/config/openclaw.json
+   adb push openclaw.json /sdcard/.androidforclaw/config/openclaw.json
    ```
 
-2. **通过应用界面**：
+3. **通过应用界面**：
    应用设置 → 查看配置文件
 
-3. **启用热重载**：
+4. **启用热重载**：
    配置文件修改后，应用会自动重新加载（需要在代码中启用 `ConfigLoader.enableHotReload()`）
 
 ## 默认配置说明

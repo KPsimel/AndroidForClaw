@@ -169,8 +169,9 @@ adb push openclaw.json /sdcard/AndroidForClaw/config/
 - 示例配置中的密钥已脱敏或使用占位符
 
 ⚠️ **路径说明**:
-- `/sdcard/AndroidForClaw/`: 应用外部存储根目录
-- `/data/data/com.xiaomo.androidforclaw/`: 应用私有数据目录
+- `/sdcard/.androidforclaw/`: 应用外部存储根目录（用户可访问）
+- `/sdcard/.androidforclaw/config/`: 配置文件目录
+- `/sdcard/.androidforclaw/workspace/`: 工作区目录（sessions、skills、memory 等）
 
 ## 更多信息
 

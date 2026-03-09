@@ -381,7 +381,7 @@ data class SessionConfig(
     val defaultKey: String = "default",
 
     @SerializedName("storagePath")
-    val storagePath: String = "/data/data/com.xiaomo.androidforclaw/files/sessions",
+    val storagePath: String = "/sdcard/.androidforclaw/workspace/sessions",
 
     @SerializedName("autoSave")
     val autoSave: Boolean = true,

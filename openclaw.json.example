@@ -130,7 +130,7 @@
   },
   "session": {
     "defaultKey": "default",
-    "storagePath": "/data/data/com.xiaomo.androidforclaw/files/sessions",
+    "storagePath": "/sdcard/.androidforclaw/workspace/sessions",
     "autoSave": true,
     "maxMessages": 100,
     "compression": false
