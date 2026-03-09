@@ -20,11 +20,17 @@ Control the browserforclaw browser to perform web automation tasks.
 
 Use this skill when you need to:
 
+✅ **Web search** - Search on Baidu, Google, or other search engines
 ✅ **Web automation** - Interact with websites and web apps
 ✅ **Data extraction** - Scrape content from web pages
 ✅ **Form filling** - Submit web forms programmatically
 ✅ **Testing web apps** - Validate web application behavior
 ✅ **API interaction** - Test web services through browser
+
+⚠️ **IMPORTANT**: When user asks to "用浏览器搜索" or "open browser and search":
+- DO NOT use `open_app` to launch Chrome/other browser apps
+- Instead, use the `browser` tool directly (it controls browserforclaw)
+- browserforclaw is already running in the background, no need to launch it
 
 ## 🌐 Browser Tool
 
@@ -221,10 +227,27 @@ browser(operation="wait", selector="#slow-element", timeout=10000)
 
 ## 🔄 Common Workflows
 
-### Search Workflow
+### Baidu Search (百度搜索)
 
 ```
-1. Navigate to search engine
+1. browser(operation="navigate", url="https://www.baidu.com", waitMs=2000)
+2. browser(operation="wait", selector="#kw", timeout=5000)
+3. browser(operation="type", selector="#kw", text="openclaw", submit=true)
+4. browser(operation="wait", timeMs=2000)
+5. browser(operation="get_content", format="text")
+```
+
+**Example user request**: "用浏览器去百度搜一下 openclaw"
+- Navigate to baidu.com
+- Wait for search box (#kw)
+- Type "openclaw" and submit
+- Wait for results to load
+- Get and report search results
+
+### Google Search
+
+```
+1. Navigate to google.com
 2. Wait for search box
 3. Type query and submit
 4. Wait for results
