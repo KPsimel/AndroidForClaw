@@ -22,7 +22,7 @@ class ClawHubClient {
     companion object {
         private const val TAG = "ClawHubClient"
         private const val BASE_URL = "https://clawhub.ai"
-        private const val API_BASE = "$BASE_URL/api"
+        private const val API_BASE = "$BASE_URL/api/v1"  // 使用 v1 API
     }
 
     private val httpClient = OkHttpClient.Builder()
@@ -36,7 +36,7 @@ class ClawHubClient {
     /**
      * 搜索技能
      *
-     * GET /api/skills?q=query&limit=20
+     * ClawHub API v1: GET /api/v1/search?q=query&limit=20
      */
     suspend fun searchSkills(
         query: String,
@@ -44,7 +44,8 @@ class ClawHubClient {
         offset: Int = 0
     ): Result<SkillSearchResult> = withContext(Dispatchers.IO) {
         try {
-            val url = "$API_BASE/skills?q=$query&limit=$limit&offset=$offset"
+            // ClawHub API v1: GET /api/v1/search?q=query&limit=20
+            val url = "$API_BASE/search?q=$query&limit=$limit"
             Log.d(TAG, "Searching skills: $url")
 
             val request = Request.Builder()
@@ -56,22 +57,25 @@ class ClawHubClient {
             val body = response.body?.string()
 
             if (!response.isSuccessful || body == null) {
+                Log.e(TAG, "Search failed: ${response.code} - ${response.message}")
                 return@withContext Result.failure(
                     Exception("Search failed: ${response.code} - ${response.message}")
                 )
             }
 
             val json = JsonParser.parseString(body).asJsonObject
-            val skills = json.getAsJsonArray("skills").map { element ->
+            val resultsArray = json.getAsJsonArray("results")
+
+            val skills = resultsArray.map { element ->
                 val obj = element.asJsonObject
                 SkillSearchEntry(
                     slug = obj.get("slug").asString,
-                    name = obj.get("name").asString,
-                    description = obj.get("description")?.asString ?: "",
-                    version = obj.get("version")?.asString ?: "1.0.0",
-                    author = obj.get("author")?.asString,
-                    downloads = obj.get("downloads")?.asInt ?: 0,
-                    rating = obj.get("rating")?.asFloat
+                    name = obj.get("displayName")?.asString ?: obj.get("slug").asString,
+                    description = obj.get("summary")?.asString ?: "",
+                    version = obj.get("version")?.asString ?: "latest",
+                    author = null,  // v1 API 不返回 author
+                    downloads = 0,  // v1 API 不返回 downloads
+                    rating = obj.get("score")?.asFloat
                 )
             }
 
@@ -185,7 +189,7 @@ class ClawHubClient {
     /**
      * 下载技能包
      *
-     * GET /api/skills/:slug/download/:version
+     * ClawHub API v1: GET /api/v1/download?slug=x-twitter&version=latest
      *
      * @param slug 技能 slug
      * @param version 版本号 (默认 "latest")
@@ -199,7 +203,7 @@ class ClawHubClient {
         progressCallback: ((Long, Long) -> Unit)? = null
     ): Result<File> = withContext(Dispatchers.IO) {
         try {
-            val url = "$API_BASE/skills/$slug/download/$version"
+            val url = "$API_BASE/download?slug=$slug&version=$version"
             Log.d(TAG, "Downloading skill: $url")
 
             val request = Request.Builder()
