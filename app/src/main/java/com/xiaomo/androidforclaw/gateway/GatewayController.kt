@@ -275,9 +275,11 @@ class GatewayController(
             // Start server in background
             serviceScope.launch(Dispatchers.IO) {
                 try {
-                    server?.start(NanoHTTPD.SOCKET_READ_TIMEOUT, false)
+                    // Use 60 second timeout for slow operations (like ClawHub API calls)
+                    // NanoHTTPD.SOCKET_READ_TIMEOUT is 5000ms by default, too short
+                    server?.start(60000, false)  // 60 seconds
                     isRunning = true
-                    Log.i(TAG,"Gateway WebSocket server started on port $port")
+                    Log.i(TAG,"Gateway WebSocket server started on port $port with 60s timeout")
                     Log.i(TAG,"Access UI at http://localhost:$port/")
                 } catch (e: IOException) {
                     Log.e(TAG, "Failed to start Gateway server", e)

@@ -162,46 +162,25 @@ class SkillsMethods(private val context: Context) {
             Log.d(TAG, "  installId: $installId")
             Log.d(TAG, "  timeoutMs: $timeoutMs")
 
-            // 2. 查找技能
-            val report = statusBuilder.buildStatus()
-            val skill = report.skills.find { it.name == name }
-                ?: return Result.failure(
-                    GatewayError(code = "SKILL_NOT_FOUND", message = "Skill not found: $name")
-                )
-
-            // 3. 查找安装选项
-            val installOption = skill.install.find { it.installId == installId }
-                ?: return Result.failure(
-                    GatewayError(code = "INSTALL_ID_NOT_FOUND", message = "Install ID not found: $installId")
-                )
-
-            // 4. 检查可用性
-            if (!installOption.available) {
+            // 2. 验证 installId (Android 只支持 "download" 类型安装)
+            if (installId != "download") {
                 return Result.failure(
                     GatewayError(
-                        code = "INSTALL_NOT_AVAILABLE",
-                        message = installOption.reason ?: "Installation not available"
+                        code = "INSTALL_ID_NOT_SUPPORTED",
+                        message = "Install ID not supported on Android: $installId (only 'download' is supported)"
                     )
                 )
             }
 
-            // 5. 执行安装
-            Log.i(TAG, "Installing skill: $name (${installOption.kind})")
+            // 3. 直接从 ClawHub 安装 (name 实际上是 slug)
+            Log.i(TAG, "Installing skill from ClawHub: $name")
 
             val installResult = runBlocking {
-                when (installOption.kind) {
-                    InstallKind.APK, InstallKind.DOWNLOAD -> {
-                        // 从 ClawHub 安装
-                        installer.installFromClawHub(
-                            slug = name,
-                            version = "latest"
-                        ) { progress ->
-                            Log.d(TAG, "Install progress: $progress")
-                        }
-                    }
-                    else -> {
-                        Result.failure(Exception("Install kind not supported on Android: ${installOption.kind}"))
-                    }
+                installer.installFromClawHub(
+                    slug = name,  // name 参数实际上是 slug
+                    version = "latest"
+                ) { progress ->
+                    Log.d(TAG, "Install progress: $progress")
                 }
             }
 

@@ -121,19 +121,30 @@ class ClawHubClient {
 
             val json = JsonParser.parseString(body).asJsonObject
             val skill = json.getAsJsonObject("skill")
+            val latestVersion = json.getAsJsonObject("latestVersion")
+            val owner = json.getAsJsonObject("owner")
+            val stats = skill.getAsJsonObject("stats")
+
+            // ClawHub API v1 字段映射:
+            // - displayName -> name
+            // - summary -> description
+            // - tags.latest -> version (从 latestVersion 获取)
+            // - owner.displayName -> author
+            // - stats.downloads -> downloads
 
             Result.success(
                 SkillDetails(
-                    slug = skill.get("slug").asString,
-                    name = skill.get("name").asString,
-                    description = skill.get("description")?.asString ?: "",
-                    version = skill.get("version")?.asString ?: "1.0.0",
-                    author = skill.get("author")?.asString,
-                    homepage = skill.get("homepage")?.asString,
-                    repository = skill.get("repository")?.asString,
-                    downloads = skill.get("downloads")?.asInt ?: 0,
-                    rating = skill.get("rating")?.asFloat,
-                    readme = skill.get("readme")?.asString,
+                    slug = skill.get("slug")?.asString ?: "",
+                    name = skill.get("displayName")?.takeIf { !it.isJsonNull }?.asString
+                        ?: skill.get("slug")?.asString ?: "",
+                    description = skill.get("summary")?.takeIf { !it.isJsonNull }?.asString ?: "",
+                    version = latestVersion?.get("version")?.takeIf { !it.isJsonNull }?.asString ?: "latest",
+                    author = owner?.get("displayName")?.takeIf { !it.isJsonNull }?.asString,
+                    homepage = null,  // v1 API 不返回 homepage
+                    repository = null,  // v1 API 不返回 repository
+                    downloads = stats?.get("downloads")?.takeIf { !it.isJsonNull }?.asInt ?: 0,
+                    rating = null,  // v1 API 不返回 rating
+                    readme = null,  // v1 API 不返回 readme
                     metadata = skill.getAsJsonObject("metadata")
                 )
             )
