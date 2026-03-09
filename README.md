@@ -157,7 +157,7 @@ curl -X POST http://phone-ip:8080/gateway \
 
 ### Method 1: Download Pre-built APK (Recommended)
 
-**📥 Latest Release**: [v2.4.3](https://github.com/xiaomochn/AndroidForClaw/releases/tag/v2.4.3) | **📦 All Releases**: [releases/](https://github.com/xiaomochn/AndroidForClaw/releases)
+**📥 Latest Release**: [v2.4.3](https://github.com/xiaomochn/AndroidForClaw/releases/tag/v2.4.3) | **📦 Browse Files**: [releases/](https://github.com/xiaomochn/AndroidForClaw/tree/main/releases)
 
 1. **Download APK**
    ```
@@ -165,6 +165,8 @@ curl -X POST http://phone-ip:8080/gateway \
    androidforclaw-accessibility-v2.4.3-release.apk  (S4Claw: Accessibility & Screenshot, ~4.3MB)
    BClaw-universal-release.apk                      (Browser4Claw: Browser for AI, ~8.4MB, Optional)
    ```
+
+   **📖 Detailed Installation Guide**: See [releases/README.md](releases/README.md) for complete setup instructions.
 
 2. **Install**
    ```bash
@@ -207,16 +209,18 @@ curl -X POST http://phone-ip:8080/gateway \
 
 3. **Build & Install**
    ```bash
-   # Build main app and S4Claw
-   ./gradlew :app:assembleDebug :extensions:observer:assembleDebug
-   adb install app/build/outputs/apk/debug/app-debug.apk
-   adb install extensions/observer/build/outputs/apk/debug/observer-debug.apk
+   # Build Release APKs (signed automatically)
+   ./gradlew :app:assembleRelease :extensions:observer:assembleRelease
+   adb install app/build/outputs/apk/release/app-release.apk
+   adb install extensions/observer/build/outputs/apk/release/observer-release.apk
 
    # Optional: Build B4Claw browser
    cd extensions/BrowserForClaw/android-project
-   ./gradlew assembleDebug
-   adb install app/build/outputs/apk/debug/app-universal-debug.apk
+   ./gradlew assembleRelease
+   adb install app/build/outputs/apk/release/app-universal-release.apk
    ```
+
+   **Note**: For debug builds during development, replace `assembleRelease` with `assembleDebug`.
 
 ---
 
@@ -391,11 +395,14 @@ AndroidForClaw/
 ### Build Commands
 
 ```bash
-# Build debug APK
+# Build release APK (recommended for production)
+./gradlew assembleRelease
+
+# Build debug APK (for development)
 ./gradlew assembleDebug
 
-# Build accessibility service
-./gradlew :accessibility-service:assembleRelease
+# Build accessibility service (observer module)
+./gradlew :extensions:observer:assembleRelease
 
 # Run tests
 ./gradlew test
