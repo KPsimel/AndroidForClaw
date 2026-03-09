@@ -76,6 +76,7 @@ object ApiAdapter {
         }
 
         // Add API Key (if authHeader is configured)
+        android.util.Log.d("ApiAdapter", "🔑 authHeader=${provider.authHeader}, apiKey=${provider.apiKey?.take(10)}")
         if (provider.authHeader && provider.apiKey != null) {
             val api = model.api ?: provider.api
             when (api) {
