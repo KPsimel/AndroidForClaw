@@ -156,7 +156,7 @@ This is especially important for `browser_set_cookies` which expects `List<Strin
 
 ### Package Names
 
-- Use `com.example.browser` for example code (not `com.xiaomi.glgm`)
+- Use `com.example.browser` for example code
 - Actual app uses `info.plateaukao.einkbro` (EinkBro base)
 - BrowserForClaw tools are in `info.plateaukao.einkbro.browser.control`
 
