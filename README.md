@@ -132,7 +132,67 @@ AI：→ skills_search("") → 展示可用技能列表
 
 ---
 
-## 🛠️ 配置
+## 📋 完整能力表
+
+### 🔧 19 个 Tools
+
+| Tool | 功能 | 对齐 |
+|------|------|------|
+| `device` | 屏幕操作：snapshot/tap/type/scroll/press/open | Playwright |
+| `read_file` | 读取文件内容 | OpenClaw |
+| `write_file` | 创建或覆盖文件 | OpenClaw |
+| `edit_file` | 精确编辑文件 | OpenClaw |
+| `list_dir` | 列出目录内容 | OpenClaw |
+| `exec` | 执行命令（Termux SSH / 内置 Shell） | OpenClaw |
+| `web_search` | Brave 搜索引擎 | OpenClaw |
+| `web_fetch` | 抓取网页内容 | OpenClaw |
+| `javascript` | 执行 JavaScript（QuickJS） | OpenClaw |
+| `skills_search` | 搜索 ClawHub 技能 | OpenClaw |
+| `skills_install` | 从 ClawHub 安装技能 | OpenClaw |
+| `memory_search` | 语义搜索记忆 | OpenClaw |
+| `memory_get` | 读取记忆片段 | OpenClaw |
+| `config_get` | 读取配置项 | OpenClaw |
+| `config_set` | 写入配置项 | OpenClaw |
+| `list_installed_apps` | 列出已安装应用 | Android 特有 |
+| `install_app` | 安装 APK | Android 特有 |
+| `start_activity` | 启动 Activity | Android 特有 |
+| `stop` | 停止 Agent | Android 特有 |
+
+### 🧩 20 个 Skills
+
+| 类别 | Skills |
+|------|--------|
+| 飞书全家桶 | `feishu` · `feishu-doc` · `feishu-wiki` · `feishu-drive` · `feishu-bitable` · `feishu-chat` · `feishu-task` · `feishu-perm` · `feishu-urgent` |
+| 搜索 & 网页 | `browser` · `weather` |
+| 技能管理 | `clawhub` · `skill-creator` |
+| 开发调试 | `debugging` · `data-processing` · `session-logs` |
+| 配置管理 | `model-config` · `channel-config` · `install-app` · `model-usage` |
+
+> Skills 存储在 `/sdcard/.androidforclaw/skills/`，可自由编辑、添加、删除。
+
+### 💬 消息渠道
+
+| 渠道 | 状态 | 功能 |
+|------|------|------|
+| **飞书** | ✅ 可用 | WebSocket 实时连接，群聊/私聊，32 个飞书工具 |
+| **Discord** | ✅ 可用 | Gateway 连接，群聊/私聊 |
+| **Telegram** | 🔧 框架就绪 | Bot API polling/webhook |
+| **Slack** | 🔧 框架就绪 | Socket Mode / Events API |
+| **Signal** | 🔧 框架就绪 | Signal CLI |
+| **WhatsApp** | 🔧 框架就绪 | Web Protocol |
+| **设备内对话** | ✅ 可用 | 内置聊天界面 |
+
+### 🤖 支持的模型
+
+| Provider | 模型 | 说明 |
+|----------|------|------|
+| OpenRouter | hunter-alpha, GPT-5, Claude, Gemini... | 推荐，免费额度 |
+| Azure OpenAI | GPT-5.4, GPT-4.1 | 企业级 |
+| Anthropic | Claude Opus 4, Sonnet | 直连 |
+| OpenAI | GPT-5, o3 | 直连 |
+| 自定义 | 任何 OpenAI 兼容 API | Ollama, vLLM 等 |
+
+---
 
 `/sdcard/.androidforclaw/openclaw.json`
 
