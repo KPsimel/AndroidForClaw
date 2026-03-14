@@ -117,3 +117,6 @@ tmp-screens/
 .windsurf/
 .roo/
 /app/src/androidTest/java/com/xiaomo/androidforclaw/ui/FeishuChannelFlowUITest.kt
+*.apk
+local.properties
+test.keystore
