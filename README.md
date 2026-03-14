@@ -12,18 +12,27 @@
 
 ---
 
-## 30 秒上手
+## 快速开始
 
-```bash
-# 1. 下载安装 APK
-adb install AndroidForClaw-v1.0.2-release.apk
+### 下载安装
 
-# 2. 打开 App → 输入 API Key（或跳过用内置 Key）
-# 3. 开启无障碍权限
-# 4. 开始对话
+从 [Release 页面](https://github.com/xiaomochn/AndroidForClaw/releases/latest) 下载：
+
+| APK | 说明 | 必装？ |
+|-----|------|--------|
+| **AndroidForClaw** | 主应用 (Agent + Gateway + UI) | ✅ 必装 |
+| **S4Claw** | 无障碍服务 (截图 + UI 树) | ✅ 必装 |
+| **BrowserForClaw** | AI 浏览器 (网页自动化) | 可选 |
+| **[Termux](https://f-droid.org/packages/com.termux/)** | 终端 (执行代码) | 可选 |
+
+### 4 步上手
+
 ```
-
-或者直接从 [Release 页面](https://github.com/xiaomochn/AndroidForClaw/releases/latest) 下载。
+1. 安装 AndroidForClaw + S4Claw
+2. 打开 AndroidForClaw → 输入 API Key（或跳过用内置 Key）
+3. 打开 S4Claw → 开启无障碍服务 + 录屏权限
+4. 回到 AndroidForClaw → 开始对话
+```
 
 ---
 
