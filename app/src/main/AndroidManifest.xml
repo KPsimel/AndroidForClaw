@@ -188,6 +188,12 @@
             android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar" />
 
         <activity
+            android:name="com.xiaomo.androidforclaw.ui.activity.TermuxSetupActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar" />
+
+        <activity
             android:name="com.xiaomo.androidforclaw.ui.activity.WhatsAppChannelActivity"
             android:exported="false"
             android:screenOrientation="portrait"
