@@ -240,9 +240,18 @@ object MainEntryNew {
         Log.d(TAG, "📋 [Session] History message count: ${session.messageCount()}")
 
         // Get history messages (recent 20) and convert to new format
-        // Aligned with OpenClaw: limit context history to reduce token usage
-        // 10 messages ≈ 5 user turns, keeps context small for fast responses
-        val contextHistory = session.getRecentMessages(10).map { it.toNewMessage() }
+        // Aligned with OpenClaw: limitHistoryTurns (by user turn count)
+        // 1. Fetch all session messages
+        // 2. Apply limitHistoryTurns with configurable dmHistoryLimit
+        // 3. Context pruning in AgentLoop handles the rest
+        // Aligned with OpenClaw: limitHistoryTurns by user turn count
+        // Default: 5 user turns (≈10 messages) — fast on mobile/free models
+        // OpenClaw: configurable via dmHistoryLimit, context pruning handles the rest
+        val maxUserTurns = 5
+        val rawMessages = session.getRecentMessages(maxUserTurns * 4).map { it.toNewMessage() }
+        val contextHistory = com.xiaomo.androidforclaw.agent.session.HistorySanitizer
+            .limitHistoryTurns(rawMessages.toMutableList(), maxUserTurns)
+        Log.d(TAG, "📥 [History] raw=${rawMessages.size} → limited=${contextHistory.size} ($maxUserTurns turns)")
         Log.d(TAG, "📥 [Session] Loaded context: ${contextHistory.size} messages")
 
         if (TextUtils.isEmpty(user)) {
