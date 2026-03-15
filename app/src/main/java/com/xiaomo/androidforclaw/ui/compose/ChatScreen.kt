@@ -100,18 +100,24 @@ fun ChatScreen(
     val coroutineScope = rememberCoroutineScope()
 
     // Auto-scroll to bottom
-    // First load: jump instantly (no animation). New messages: animate.
-    var initialScrollDone by remember { mutableStateOf(false) }
-    LaunchedEffect(messages.size) {
+    // Session change or first load: jump instantly. New message: animate.
+    var lastMessageCount by remember { mutableStateOf(0) }
+    var lastSessionId by remember { mutableStateOf(currentSession?.id) }
+    LaunchedEffect(messages.size, currentSession?.id) {
         if (messages.isNotEmpty()) {
-            if (!initialScrollDone) {
-                // First load — jump directly to bottom, no animation
-                listState.scrollToItem(messages.size - 1)
-                initialScrollDone = true
-            } else {
-                // New message arrived — smooth scroll
+            val sessionChanged = currentSession?.id != lastSessionId
+            val isNewMessage = messages.size > lastMessageCount && !sessionChanged
+
+            if (isNewMessage && lastMessageCount > 0) {
+                // New message in same session — smooth scroll
                 listState.animateScrollToItem(messages.size - 1)
+            } else {
+                // First load or session switch — jump directly
+                listState.scrollToItem(messages.size - 1)
             }
+
+            lastMessageCount = messages.size
+            lastSessionId = currentSession?.id
         }
     }
 
