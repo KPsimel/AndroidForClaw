@@ -615,6 +615,7 @@ Prefer aliases when specifying model overrides; full provider/model is also acce
         return """
 ## Current Date & Time
 Time zone: $timezone
+If you need the current date, time, or day of week, run session_status (📊 session_status).
 $formattedTime
         """.trimIndent()
     }
