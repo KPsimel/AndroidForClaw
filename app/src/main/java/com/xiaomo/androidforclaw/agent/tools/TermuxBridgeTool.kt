@@ -495,18 +495,9 @@ class TermuxBridgeTool(private val context: Context) : Tool {
         val sshReady = withContext(Dispatchers.IO) { ensureSSHReady() }
         if (!sshReady) {
             val status = getStatus()
-            val fallback = when (status.lastStep) {
-                TermuxSetupStep.TERMUX_API_NOT_INSTALLED -> "Termux:API is not installed yet."
-                TermuxSetupStep.RUN_COMMAND_PERMISSION_DENIED -> "RUN_COMMAND permission is unavailable for this app build."
-                TermuxSetupStep.RUN_COMMAND_SERVICE_MISSING -> "Termux RUN_COMMAND service is unavailable."
-                TermuxSetupStep.KEYPAIR_MISSING -> "SSH keypair is missing."
-                TermuxSetupStep.SSHD_NOT_REACHABLE -> "sshd is not reachable on 127.0.0.1:8022."
-                TermuxSetupStep.SSH_CONFIG_MISSING -> "SSH config file was not generated."
-                else -> "Please open Termux and run: pkg install openssh && sshd"
-            }
             return ToolResult(
                 success = false,
-                content = "Termux is not ready: ${status.message} $fallback",
+                content = TermuxStatusFormatter.userFacingMessage(status),
                 metadata = mapOf("backend" to "termux", "status" to status.message, "step" to status.lastStep.name)
             )
         }
