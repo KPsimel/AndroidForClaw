@@ -918,7 +918,10 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
             if (response == "\u0000BLOCK_REPLY_ALREADY_SENT") {
                 Log.d(TAG, "✅ Final reply already sent via block reply, skipping")
             } else {
-                sendFeishuReply(event, response)
+                // Strip leaked model control tokens before sending to user (OpenClaw 2026.3.11)
+                val sanitizedResponse = com.xiaomo.androidforclaw.agent.session.HistorySanitizer
+                    .stripControlTokensFromText(response)
+                sendFeishuReply(event, sanitizedResponse)
             }
         } catch (e: Exception) {
             Log.e(TAG, "处理飞书消息失败", e)

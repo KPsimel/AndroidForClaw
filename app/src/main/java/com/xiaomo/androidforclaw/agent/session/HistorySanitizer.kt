@@ -41,6 +41,15 @@ object HistorySanitizer {
     private const val TOOL_CALL_NAME_MAX_CHARS = 64
     private val TOOL_CALL_NAME_RE = Regex("^[A-Za-z0-9_-]+$")
 
+    /**
+     * Leaked model control token patterns (aligned with OpenClaw 2026.3.11)
+     *
+     * Strips `<|...|>` and full-width `<｜...｜>` variant delimiters that
+     * GLM-5, DeepSeek, and other models may leak into assistant text.
+     * See: OpenClaw #42173
+     */
+    private val CONTROL_TOKEN_RE = Regex("<[|｜][^>]{0,80}[|｜]>")
+
     data class RepairReport(
         val added: Int = 0,
         val droppedDuplicates: Int = 0,
@@ -61,19 +70,22 @@ object HistorySanitizer {
     ): List<Message> {
         var result = messages.toMutableList()
 
-        // 1. Drop thinking/reasoning content
+        // 1. Strip leaked model control tokens (OpenClaw 2026.3.11)
+        result = stripControlTokens(result)
+
+        // 2. Drop thinking/reasoning content
         result = dropThinkingContent(result)
 
-        // 2. Repair tool use/result pairing (full OpenClaw-aligned repair)
+        // 3. Repair tool use/result pairing (full OpenClaw-aligned repair)
         val report = repairToolUseResultPairingInPlace(result)
         if (report.added > 0 || report.droppedDuplicates > 0 || report.droppedOrphans > 0 || report.displaced) {
             Log.d(TAG, "Tool pairing repair: added=${report.added}, deduped=${report.droppedDuplicates}, orphans=${report.droppedOrphans}, displaced=${report.displaced}")
         }
 
-        // 3. Validate turn order
+        // 4. Validate turn order
         result = validateTurnOrder(result)
 
-        // 4. Limit history turns
+        // 5. Limit history turns
         if (maxTurns > 0) {
             result = limitHistoryTurns(result, maxTurns)
         }
@@ -83,6 +95,32 @@ object HistorySanitizer {
         }
 
         return result
+    }
+
+    /**
+     * Strip leaked model control tokens from assistant messages.
+     * Aligned with OpenClaw 2026.3.11 (#42173):
+     * - `<|...|>` half-width delimiters (GLM-5, DeepSeek)
+     * - `<｜...｜>` full-width variants
+     *
+     * Applied to both assistant content and user-facing output.
+     */
+    internal fun stripControlTokens(messages: MutableList<Message>): MutableList<Message> {
+        return messages.map { msg ->
+            if (msg.role == "assistant") {
+                val cleaned = stripControlTokensFromText(msg.content)
+                if (cleaned != msg.content) msg.copy(content = cleaned) else msg
+            } else msg
+        }.toMutableList()
+    }
+
+    /**
+     * Strip control tokens from a single text string.
+     * Can be called directly for user-facing output sanitization.
+     */
+    fun stripControlTokensFromText(text: String): String {
+        if (!text.contains('<')) return text  // fast path
+        return CONTROL_TOKEN_RE.replace(text, "").trim()
     }
 
     /**
