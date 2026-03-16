@@ -112,6 +112,21 @@ suspend fun isS4ClawAccessibilityEnabled(context: Context): Boolean {
  */
 class MainActivityCompose : ComponentActivity() {
 
+    /**
+     * Workaround for Compose 1.4.x hover event crash on some MIUI devices.
+     * See: https://issuetracker.google.com/issues/286991266
+     */
+    override fun dispatchGenericMotionEvent(ev: android.view.MotionEvent?): Boolean {
+        return try {
+            super.dispatchGenericMotionEvent(ev)
+        } catch (e: IllegalStateException) {
+            if (e.message?.contains("HOVER_EXIT") == true) {
+                Log.w("MainActivityCompose", "Suppressed Compose hover crash: ${e.message}")
+                true
+            } else throw e
+        }
+    }
+
     private fun launchObserverPermissionActivity() {
         try {
             startActivity(Intent().apply {

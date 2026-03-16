@@ -93,27 +93,33 @@ class GetViewTreeSkill(private val context: Context) : Skill {
      */
     private fun formatNode(node: com.xiaomo.androidforclaw.ViewNode): String {
         return buildString {
-            // Text content
-            val text = node.text?.takeIf { it.isNotBlank() } ?: node.contentDesc?.takeIf { it.isNotBlank() } ?: ""
-            if (text.isNotEmpty()) {
-                append("\"$text\"")
-            } else {
-                append("[无文本]")
-            }
-
-            // Coordinates
-            append(" (${node.point.x}, ${node.point.y})")
-
-            // Is clickable
-            if (node.clickable) {
-                append(" [可点击]")
-            }
-
             // Type (simplified)
-            val simpleClass = node.className?.substringAfterLast('.') ?: ""
-            if (simpleClass.isNotEmpty() && !simpleClass.contains("Layout")) {
-                append(" <$simpleClass>")
+            val simpleClass = node.className?.substringAfterLast('.') ?: "View"
+            append("<$simpleClass>")
+
+            // Text content
+            val text = node.text?.takeIf { it.isNotBlank() }
+            val desc = node.contentDesc?.takeIf { it.isNotBlank() }
+            if (text != null) {
+                append(" text=\"$text\"")
             }
+            if (desc != null && desc != text) {
+                append(" desc=\"$desc\"")
+            }
+
+            // Resource ID (very useful for buttons without text)
+            val resId = node.resourceId?.takeIf { it.isNotBlank() }
+            if (resId != null) {
+                append(" id=$resId")
+            }
+
+            // Coordinates + bounds
+            append(" center=(${node.point.x},${node.point.y})")
+            append(" bounds=[${node.left},${node.top},${node.right},${node.bottom}]")
+
+            // Clickable / scrollable state
+            if (node.clickable) append(" [可点击]")
+            if (node.scrollable) append(" [可滚动]")
         }
     }
 }

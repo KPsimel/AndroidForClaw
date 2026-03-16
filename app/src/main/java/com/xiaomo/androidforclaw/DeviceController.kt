@@ -139,22 +139,33 @@ object DeviceController {
     }
 
 
+    /**
+     * Remove nodes that have no useful information at all:
+     * no text, no contentDesc, no resourceId, not clickable, not scrollable.
+     * Keep nodes that have resourceId or are interactive — they're useful even without text.
+     */
     fun removeEmptyNodes(nodes: List<ViewNode>): List<ViewNode> {
-        return nodes.filter { !it.text.isNullOrEmpty() || !it.contentDesc.isNullOrEmpty() }
+        return nodes.filter {
+            !it.text.isNullOrEmpty() ||
+            !it.contentDesc.isNullOrEmpty() ||
+            !it.resourceId.isNullOrEmpty() ||
+            it.clickable ||
+            it.scrollable
+        }
     }
 
     fun filterDuplicateNodes(nodes: List<ViewNode>): List<ViewNode> {
-        val seenTexts = mutableSetOf<String>()
+        val seenKeys = mutableSetOf<String>()
         val result = mutableListOf<ViewNode>()
         nodes.forEach { node ->
-            node.text = node.text ?: node.contentDesc!!
-            val text = node.text ?: node.contentDesc!!
-            if (text !in seenTexts) {
-                seenTexts.add(text)
+            // Use text+coords as dedup key, not just text
+            val label = node.text ?: node.contentDesc ?: node.resourceId ?: ""
+            val key = "${label}@${node.point.x},${node.point.y}"
+            if (key !in seenKeys) {
+                seenKeys.add(key)
                 result.add(node)
             } else if (node.clickable) {
-                // todo 需要移除不可点击的干扰项
-                seenTexts.add(text)
+                // Keep clickable duplicates (e.g., list items with same text)
                 result.add(node)
             }
         }
@@ -163,22 +174,17 @@ object DeviceController {
 
 
     fun processHierarchy(xmlString: List<ViewNode>): List<ViewNode> {
-        // 解析节点
-        xmlString.forEach {
-            Log.d(TAG, "processHierarchy: $it")
-        }
         var nodes = xmlString
 
-        // 移除 text 为空的节点
+        // Remove truly empty nodes (but keep those with resourceId or interactive)
         nodes = removeEmptyNodes(nodes)
 
-        // 去除重复文本的节点
+        // Deduplicate by text+position
         nodes = filterDuplicateNodes(nodes)
         nodes = nodes.reversed()
         nodes = filterDuplicateNodes(nodes)
         nodes = nodes.reversed()
 
-        // 计算中心点
         return nodes
     }
 
