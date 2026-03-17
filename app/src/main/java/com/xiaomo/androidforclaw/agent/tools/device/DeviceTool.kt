@@ -223,12 +223,16 @@ class DeviceTool(private val context: Context) : Tool {
     private suspend fun executeTap(args: Map<String, Any?>): ToolResult {
         val (x, y, label) = resolveCoordinate(args) ?: return ToolResult.error("Cannot resolve target. Provide ref or coordinate.")
 
-        try {
-            Runtime.getRuntime().exec(arrayOf("sh", "-c", "input tap $x $y")).waitFor()
-            delay(POST_ACTION_DELAY_MS)
-            return ToolResult.success("Tapped${label?.let { " '$it'" } ?: ""} at ($x, $y)")
+        return try {
+            val ok = AccessibilityProxy.tap(x, y)
+            if (!ok) {
+                ToolResult.error("Tap failed via accessibility service at ($x, $y)")
+            } else {
+                delay(POST_ACTION_DELAY_MS)
+                ToolResult.success("Tapped${label?.let { " '$it'" } ?: ""} at ($x, $y)")
+            }
         } catch (e: Exception) {
-            return ToolResult.error("Tap failed: ${e.message}")
+            ToolResult.error("Tap failed: ${e.message}")
         }
     }
 
@@ -239,7 +243,10 @@ class DeviceTool(private val context: Context) : Tool {
         val resolved = resolveCoordinate(args)
         if (resolved != null) {
             val (x, y, _) = resolved
-            Runtime.getRuntime().exec(arrayOf("sh", "-c", "input tap $x $y")).waitFor()
+            val focused = AccessibilityProxy.tap(x, y)
+            if (!focused) {
+                return ToolResult.error("Failed to focus input via accessibility service at ($x, $y)")
+            }
             delay(POST_ACTION_DELAY_MS)
         }
 
@@ -268,10 +275,18 @@ class DeviceTool(private val context: Context) : Tool {
     }
 
     private fun executeKey(key: String): ToolResult {
-        val keycode = mapKeyToKeycode(key)
         return try {
-            Runtime.getRuntime().exec(arrayOf("sh", "-c", "input keyevent $keycode")).waitFor()
-            ToolResult.success("Pressed $key")
+            val ok = when (key.uppercase()) {
+                "BACK" -> AccessibilityProxy.pressBack()
+                "HOME" -> AccessibilityProxy.pressHome()
+                else -> {
+                    val keycode = mapKeyToKeycode(key)
+                    Runtime.getRuntime().exec(arrayOf("sh", "-c", "input keyevent $keycode")).waitFor()
+                    true
+                }
+            }
+            if (ok) ToolResult.success("Pressed $key")
+            else ToolResult.error("Key press failed for $key")
         } catch (e: Exception) {
             ToolResult.error("Key press failed: ${e.message}")
         }
@@ -280,12 +295,16 @@ class DeviceTool(private val context: Context) : Tool {
     private suspend fun executeLongPress(args: Map<String, Any?>): ToolResult {
         val (x, y, label) = resolveCoordinate(args) ?: return ToolResult.error("Cannot resolve target.")
 
-        try {
-            Runtime.getRuntime().exec(arrayOf("sh", "-c", "input swipe $x $y $x $y 1000")).waitFor()
-            delay(POST_ACTION_DELAY_MS)
-            return ToolResult.success("Long pressed${label?.let { " '$it'" } ?: ""} at ($x, $y)")
+        return try {
+            val ok = AccessibilityProxy.longPress(x, y)
+            if (!ok) {
+                ToolResult.error("Long press failed via accessibility service at ($x, $y)")
+            } else {
+                delay(POST_ACTION_DELAY_MS)
+                ToolResult.success("Long pressed${label?.let { " '$it'" } ?: ""} at ($x, $y)")
+            }
         } catch (e: Exception) {
-            return ToolResult.error("Long press failed: ${e.message}")
+            ToolResult.error("Long press failed: ${e.message}")
         }
     }
 
@@ -305,12 +324,16 @@ class DeviceTool(private val context: Context) : Tool {
             else -> return ToolResult.error("Invalid direction: $direction")
         }
 
-        try {
-            Runtime.getRuntime().exec(arrayOf("sh", "-c", "input swipe $sx $sy $ex $ey 300")).waitFor()
-            delay(POST_SCROLL_DELAY_MS)
-            return ToolResult.success("Scrolled $direction (amount=$amount)")
+        return try {
+            val ok = AccessibilityProxy.swipe(sx, sy, ex, ey, 300)
+            if (!ok) {
+                ToolResult.error("Scroll failed via accessibility service")
+            } else {
+                delay(POST_SCROLL_DELAY_MS)
+                ToolResult.success("Scrolled $direction (amount=$amount)")
+            }
         } catch (e: Exception) {
-            return ToolResult.error("Scroll failed: ${e.message}")
+            ToolResult.error("Scroll failed: ${e.message}")
         }
     }
 
@@ -324,12 +347,21 @@ class DeviceTool(private val context: Context) : Tool {
             return ToolResult.error("Swipe requires start_coordinate and coordinate (both [x, y])")
         }
 
-        try {
-            val cmd = "input swipe ${startCoord[0].toInt()} ${startCoord[1].toInt()} ${endCoord[0].toInt()} ${endCoord[1].toInt()} 300"
-            Runtime.getRuntime().exec(arrayOf("sh", "-c", cmd)).waitFor()
-            return ToolResult.success("Swiped from (${startCoord[0]}, ${startCoord[1]}) to (${endCoord[0]}, ${endCoord[1]})")
+        return try {
+            val ok = AccessibilityProxy.swipe(
+                startCoord[0].toInt(),
+                startCoord[1].toInt(),
+                endCoord[0].toInt(),
+                endCoord[1].toInt(),
+                300
+            )
+            if (ok) {
+                ToolResult.success("Swiped from (${startCoord[0]}, ${startCoord[1]}) to (${endCoord[0]}, ${endCoord[1]})")
+            } else {
+                ToolResult.error("Swipe failed via accessibility service")
+            }
         } catch (e: Exception) {
-            return ToolResult.error("Swipe failed: ${e.message}")
+            ToolResult.error("Swipe failed: ${e.message}")
         }
     }
 
