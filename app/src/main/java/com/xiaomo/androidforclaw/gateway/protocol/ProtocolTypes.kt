@@ -64,8 +64,20 @@ data class HelloOkFrame(
     val server: ServerInfo,
     val features: Features,
     val snapshot: Map<String, Any?>? = null,
+    val canvasHostUrl: String? = null,
+    val auth: HelloAuth? = null,
     val policy: Policy
 ) : Frame()
+
+/**
+ * Optional auth payload in hello-ok (aligned with OpenClaw)
+ */
+data class HelloAuth(
+    val deviceToken: String,
+    val role: String,
+    val scopes: List<String>,
+    val issuedAtMs: Long? = null
+)
 
 /**
  * Server information in Hello frame
