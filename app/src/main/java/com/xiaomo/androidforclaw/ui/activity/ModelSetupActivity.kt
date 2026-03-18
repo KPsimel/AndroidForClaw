@@ -59,6 +59,16 @@ class ModelSetupActivity : AppCompatActivity() {
 
         // Provider presets
         private val PROVIDERS = mapOf(
+            "mimo" to ProviderPreset(
+                name = "小米 MiMo (免费)",
+                baseUrl = "https://api.xiaomimimo.com/v1",
+                api = "openai-completions",
+                hint = "小米 MiMo 大模型，免费使用。注册: xiaomimimo.com",
+                models = listOf(
+                    ModelPreset("mimo-claw-0301", "MiMo Claw 0301 (免费，128K)", reasoning = false, contextWindow = 128000, maxTokens = 16384)
+                ),
+                authHeader = true
+            ),
             "openrouter" to ProviderPreset(
                 name = "OpenRouter",
                 baseUrl = "https://openrouter.ai/api/v1",
@@ -112,7 +122,7 @@ class ModelSetupActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityModelSetupBinding
     private val configLoader by lazy { ConfigLoader(this) }
-    private var selectedProvider = "openrouter"
+    private var selectedProvider = "mimo"
     private var advancedExpanded = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -160,11 +170,11 @@ class ModelSetupActivity : AppCompatActivity() {
                 "⚙️ 使用其他服务商（Anthropic / OpenAI / 自定义）"
             }
 
-            // If collapsing, reset to OpenRouter
-            if (!advancedExpanded && selectedProvider != "openrouter") {
-                selectedProvider = "openrouter"
-                binding.chipOpenrouter.isChecked = true
-                applyProviderPreset("openrouter")
+            // If collapsing, reset to MiMo
+            if (!advancedExpanded && selectedProvider != "mimo") {
+                selectedProvider = "mimo"
+                binding.chipMimo.isChecked = true
+                applyProviderPreset("mimo")
             }
         }
     }
@@ -172,11 +182,12 @@ class ModelSetupActivity : AppCompatActivity() {
     private fun setupProviderSelection() {
         binding.chipGroupProvider.setOnCheckedStateChangeListener { _, checkedIds ->
             val provider = when {
+                checkedIds.contains(R.id.chip_mimo) -> "mimo"
                 checkedIds.contains(R.id.chip_openrouter) -> "openrouter"
                 checkedIds.contains(R.id.chip_anthropic) -> "anthropic"
                 checkedIds.contains(R.id.chip_openai) -> "openai"
                 checkedIds.contains(R.id.chip_custom) -> "custom"
-                else -> "openrouter"
+                else -> "mimo"
             }
             selectedProvider = provider
             applyProviderPreset(provider)
@@ -247,9 +258,9 @@ class ModelSetupActivity : AppCompatActivity() {
     }
 
     private fun saveDefaultAndFinish() {
-        selectedProvider = "openrouter"
+        selectedProvider = "mimo"
         advancedExpanded = false
-        applyProviderPreset("openrouter")
+        applyProviderPreset("mimo")
         binding.etSetupApiKey.setText("")
         saveAndFinish()
     }
