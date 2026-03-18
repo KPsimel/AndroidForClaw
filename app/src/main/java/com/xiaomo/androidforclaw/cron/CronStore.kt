@@ -123,6 +123,19 @@ class CronPayloadAdapter : JsonSerializer<CronPayload>, JsonDeserializer<CronPay
                 json.addProperty("kind", "agentTurn")
                 json.addProperty("message", src.message)
                 src.model?.let { json.addProperty("model", it) }
+                src.fallbacks?.let { list ->
+                    val arr = JsonArray()
+                    list.forEach { arr.add(it) }
+                    json.add("fallbacks", arr)
+                }
+                src.thinking?.let { json.addProperty("thinking", it) }
+                src.timeoutSeconds?.let { json.addProperty("timeoutSeconds", it) }
+                src.deliver?.let { json.addProperty("deliver", it) }
+                src.channel?.let { json.addProperty("channel", it) }
+                src.to?.let { json.addProperty("to", it) }
+                src.bestEffortDeliver?.let { json.addProperty("bestEffortDeliver", it) }
+                src.lightContext?.let { json.addProperty("lightContext", it) }
+                src.allowUnsafeExternalContent?.let { json.addProperty("allowUnsafeExternalContent", it) }
             }
         }
         return json
@@ -133,8 +146,17 @@ class CronPayloadAdapter : JsonSerializer<CronPayload>, JsonDeserializer<CronPay
         return when (obj.get("kind").asString) {
             "systemEvent" -> CronPayload.SystemEvent(obj.get("text").asString)
             "agentTurn" -> CronPayload.AgentTurn(
-                obj.get("message").asString,
-                obj.get("model")?.asString
+                message = obj.get("message").asString,
+                model = obj.get("model")?.asString,
+                fallbacks = obj.getAsJsonArray("fallbacks")?.map { it.asString },
+                thinking = obj.get("thinking")?.asString,
+                timeoutSeconds = obj.get("timeoutSeconds")?.asInt,
+                deliver = obj.get("deliver")?.asBoolean,
+                channel = obj.get("channel")?.asString,
+                to = obj.get("to")?.asString,
+                bestEffortDeliver = obj.get("bestEffortDeliver")?.asBoolean,
+                lightContext = obj.get("lightContext")?.asBoolean,
+                allowUnsafeExternalContent = obj.get("allowUnsafeExternalContent")?.asBoolean
             )
             else -> throw IllegalArgumentException("Unknown payload kind")
         }
