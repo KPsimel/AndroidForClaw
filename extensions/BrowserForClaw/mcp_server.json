@@ -1,0 +1,154 @@
+{
+  "mcpServers": {
+    "browserforclaw": {
+      "command": "adb",
+      "args": [
+        "forward",
+        "tcp:58765",
+        "tcp:58765"
+      ],
+      "description": "BrowserForClaw - Android Browser Automation via MCP",
+      "endpoint": "http://localhost:58765",
+      "transport": "http",
+      "env": {},
+      "metadata": {
+        "version": "1.0.0",
+        "author": "forClaw Project",
+        "platform": "android",
+        "requires": {
+          "android_min_sdk": 24,
+          "adb": true,
+          "device_connected": true
+        },
+        "capabilities": {
+          "tools": true,
+          "resources": false,
+          "prompts": false
+        },
+        "tools_count": 13,
+        "tools": [
+          "browser_navigate",
+          "browser_click",
+          "browser_type",
+          "browser_get_content",
+          "browser_screenshot",
+          "browser_scroll",
+          "browser_wait",
+          "browser_execute",
+          "browser_hover",
+          "browser_select",
+          "browser_press",
+          "browser_get_cookies",
+          "browser_set_cookies"
+        ]
+      },
+      "api": {
+        "health": "GET http://localhost:58765/health",
+        "execute": "POST http://localhost:58765/api/browser/execute",
+        "mcp_initialize": "POST http://localhost:58765/mcp (planned)",
+        "mcp_tools_list": "POST http://localhost:58765/mcp (planned)",
+        "mcp_tools_call": "POST http://localhost:58765/mcp (planned)"
+      },
+      "usage_examples": {
+        "health_check": {
+          "method": "GET",
+          "url": "http://localhost:58765/health",
+          "description": "Check if server is running"
+        },
+        "navigate": {
+          "method": "POST",
+          "url": "http://localhost:58765/api/browser/execute",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "tool": "browser_navigate",
+            "args": {
+              "url": "https://www.baidu.com"
+            }
+          }
+        },
+        "click": {
+          "method": "POST",
+          "url": "http://localhost:58765/api/browser/execute",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "tool": "browser_click",
+            "args": {
+              "selector": "#search-button"
+            }
+          }
+        },
+        "screenshot": {
+          "method": "POST",
+          "url": "http://localhost:58765/api/browser/execute",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "tool": "browser_screenshot",
+            "args": {
+              "fullPage": false
+            }
+          }
+        }
+      },
+      "setup_instructions": {
+        "1_install_apk": "adb install extensions/BrowserForClaw/releases/BrowserForClaw-v0.5.1.apk",
+        "2_start_app": "adb shell am start -n info.plateaukao.einkbro/.activity.BrowserActivity",
+        "3_port_forward": "adb forward tcp:58765 tcp:58765",
+        "4_verify": "curl http://localhost:58765/health"
+      },
+      "troubleshooting": {
+        "connection_refused": {
+          "problem": "Cannot connect to http://localhost:58765",
+          "solutions": [
+            "Check if app is running: adb shell ps | grep einkbro",
+            "Restart app: adb shell am force-stop info.plateaukao.einkbro && adb shell am start -n info.plateaukao.einkbro/.activity.BrowserActivity",
+            "Reset port forwarding: adb forward --remove-all && adb forward tcp:58765 tcp:58765",
+            "Check logs: adb logcat | grep BrowserHttpServer"
+          ]
+        },
+        "port_in_use": {
+          "problem": "EADDRINUSE (Address already in use)",
+          "solutions": [
+            "Kill existing process: adb shell am force-stop info.plateaukao.einkbro",
+            "Check port forwarding: adb forward --list",
+            "Remove all forwards: adb forward --remove-all"
+          ]
+        },
+        "no_device": {
+          "problem": "No Android device connected",
+          "solutions": [
+            "Connect device via USB",
+            "Enable USB debugging on device",
+            "Check connection: adb devices"
+          ]
+        }
+      }
+    }
+  },
+  "global": {
+    "log_level": "info",
+    "timeout": 30000,
+    "retry": {
+      "max_attempts": 3,
+      "delay_ms": 1000
+    }
+  },
+  "notes": {
+    "current_status": "REST API fully implemented, MCP protocol (JSON-RPC 2.0) planned",
+    "protocol_version": "REST API (current), MCP 2024-11-05 (planned)",
+    "documentation": [
+      "extensions/BrowserForClaw/MCP_SERVER_IMPLEMENTATION.md",
+      "extensions/BrowserForClaw/CLAUDE.md",
+      "extensions/BrowserForClaw/TOOLS_REFERENCE.md"
+    ],
+    "related_projects": {
+      "openclaw": "~/file/forclaw/OpenClaw",
+      "androidforclaw": "~/file/forclaw/phoneforclaw"
+    }
+  }
+}

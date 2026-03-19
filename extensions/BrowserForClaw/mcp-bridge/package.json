@@ -1,0 +1,25 @@
+{
+  "name": "browserforclaw-mcp-bridge",
+  "version": "1.0.0",
+  "description": "MCP Bridge for BrowserForClaw - Converts REST API to MCP Protocol",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "mcp",
+    "browser",
+    "automation",
+    "android"
+  ],
+  "author": "forClaw Project",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.5.0",
+    "axios": "^1.6.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

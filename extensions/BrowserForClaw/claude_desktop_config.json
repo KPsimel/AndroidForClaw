@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "browserforclaw": {
+      "command": "node",
+      "args": [
+        "/Users/qiao/file/forclaw/phoneforclaw/extensions/BrowserForClaw/mcp-bridge/index.js"
+      ],
+      "env": {
+        "BROWSER_API_URL": "http://localhost:58765",
+        "LOG_LEVEL": "info"
+      }
+    }
+  }
+}
