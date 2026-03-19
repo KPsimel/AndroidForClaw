@@ -223,6 +223,44 @@ class TermuxBridgeTool(private val context: Context) : Tool {
         return getStatus()
     }
 
+    /**
+     * Clipboard-based setup: copy command to clipboard + launch Termux.
+     * Works on all devices including Xiaomi/HyperOS where RUN_COMMAND is broken.
+     */
+    fun copySetupCommandAndLaunch(): String {
+        // Generate keypair if missing
+        ensureKeypair()
+
+        // Build the setup command (system-shell compatible for Xiaomi)
+        val command = "export PREFIX=/data/data/com.termux/files/usr && " +
+            "export LD_LIBRARY_PATH=\$PREFIX/lib && " +
+            "export PATH=\$PREFIX/bin:\$PATH && " +
+            "export HOME=/data/data/com.termux/files/home && " +
+            "pkg install -y openssh && " +
+            "mkdir -p \$HOME/.ssh && " +
+            "cat /sdcard/.androidforclaw/.ssh/id_ed25519.pub >> \$HOME/.ssh/authorized_keys && " +
+            "chmod 700 \$HOME/.ssh && " +
+            "chmod 600 \$HOME/.ssh/authorized_keys && " +
+            "sshd && echo '✅ SSH configured'"
+
+        // Copy to clipboard
+        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+        clipboard.setPrimaryClip(android.content.ClipData.newPlainText("termux-setup", command))
+
+        // Launch Termux
+        try {
+            val intent = context.packageManager.getLaunchIntentForPackage(TERMUX_PACKAGE)
+            if (intent != null) {
+                intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                context.startActivity(intent)
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to launch Termux: ${e.message}")
+        }
+
+        return command
+    }
+
     private suspend fun ensureSSHReady(): Boolean {
         if (isSSHReachable() && hasCredentials()) return true
         if (!isTermuxInstalled() || !isRunCommandPermissionDeclared() || !isRunCommandServiceAvailable()) return false

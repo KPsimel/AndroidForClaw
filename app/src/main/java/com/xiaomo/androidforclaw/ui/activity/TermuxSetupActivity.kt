@@ -167,31 +167,14 @@ fun TermuxSetupScreen(onBack: () -> Unit) {
                     Spacer(Modifier.height(8.dp))
                     Button(
                         onClick = {
-                            // Check if we need runtime permission first
-                            if (bridge.needsRuntimePermissionRequest()) {
-                                permissionLauncher.launch("com.termux.permission.RUN_COMMAND")
-                            } else {
-                                scope.launch {
-                                    autoSettingUp = true
-                                    val status = withContext(Dispatchers.IO) { bridge.triggerAutoSetup() }
-                                    termuxInstalled = status.termuxInstalled
-                                    termuxApiInstalled = status.termuxApiInstalled
-                                    sshReachable = status.sshReachable
-                                    sshConfigured = status.sshConfigPresent
-                                    statusMessage = status.message
-                                    autoSettingUp = false
-                                }
-                            }
+                            // Clipboard-based setup: copy command + open Termux
+                            val cmd = bridge.copySetupCommandAndLaunch()
+                            statusMessage = "命令已复制到剪贴板，请在 Termux 中长按粘贴并回车"
+                            Toast.makeText(context, "✅ 命令已复制，长按粘贴后回车", Toast.LENGTH_LONG).show()
                         },
-                        enabled = termuxInstalled && !autoSettingUp && !(sshReachable && sshConfigured)
+                        enabled = termuxInstalled && !(sshReachable && sshConfigured)
                     ) {
-                        if (autoSettingUp) {
-                            CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
-                            Spacer(Modifier.width(8.dp))
-                            Text("自动配置中...")
-                        } else {
-                            Text("尝试自动配置")
-                        }
+                        Text("一键配置（复制+打开Termux）")
                     }
                 }
             }
@@ -219,7 +202,7 @@ fun TermuxSetupScreen(onBack: () -> Unit) {
             StepCard(
                 step = 2,
                 title = "打开 Termux，粘贴一行命令",
-                description = "复制命令 → 打开 Termux → 长按粘贴 → 回车\n（自动配置不成功时的手动方案，适用于小米等设备）",
+                description = "点击下方按钮 → 命令自动复制 → Termux 自动打开 → 长按粘贴 → 回车",
                 done = sshReachable && sshConfigured
             )
 
