@@ -88,12 +88,13 @@ class ModelSetupActivity : AppCompatActivity() {
                 )
             ),
             "mimo" to ProviderPreset(
-                name = "小米 MiMo (免费)",
-                baseUrl = "https://api.xiaomimimo.com/v1",
-                api = "openai-completions",
+                name = "小米 MiMo",
+                baseUrl = "https://api.xiaomimimo.com/anthropic",
+                api = "anthropic-messages",
                 hint = "小米 MiMo 大模型，免费使用。注册: xiaomimimo.com",
                 models = listOf(
-                    ModelPreset("mimo-claw-0301", "MiMo Claw 0301 (免费，128K)", reasoning = false, contextWindow = 128000, maxTokens = 16384)
+                    ModelPreset("mimo-v2-flash", "MiMo V2 Flash (免费，262K)", reasoning = false, contextWindow = 262144, maxTokens = 8192),
+                    ModelPreset("mimo-v2-pro", "MiMo V2 Pro (128K)", reasoning = false, contextWindow = 128000, maxTokens = 16384)
                 ),
                 authHeader = true
             ),

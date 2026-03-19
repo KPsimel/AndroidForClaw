@@ -125,8 +125,8 @@ object ProviderRegistry {
     /** OpenClaw auth-profiles-UpqQjKB-.js:2543 */
     private const val QIANFAN_BASE_URL = "https://qianfan.baidubce.com/v2"
 
-    /** MiMo — OpenAI 兼容接口 */
-    private const val XIAOMI_BASE_URL = "https://api.xiaomimimo.com/v1"
+    /** MiMo — 对齐 OpenClaw 官方配置 */
+    private const val XIAOMI_BASE_URL = "https://api.xiaomimimo.com/anthropic"
 
     /** OpenClaw auth-profiles-UpqQjKB-.js:2337 */
     private const val TOGETHER_BASE_URL = "https://api.together.xyz/v1"
@@ -561,7 +561,7 @@ object ProviderRegistry {
         name = "小米 (MiMo)",
         description = "小米 MiMo 大模型",
         baseUrl = XIAOMI_BASE_URL,
-        api = ModelApi.OPENAI_COMPLETIONS, // MiMo 使用 OpenAI 兼容接口
+        api = ModelApi.ANTHROPIC_MESSAGES, // 对齐 OpenClaw 官方配置
         keyRequired = true,
         keyHint = "小米 API Key",
         envVarName = "XIAOMI_API_KEY",
@@ -571,7 +571,10 @@ object ProviderRegistry {
             "获取 API Key"
         ),
         tutorialUrl = "https://api.xiaomimimo.com/",
-        presetModels = emptyList(),
+        presetModels = listOf(
+            PresetModel("mimo-v2-flash", "MiMo V2 Flash (免费，262K)", reasoning = false, contextWindow = 262144, maxTokens = 8192),
+            PresetModel("mimo-v2-pro", "MiMo V2 Pro (128K)", reasoning = false, contextWindow = 128000, maxTokens = 16384)
+        ),
         supportsDiscovery = false,
         group = ProviderGroup.PRIMARY,
         order = 140
