@@ -188,20 +188,10 @@ class TermuxBridgeTool(private val context: Context) : Tool {
 
     private fun isSSHReachable(): Boolean {
         return try {
-            // Use NIO SocketChannel for non-blocking connect with reliable timeout
-            val ch = java.nio.channels.SocketChannel.open()
-            ch.configureBlocking(false)
-            ch.connect(java.net.InetSocketAddress(SSH_HOST, SSH_PORT))
-            val connected = ch.finishConnect() || run {
-                // Wait up to 1 second for connection
-                val sel = java.nio.channels.Selector.open()
-                ch.register(sel, java.nio.channels.SelectionKey.OP_CONNECT)
-                val ready = sel.select(1000L) > 0 && ch.finishConnect()
-                sel.close()
-                ready
-            }
-            ch.close()
-            connected
+            val socket = java.net.Socket()
+            socket.connect(java.net.InetSocketAddress(SSH_HOST, SSH_PORT), 2000)
+            socket.close()
+            true
         } catch (e: Exception) {
             false
         }
