@@ -557,7 +557,7 @@ object ProviderRegistry {
     )
 
     val XIAOMI = ProviderDefinition(
-        id = "xiaomi",
+        id = "mimo",
         name = "小米 (MiMo)",
         description = "小米 MiMo 大模型",
         baseUrl = XIAOMI_BASE_URL,
