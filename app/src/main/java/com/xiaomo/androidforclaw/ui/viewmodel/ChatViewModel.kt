@@ -137,13 +137,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             val sessionId = currentSession.value.id
             Log.d(TAG, "🔍 [Sync Check] Session: $sessionId")
 
-            // If it's a backend session, messages are already synced in loadSessionsFromBackend
-            if (isBackendSession(sessionId)) {
-                Log.d(TAG, "⏭️ [Sync Skip] Backend session")
-                return
-            }
-
-            // UI local session - use current session ID as backend session key
+            // Use current session ID as backend session key
             val agentSessionManager = com.xiaomo.androidforclaw.core.MainEntryNew.getSessionManager()
             if (agentSessionManager == null) {
                 Log.w(TAG, "⚠️ [Sync] SessionManager not initialized")
