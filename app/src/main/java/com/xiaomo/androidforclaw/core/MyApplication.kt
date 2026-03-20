@@ -952,6 +952,12 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                     Log.w(TAG, "清理输入中表情失败", cleanupError)
                 }
             }
+            // 发送错误提示给用户，避免静默无回复
+            try {
+                sendFeishuReply(event, "⚠️ 处理消息时出错：${e.message?.take(200) ?: "未知错误"}")
+            } catch (sendError: Exception) {
+                Log.e(TAG, "发送错误提示也失败了", sendError)
+            }
         }
     }
 
@@ -1131,6 +1137,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                 val queueMode = getQueueModeForChat(event.chatId, event.chatType)
 
                 // 🚀 Enqueue message for processing (fully aligned with OpenClaw)
+                // 整体超时保护：单条消息处理不超过 5 分钟，防止队列阻塞
                 GlobalScope.launch(Dispatchers.IO) {
                     try {
                         messageQueueManager.enqueue(
@@ -1138,11 +1145,18 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                             message = queuedMessage,
                             mode = queueMode
                         ) { msg ->
-                            // Restore original event from metadata
-                            val originalEvent = msg.metadata["event"] as? com.xiaomo.feishu.FeishuEvent.Message
-                                ?: event
-                            processFeishuMessageWithTyping(originalEvent, msg)
+                            kotlinx.coroutines.withTimeout(5 * 60 * 1000L) {
+                                // Restore original event from metadata
+                                val originalEvent = msg.metadata["event"] as? com.xiaomo.feishu.FeishuEvent.Message
+                                    ?: event
+                                processFeishuMessageWithTyping(originalEvent, msg)
+                            }
                         }
+                    } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
+                        Log.e(TAG, "消息处理超时 (5min)，队列已释放", e)
+                        try {
+                            sendFeishuReply(event, "⚠️ 处理超时，请重试")
+                        } catch (_: Exception) {}
                     } catch (e: Exception) {
                         Log.e(TAG, "消息队列处理失败", e)
                     }
@@ -1152,7 +1166,22 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
                 Log.i(TAG, "✅ Feishu WebSocket 已连接")
             }
             is com.xiaomo.feishu.FeishuEvent.Disconnected -> {
-                Log.w(TAG, "⚠️ Feishu WebSocket 已断开")
+                Log.w(TAG, "⚠️ Feishu WebSocket 已断开，5 秒后尝试重连...")
+                GlobalScope.launch(Dispatchers.IO) {
+                    kotlinx.coroutines.delay(5000)
+                    try {
+                        Log.i(TAG, "🔄 尝试重连 Feishu WebSocket...")
+                        feishuChannel?.stop()
+                        val result = feishuChannel?.start()
+                        if (result?.isSuccess == true) {
+                            Log.i(TAG, "✅ Feishu WebSocket 重连成功")
+                        } else {
+                            Log.e(TAG, "❌ Feishu WebSocket 重连失败: ${result?.exceptionOrNull()?.message}")
+                        }
+                    } catch (e: Exception) {
+                        Log.e(TAG, "❌ Feishu WebSocket 重连异常", e)
+                    }
+                }
             }
             is com.xiaomo.feishu.FeishuEvent.Error -> {
                 Log.e(TAG, "❌ Feishu 错误: ${event.error.message}")
