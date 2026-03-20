@@ -663,7 +663,7 @@ class ConfigLoader(private val context: Context) {
     // ============ Public API ============
 
     fun getProviderConfig(providerName: String): ProviderConfig? {
-        return loadOpenClawConfig().resolveProviders()[providerName]
+        return loadOpenClawConfigFresh().resolveProviders()[providerName]
     }
 
     fun getModelDefinition(providerName: String, modelId: String): ModelDefinition? {
@@ -671,16 +671,25 @@ class ConfigLoader(private val context: Context) {
     }
 
     fun listAllModels(): List<Pair<String, ModelDefinition>> {
-        val config = loadOpenClawConfig()
+        val config = loadOpenClawConfigFresh()
         return config.resolveProviders().flatMap { (name, provider) ->
             provider.models.map { name to it }
         }
     }
 
     fun findProviderByModelId(modelId: String): String? {
-        return loadOpenClawConfig().resolveProviders().entries.find { (_, provider) ->
+        return loadOpenClawConfigFresh().resolveProviders().entries.find { (_, provider) ->
             provider.models.any { it.id == modelId }
         }?.key
+    }
+
+    /**
+     * 强制从磁盘读取配置，忽略缓存。
+     * 用于 LLM 请求路径，确保获取最新配置（避免跨 ConfigLoader 实例的缓存不一致）。
+     */
+    private fun loadOpenClawConfigFresh(): OpenClawConfig {
+        openclawConfigCacheValid = false
+        return loadOpenClawConfig()
     }
 
     /**
