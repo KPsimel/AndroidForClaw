@@ -69,6 +69,7 @@ class AgentLoop(
         private const val MAX_OVERFLOW_RECOVERY_ATTEMPTS = 3  // Aligned with OpenClaw
         private const val LLM_TIMEOUT_MS = 180_000L  // LLM single call timeout: 180 seconds (free models can be slow)
         private const val MAX_CONSECUTIVE_ERRORS = 3  // Consecutive same error threshold: 3 times
+        private const val AGENT_LOOP_TOTAL_TIMEOUT_MS = 4 * 60 * 1000L  // 整个 AgentLoop 最大运行 4 分钟
 
         // Context pruning constants (aligned with OpenClaw DEFAULT_CONTEXT_PRUNING_SETTINGS)
         private const val SOFT_TRIM_RATIO = 0.3f
@@ -325,9 +326,18 @@ class AgentLoop(
         var iteration = 0
         var finalContent: String? = null
         val toolsUsed = mutableListOf<String>()
+        val loopStartTime = System.currentTimeMillis()
 
         // 4. Main loop
         while (iteration < maxIterations && !shouldStop) {
+            // 整体超时检查
+            val elapsed = System.currentTimeMillis() - loopStartTime
+            if (elapsed > AGENT_LOOP_TOTAL_TIMEOUT_MS) {
+                writeLog("⏰ AgentLoop 整体超时 (${elapsed}ms > ${AGENT_LOOP_TOTAL_TIMEOUT_MS}ms)")
+                Log.w(TAG, "AgentLoop total timeout after ${elapsed}ms")
+                finalContent = "⚠️ 处理超时（已运行 ${elapsed / 1000}s），请简化问题或重试"
+                break
+            }
             iteration++
             val iterationStartTime = System.currentTimeMillis()
             writeLog("========== Iteration $iteration ==========")
@@ -713,8 +723,14 @@ class AgentLoop(
 
                     // Try to continue or stop
                     if (e.message?.contains("timeout", ignoreCase = true) == true) {
-                        // Timeout error, can retry
-                        writeLog("Timeout error, retrying...")
+                        // Timeout error, can retry (but track for consecutive error detection)
+                        val errorMsg = "Timeout: ${e.message?.take(100)}"
+                        writeLog("Timeout error, retrying... ($errorMsg)")
+                        if (trackError(errorMsg)) {
+                            shouldStop = true
+                            finalContent = "任务失败: 连续超时 - $errorMsg"
+                            break
+                        }
                         continue
                     } else {
                         // Other errors, stop loop and format error message
