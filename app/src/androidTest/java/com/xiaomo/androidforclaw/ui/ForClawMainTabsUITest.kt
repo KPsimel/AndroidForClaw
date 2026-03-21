@@ -14,14 +14,12 @@ import org.junit.runner.RunWith
 import org.junit.runners.MethodSorters
 
 /**
- * ForClaw 主界面 UI 主线测试（精简版）
+ * ForClaw 主界面 UI 主线测试
  *
  * 关键路径:
- * 1. Connect Tab 四卡片可见（LLM API / Gateway / Channels / Skills）
- * 2. Connect Tab "修改配置" 跳转到 ModelConfigActivity（非引导页）
- * 3. Settings Tab 显示 ForClaw 设置（非 OpenClaw 原版）
- * 4. Settings 中 "模型配置" 可跳转
- * 5. Connect ↔ Settings 来回切换不崩溃
+ * 1. Connect 四卡片可见，"修改配置" 跳转正确
+ * 2. Settings 显示 ForClaw 内容；模型配置可跳转
+ * 3. Connect ↔ Settings 来回切换不崩溃
  */
 @RunWith(AndroidJUnit4::class)
 @LargeTest
@@ -40,24 +38,18 @@ class ForClawMainTabsUITest {
     fun setUp() {
         val instr = InstrumentationRegistry.getInstrumentation()
         device = UiDevice.getInstance(instr)
-
-        // 确保存储权限
         instr.uiAutomation.executeShellCommand(
             "appops set $PKG MANAGE_EXTERNAL_STORAGE allow"
         ).close()
 
-        // 通过 ActivityScenario 启动（在 test 进程内，不会被框架 close 掉）
         val intent = Intent(ApplicationProvider.getApplicationContext(), MainActivityCompose::class.java)
         scenario = ActivityScenario.launch(intent)
 
-        // 如果 ModelSetupActivity 拦截，按 Back 关闭
         Thread.sleep(2000)
         if (device.findObject(UiSelector().textContains("欢迎使用")).exists()) {
             device.pressBack()
             Thread.sleep(1000)
         }
-
-        // 等待 Compose 渲染
         device.findObject(UiSelector().text("Connect")).waitForExists(TIMEOUT)
         device.waitForIdle()
     }
@@ -75,99 +67,73 @@ class ForClawMainTabsUITest {
         return obj
     }
 
-    private fun hasText(text: String, timeout: Long = 2_000L): Boolean {
-        return device.findObject(UiSelector().textContains(text)).waitForExists(timeout)
-    }
+    private fun hasText(text: String, timeout: Long = 2_000L): Boolean =
+        device.findObject(UiSelector().textContains(text)).waitForExists(timeout)
 
+    /** Exact-match tab click — avoids hitting "Connected" when targeting "Connect" */
     private fun clickTab(label: String) {
-        findText(label).click()
+        val obj = device.findObject(UiSelector().text(label))
+        assertTrue("Tab '$label' not found within ${TIMEOUT}ms", obj.waitForExists(TIMEOUT))
+        obj.click()
         device.waitForIdle()
+        Thread.sleep(600)
     }
 
     private fun scrollDown() {
-        val h = device.displayHeight
-        val w = device.displayWidth
-        device.swipe(w / 2, h * 3 / 4, w / 2, h / 4, 15)
+        device.swipe(device.displayWidth / 2, device.displayHeight * 3 / 4,
+                     device.displayWidth / 2, device.displayHeight / 4, 15)
         device.waitForIdle()
     }
 
     private fun scrollUntilText(text: String, maxSwipes: Int = 5): Boolean {
         if (hasText(text, 1000)) return true
-        repeat(maxSwipes) {
-            scrollDown()
-            if (hasText(text, 1000)) return true
-        }
+        repeat(maxSwipes) { scrollDown(); if (hasText(text, 1000)) return true }
         return false
     }
 
     // ── Tests ────────────────────────────────────────────────────────────
 
-    /**
-     * Connect Tab 四个状态卡片都可见
-     */
+    /** Connect 四卡片可见，"修改配置" 跳转到 ModelConfigActivity 不打开引导页 */
     @Test
-    fun test01_connectTab_allCardsVisible() {
+    fun test01_connectTab() {
         clickTab("Connect")
         findText("LLM API")
         findText("本地 Gateway")
         findText("Channels")
         findText("Skills")
-    }
 
-    /**
-     * "修改配置" 跳转到 ModelConfigActivity，不应打开引导页
-     */
-    @Test
-    fun test02_connectTab_modifyConfig_opensConfigNotSetup() {
-        clickTab("Connect")
         findText("修改配置").click()
-        Thread.sleep(1500)
+        Thread.sleep(1200)
         device.waitForIdle()
-
         assertEquals("Should stay in app", PKG, device.currentPackageName)
-        assertFalse("Should NOT open ModelSetupActivity (引导页)",
-            hasText("欢迎使用", 2000))
-
+        assertFalse("Should NOT open 引导页", hasText("欢迎使用", 2000))
         device.pressBack()
         device.waitForIdle()
     }
 
-    /**
-     * Settings Tab 显示 ForClaw 设置，而非 OpenClaw 原版
-     */
+    /** Settings 显示 ForClaw 内容；模型配置可跳转 */
     @Test
-    fun test03_settingsTab_showsForClawSettings() {
+    fun test02_settingsTab() {
         clickTab("Settings")
         findText("模型配置")
         findText("Channels")
-
-        assertFalse("Should NOT show OpenClaw settings",
-            hasText("Node Identity", 2000))
-
-        assertTrue("Termux 配置 should be visible", scrollUntilText("Termux 配置"))
+        assertFalse("Should NOT show OpenClaw settings", hasText("Node Identity", 2000))
+        assertTrue("Termux 配置 should be visible",  scrollUntilText("Termux 配置"))
         assertTrue("openclaw.json should be visible", scrollUntilText("openclaw.json"))
-        assertTrue("检查更新 should be visible", scrollUntilText("检查更新"))
-    }
+        assertTrue("检查更新 should be visible",      scrollUntilText("检查更新"))
 
-    /**
-     * Settings "模型配置" 点击可跳转
-     */
-    @Test
-    fun test04_settingsTab_modelConfig_navigates() {
-        clickTab("Settings")
+        scrollUntilText("模型配置")
         findText("模型配置").click()
-        Thread.sleep(1500)
+        Thread.sleep(1200)
         device.waitForIdle()
         assertEquals("Should stay in app", PKG, device.currentPackageName)
         device.pressBack()
         device.waitForIdle()
     }
 
-    /**
-     * Connect ↔ Settings 来回切换不崩溃
-     */
+    /** Connect ↔ Settings 来回切换不崩溃 */
     @Test
-    fun test05_tabSwitch_connectAndSettings() {
+    fun test03_tabSwitch_nocrash() {
         clickTab("Connect")
         findText("LLM API")
 
