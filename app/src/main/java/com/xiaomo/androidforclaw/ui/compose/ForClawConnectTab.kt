@@ -169,6 +169,23 @@ fun ForClawConnectTab() {
             ),
         )
 
+        // ── MCP Server（给外部 Agent 用，非 AndroidForClaw 自身）───
+        val mcpRunning = remember { mutableStateOf(com.xiaomo.androidforclaw.mcp.ObserverMcpServer.isRunning()) }
+        StatusCard(
+            title = "MCP Server",
+            icon = Icons.Default.Dns,
+            rows = listOf(
+                StatusRow("状态", if (mcpRunning.value) "运行中" else "已停止",
+                    if (mcpRunning.value) StatusLevel.Ok else StatusLevel.Neutral),
+                StatusRow("端口", "${com.xiaomo.androidforclaw.mcp.ObserverMcpServer.DEFAULT_PORT}"),
+            ),
+            onClick = {
+                context.startActivity(Intent(context,
+                    com.xiaomo.androidforclaw.ui.activity.McpConfigActivity::class.java))
+            },
+            clickLabel = "配置",
+        )
+
         // ── 权限 ─────────────────────────────────────────────
         val allPermissionsOk = accessibilityOk && overlayOk && screenCaptureOk
         StatusCard(

@@ -162,6 +162,13 @@
             android:screenOrientation="portrait"
             android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar" />
 
+        <!-- MCP Server 配置页面（给外部 Agent 用，与 AndroidForClaw 自身无关） -->
+        <activity
+            android:name="com.xiaomo.androidforclaw.ui.activity.McpConfigActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar" />
+
         <!-- Discord Channel 配置页面 -->
         <activity
             android:name="com.xiaomo.androidforclaw.ui.activity.DiscordChannelActivity"
