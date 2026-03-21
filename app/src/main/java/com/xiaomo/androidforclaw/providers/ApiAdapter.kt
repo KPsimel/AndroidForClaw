@@ -74,6 +74,18 @@ object ApiAdapter {
     }
 
     /**
+     * OpenRouter app attribution headers.
+     * OpenRouter uses HTTP-Referer and X-Title to identify the calling app.
+     * When AppName=OpenClaw, certain models (e.g. MiMo) are free.
+     *
+     * Aligned with OpenClaw OPENROUTER_APP_HEADERS (proxy-stream-wrappers.ts).
+     */
+    private val OPENROUTER_APP_HEADERS = mapOf(
+        "HTTP-Referer" to "https://openclaw.ai",
+        "X-Title" to "OpenClaw"
+    )
+
+    /**
      * 构建请求头
      */
     fun buildHeaders(
@@ -81,6 +93,15 @@ object ApiAdapter {
         model: ModelDefinition
     ): Headers {
         val builder = Headers.Builder()
+
+        // OpenRouter app attribution headers (must be present on ALL requests
+        // including compaction, image analysis, etc. to avoid "Unknown" app name
+        // and unexpected billing). Aligned with OpenClaw createOpenRouterWrapper().
+        if (isOpenRouterProvider(provider)) {
+            OPENROUTER_APP_HEADERS.forEach { (key, value) ->
+                builder.add(key, value)
+            }
+        }
 
         // Provider-level custom headers
         provider.headers?.forEach { (key, value) ->
@@ -115,6 +136,13 @@ object ApiAdapter {
         builder.add("Content-Type", "application/json")
 
         return builder.build()
+    }
+
+    /**
+     * Detect if a provider is OpenRouter based on its baseUrl.
+     */
+    private fun isOpenRouterProvider(provider: ProviderConfig): Boolean {
+        return provider.baseUrl.contains("openrouter.ai", ignoreCase = true)
     }
 
     /**

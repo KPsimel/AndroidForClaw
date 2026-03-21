@@ -52,6 +52,10 @@ android {
         multiDexEnabled true
     }
 
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
+
     lint {
         checkReleaseBuilds false
         abortOnError false
