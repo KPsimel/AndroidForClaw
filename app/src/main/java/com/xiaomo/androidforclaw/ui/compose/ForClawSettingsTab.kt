@@ -318,6 +318,24 @@ private fun AboutSection() {
                 cb.setPrimaryClip(android.content.ClipData.newPlainText("WeChat", "xiaomocn"))
                 android.widget.Toast.makeText(context, "已复制", android.widget.Toast.LENGTH_SHORT).show()
             })
+            AboutRow("飞书体验群", "点击加入", onClick = {
+                try {
+                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(
+                        "https://applink.feishu.cn/client/chat/chatter/add_by_link?link_token=566r8836-6547-43e0-b6be-d6c4a5b12b74"
+                    )))
+                } catch (_: Exception) {
+                    android.widget.Toast.makeText(context, "无法打开链接", android.widget.Toast.LENGTH_SHORT).show()
+                }
+            })
+            AboutRow("GitHub 仓库", "查看源码 / 提交 Issue", onClick = {
+                try {
+                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(
+                        "https://github.com/SelectXn00b/AndroidForClaw"
+                    )))
+                } catch (_: Exception) {
+                    android.widget.Toast.makeText(context, "无法打开链接", android.widget.Toast.LENGTH_SHORT).show()
+                }
+            })
         }
     }
 }
