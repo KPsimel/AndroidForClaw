@@ -26,8 +26,10 @@ import com.xiaomo.androidforclaw.gateway.protocol.EventFrame
 import com.xiaomo.androidforclaw.gateway.security.TokenAuth
 import com.xiaomo.androidforclaw.gateway.websocket.GatewayWebSocketServer
 import fi.iki.elonen.NanoHTTPD
+import com.xiaomo.androidforclaw.providers.LegacyMessage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import com.xiaomo.androidforclaw.logging.Log
@@ -61,8 +63,8 @@ class GatewayController(
     private var tokenAuth: TokenAuth? = null
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
-    // Per-session message history: sessionKey -> list of messages
-    private val chatHistory = ConcurrentHashMap<String, MutableList<Map<String, Any?>>>()
+    // Active agent runs: runId -> coroutine Job (for abort support)
+    private val activeJobs = ConcurrentHashMap<String, Job>()
 
     private lateinit var agentMethods: AgentMethods
     private lateinit var sessionMethods: SessionMethods
@@ -130,44 +132,48 @@ class GatewayController(
                     val p = params as? Map<String, Any?> ?: emptyMap()
                     val sessionKey = p["sessionKey"] as? String ?: "default"
                     val userMsg = p["message"] as? String ?: ""
+                    val thinking = p["thinking"] as? String ?: "off"
+                    val reasoningEnabled = thinking != "off"
+                    @Suppress("UNCHECKED_CAST")
+                    val attachments = p["attachments"] as? List<Map<String, Any?>> ?: emptyList()
                     val runId = "run_${UUID.randomUUID()}"
 
-                    // Store user message in history
-                    val messages = chatHistory.getOrPut(sessionKey) { mutableListOf() }
-                    val userMsgObj = mapOf(
-                        "role" to "user",
-                        "content" to listOf(mapOf("type" to "text", "text" to userMsg)),
-                        "timestamp" to System.currentTimeMillis()
-                    )
-                    synchronized(messages) { messages.add(userMsgObj) }
+                    // Build content as raw maps — lossless roundtrip through SessionManager
+                    val textPart: Map<String, Any?> = mapOf("type" to "text", "text" to userMsg)
+                    val userContent: Any = if (attachments.isEmpty()) {
+                        userMsg
+                    } else {
+                        mutableListOf(textPart).apply { addAll(attachments) }
+                    }
 
-                    serviceScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                    // Store user message via SessionManager
+                    val session = sessionManager.getOrCreate(sessionKey)
+                    session.addMessage(LegacyMessage(role = "user", content = userContent))
+                    sessionManager.save(session)
+
+                    val job = serviceScope.launch(kotlinx.coroutines.Dispatchers.IO) {
                         try {
                             val result = agentLoop.run(
                                 systemPrompt = "You are a helpful AI assistant.",
                                 userMessage = userMsg,
                                 contextHistory = emptyList(),
-                                reasoningEnabled = false
+                                reasoningEnabled = reasoningEnabled
                             )
                             val text = result.finalContent
                             val msgId = "msg_${UUID.randomUUID()}"
                             val nowMs = System.currentTimeMillis()
 
-                            // Store assistant message in history
-                            val assistantMsg = mapOf(
-                                "role" to "assistant",
-                                "content" to listOf(mapOf("type" to "text", "text" to text)),
-                                "timestamp" to nowMs
-                            )
-                            synchronized(messages) { messages.add(assistantMsg) }
+                            // Store assistant message via SessionManager
+                            session.addMessage(LegacyMessage(role = "assistant", content = text))
+                            sessionManager.save(session)
 
-                            // OpenClaw client expects "stream" (not "type") and data["text"] (not data["delta"])
+                            // OpenClaw client expects "stream" and data["text"]
                             server?.broadcast(EventFrame(event = "agent", payload = mapOf(
                                 "sessionKey" to sessionKey,
                                 "stream" to "assistant",
                                 "data" to mapOf("text" to text)
                             )))
-                            // OpenClaw client expects "state" (not "type") in chat events
+                            // OpenClaw client expects "state" in chat events
                             server?.broadcast(EventFrame(event = "chat", payload = mapOf(
                                 "state" to "final",
                                 "sessionKey" to sessionKey,
@@ -186,8 +192,11 @@ class GatewayController(
                                 "stream" to "error",
                                 "data" to mapOf("error" to (e.message ?: "error"))
                             )))
+                        } finally {
+                            activeJobs.remove(runId)
                         }
                     }
+                    activeJobs[runId] = job
 
                     mapOf("runId" to runId)
                 }
@@ -197,15 +206,17 @@ class GatewayController(
                     @Suppress("UNCHECKED_CAST")
                     val p = params as? Map<String, Any?> ?: emptyMap()
                     val sessionKey = p["sessionKey"] as? String ?: "default"
-                    val messages = chatHistory[sessionKey]
-                    val messageList = if (messages != null) {
-                        synchronized(messages) { messages.toList() }
-                    } else {
-                        emptyList()
-                    }
+                    val session = sessionManager.get(sessionKey)
+                    val messageList = session?.messages?.map { msg ->
+                        mapOf(
+                            "role" to msg.role,
+                            "content" to legacyContentToOpenClaw(msg.content),
+                            "timestamp" to System.currentTimeMillis()
+                        )
+                    } ?: emptyList()
                     mapOf(
                         "sessionKey" to sessionKey,
-                        "sessionId" to null,
+                        "sessionId" to session?.sessionId,
                         "thinkingLevel" to null,
                         "messages" to messageList
                     )
@@ -216,8 +227,23 @@ class GatewayController(
                     mapOf("ok" to true, "agentBusy" to false)
                 }
 
-                // chat.abort: abort the current chat run (best-effort stub).
-                registerMethod("chat.abort") { _ ->
+                // chat.abort: cancel the running agent for the given runId.
+                registerMethod("chat.abort") { params ->
+                    @Suppress("UNCHECKED_CAST")
+                    val p = params as? Map<String, Any?> ?: emptyMap()
+                    val runId = p["runId"] as? String
+                    if (runId != null) {
+                        agentLoop.stop()
+                        activeJobs[runId]?.cancel()
+                        activeJobs.remove(runId)
+                        Log.i(TAG, "Aborted run: $runId")
+                    } else {
+                        // Abort all active runs
+                        agentLoop.stop()
+                        activeJobs.values.forEach { it.cancel() }
+                        activeJobs.clear()
+                        Log.i(TAG, "Aborted all active runs")
+                    }
                     mapOf("aborted" to true)
                 }
 
@@ -477,6 +503,39 @@ class GatewayController(
 
     // Helper methods to parse params
     // OpenClaw Protocol v3: params is Any? (can be Map, List, primitive, etc.)
+
+    /**
+     * Convert LegacyMessage.content (String or List<ContentBlock>) to
+     * the OpenClaw format: List<Map<type, text?>>
+     * Client parseHistory expects a JsonArray of content parts.
+     */
+    @Suppress("UNCHECKED_CAST")
+    private fun legacyContentToOpenClaw(content: Any?): List<Map<String, Any?>> {
+        return when (content) {
+            is String -> listOf(mapOf("type" to "text", "text" to content))
+            is List<*> -> content.mapNotNull { block ->
+                when (block) {
+                    is com.xiaomo.androidforclaw.providers.ContentBlock -> when (block.type) {
+                        "text" -> mapOf("type" to "text", "text" to (block.text ?: ""))
+                        "image_url" -> {
+                            val dataUrl = block.imageUrl?.url ?: ""
+                            // "data:image/png;base64,..." → extract mimeType
+                            val mimeType = dataUrl.removePrefix("data:").substringBefore(";")
+                            mapOf(
+                                "type" to "image_url",
+                                "mimeType" to mimeType.ifEmpty { "image/jpeg" },
+                                "content" to dataUrl.substringAfter("base64,")
+                            )
+                        }
+                        else -> null
+                    }
+                    is Map<*, *> -> (block as? Map<String, Any?>)  // raw map (attachment / post-JSONL-load)
+                    else -> null
+                }
+            }
+            else -> emptyList()
+        }
+    }
 
     @Suppress("UNCHECKED_CAST")
     private fun parseAgentParams(params: Any?): AgentParams {

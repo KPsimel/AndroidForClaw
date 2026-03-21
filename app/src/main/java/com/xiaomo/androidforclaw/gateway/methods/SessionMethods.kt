@@ -7,6 +7,8 @@ package com.xiaomo.androidforclaw.gateway.methods
 import com.xiaomo.androidforclaw.agent.session.SessionManager
 import com.xiaomo.androidforclaw.providers.LegacyMessage
 import com.xiaomo.androidforclaw.gateway.protocol.*
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 /**
  * Session RPC methods implementation
@@ -25,11 +27,22 @@ class SessionMethods(
             SessionInfo(
                 key = key,
                 messageCount = session?.messageCount() ?: 0,
-                createdAt = session?.createdAt ?: "",
-                updatedAt = session?.updatedAt ?: ""
+                createdAt = parseIso8601(session?.createdAt),
+                updatedAt = parseIso8601(session?.updatedAt),
+                displayName = session?.metadata?.get("displayName") as? String
             )
         }
         return SessionListResult(sessions = sessions)
+    }
+
+    private fun parseIso8601(isoString: String?): Long {
+        if (isoString.isNullOrEmpty()) return System.currentTimeMillis()
+        return try {
+            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US).parse(isoString)?.time
+                ?: System.currentTimeMillis()
+        } catch (_: Exception) {
+            System.currentTimeMillis()
+        }
     }
 
     /**

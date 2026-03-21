@@ -175,8 +175,9 @@ data class SessionListResult(
 data class SessionInfo(
     val key: String,
     val messageCount: Int,
-    val createdAt: String,
-    val updatedAt: String
+    val createdAt: Long,       // epoch ms (client expects Long)
+    val updatedAt: Long,       // epoch ms (client expects Long)
+    val displayName: String?   // client reads this for tab label
 )
 
 /**
