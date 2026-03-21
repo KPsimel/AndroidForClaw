@@ -31,13 +31,16 @@ class FileLogger(private val context: Context) {
     companion object {
         private const val TAG = "FileLogger"
 
-        private const val LOGS_DIR = "/sdcard/.androidforclaw/logs"
-        private const val APP_LOG_FILE = "$LOGS_DIR/app.log"
-        private const val GATEWAY_LOG_FILE = "$LOGS_DIR/gateway.log"
-
         private const val MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
         private const val MAX_ARCHIVED_LOGS = 5
     }
+
+    /** Resolved logs directory via StoragePaths */
+    private val logsDir: String by lazy {
+        com.xiaomo.androidforclaw.workspace.StoragePaths.logs.also { it.mkdirs() }.absolutePath
+    }
+    private val appLogFilePath get() = "$logsDir/app.log"
+    private val gatewayLogFilePath get() = "$logsDir/gateway.log"
 
     private var loggingEnabled = true
 
@@ -65,7 +68,8 @@ class FileLogger(private val context: Context) {
     }
 
     init {
-        ensureDirectoryExists()
+        // Force lazy init so directory is created early
+        logsDir
         writerThread.start()
     }
 
@@ -75,7 +79,7 @@ class FileLogger(private val context: Context) {
     fun logApp(level: LogLevel, tag: String, message: String, error: Throwable? = null) {
         if (!loggingEnabled) return
         val logLine = formatLogLine(level, tag, message, error)
-        writeQueue.offer(LogEntry(APP_LOG_FILE, logLine))
+        writeQueue.offer(LogEntry(appLogFilePath, logLine))
     }
 
     /**
@@ -84,7 +88,7 @@ class FileLogger(private val context: Context) {
     fun logGateway(level: LogLevel, message: String, error: Throwable? = null) {
         if (!loggingEnabled) return
         val logLine = formatLogLine(level, "Gateway", message, error)
-        writeQueue.offer(LogEntry(GATEWAY_LOG_FILE, logLine))
+        writeQueue.offer(LogEntry(gatewayLogFilePath, logLine))
     }
 
     /**
@@ -99,24 +103,13 @@ class FileLogger(private val context: Context) {
      * Clear log files
      */
     fun clearLogs(logType: LogType = LogType.ALL) {
-        writeQueue.offer(LogEntry(
-            when (logType) {
-                LogType.APP -> APP_LOG_FILE
-                LogType.GATEWAY -> GATEWAY_LOG_FILE
-                LogType.ALL -> APP_LOG_FILE // clear both
-            },
-            "" // empty → special marker handled below
-        ))
-        if (logType == LogType.ALL) {
-            // Queue both clears
-            try { File(APP_LOG_FILE).writeText("") } catch (_: Exception) {}
-            try { File(GATEWAY_LOG_FILE).writeText("") } catch (_: Exception) {}
-        } else {
-            try { File(when (logType) {
-                LogType.APP -> APP_LOG_FILE
-                LogType.GATEWAY -> GATEWAY_LOG_FILE
-                else -> APP_LOG_FILE
-            }).writeText("") } catch (_: Exception) {}
+        when (logType) {
+            LogType.APP -> try { File(appLogFilePath).writeText("") } catch (_: Exception) {}
+            LogType.GATEWAY -> try { File(gatewayLogFilePath).writeText("") } catch (_: Exception) {}
+            LogType.ALL -> {
+                try { File(appLogFilePath).writeText("") } catch (_: Exception) {}
+                try { File(gatewayLogFilePath).writeText("") } catch (_: Exception) {}
+            }
         }
         Log.i(TAG, "Clear logs: $logType")
     }
@@ -126,9 +119,9 @@ class FileLogger(private val context: Context) {
      */
     fun getLogSize(logType: LogType): Long {
         return when (logType) {
-            LogType.APP -> File(APP_LOG_FILE).length()
-            LogType.GATEWAY -> File(GATEWAY_LOG_FILE).length()
-            LogType.ALL -> File(APP_LOG_FILE).length() + File(GATEWAY_LOG_FILE).length()
+            LogType.APP -> File(appLogFilePath).length()
+            LogType.GATEWAY -> File(gatewayLogFilePath).length()
+            LogType.ALL -> File(appLogFilePath).length() + File(gatewayLogFilePath).length()
         }
     }
 
@@ -136,23 +129,23 @@ class FileLogger(private val context: Context) {
      * 获取日志统计信息
      */
     fun getLogStats(): LogStats {
-        val appLogFile = File(APP_LOG_FILE)
-        val gatewayLogFile = File(GATEWAY_LOG_FILE)
+        val appFile = File(appLogFilePath)
+        val gatewayFile = File(gatewayLogFilePath)
 
-        val appLines = if (appLogFile.exists()) {
-            appLogFile.readLines().size
+        val appLines = if (appFile.exists()) {
+            appFile.readLines().size
         } else 0
 
-        val gatewayLines = if (gatewayLogFile.exists()) {
-            gatewayLogFile.readLines().size
+        val gatewayLines = if (gatewayFile.exists()) {
+            gatewayFile.readLines().size
         } else 0
 
         return LogStats(
-            appLogSize = appLogFile.length(),
-            gatewayLogSize = gatewayLogFile.length(),
+            appLogSize = appFile.length(),
+            gatewayLogSize = gatewayFile.length(),
             appLogLines = appLines,
             gatewayLogLines = gatewayLines,
-            totalSize = appLogFile.length() + gatewayLogFile.length()
+            totalSize = appFile.length() + gatewayFile.length()
         )
     }
 
@@ -163,12 +156,12 @@ class FileLogger(private val context: Context) {
         return try {
             val outputFile = File(outputPath)
             when (logType) {
-                LogType.APP -> File(APP_LOG_FILE).copyTo(outputFile, overwrite = true)
-                LogType.GATEWAY -> File(GATEWAY_LOG_FILE).copyTo(outputFile, overwrite = true)
+                LogType.APP -> File(appLogFilePath).copyTo(outputFile, overwrite = true)
+                LogType.GATEWAY -> File(gatewayLogFilePath).copyTo(outputFile, overwrite = true)
                 LogType.ALL -> {
-                    val combined = File(APP_LOG_FILE).readText() +
+                    val combined = File(appLogFilePath).readText() +
                             "\n\n=== GATEWAY LOG ===\n\n" +
-                            File(GATEWAY_LOG_FILE).readText()
+                            File(gatewayLogFilePath).readText()
                     outputFile.writeText(combined)
                 }
             }
@@ -185,8 +178,8 @@ class FileLogger(private val context: Context) {
      */
     fun readRecentLogs(logType: LogType, lineCount: Int = 100): List<String> {
         val file = when (logType) {
-            LogType.APP -> File(APP_LOG_FILE)
-            LogType.GATEWAY -> File(GATEWAY_LOG_FILE)
+            LogType.APP -> File(appLogFilePath)
+            LogType.GATEWAY -> File(gatewayLogFilePath)
             LogType.ALL -> return emptyList()
         }
 
@@ -207,14 +200,6 @@ class FileLogger(private val context: Context) {
     }
 
     // ==================== 私有方法 ====================
-
-    private fun ensureDirectoryExists() {
-        val dir = File(LOGS_DIR)
-        if (!dir.exists()) {
-            dir.mkdirs()
-            Log.d(TAG, "创建 logs 目录: $LOGS_DIR")
-        }
-    }
 
     /**
      * 实际写入文件（在后台线程执行）

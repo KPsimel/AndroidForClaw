@@ -477,6 +477,3 @@ data class LLMUsage(
     val totalTokens: Int
 )
 
-/**
- * LLM 异常 — 参见 LLMException.kt
- */

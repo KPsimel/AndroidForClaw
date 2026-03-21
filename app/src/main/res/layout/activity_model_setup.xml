@@ -44,9 +44,9 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="已内置 Key，可直接开始使用"
+                    android:text="建议申请自己的免费 Key，内置 Key 共享易限流"
                     android:textSize="14sp"
-                    android:textColor="#666666"
+                    android:textColor="#E65100"
                     android:layout_marginTop="8dp" />
             </LinearLayout>
 
@@ -79,7 +79,7 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="1️⃣ 打开 openrouter.ai 注册账号（免费）\n2️⃣ 点击 Keys → Create Key\n3️⃣ 复制 Key\n4️⃣ 粘贴到下方输入框\n\n💡 跳过则使用内置免费 Key！"
+                        android:text="1️⃣ 打开 openrouter.ai 注册账号（免费）\n2️⃣ 点击 Keys → Create Key\n3️⃣ 复制 Key\n4️⃣ 粘贴到下方输入框\n\n⚠️ 强烈建议自己申请 Key（免费），内置 Key 为所有用户共享，容易被限流！"
                         android:textSize="13sp"
                         android:textColor="#555555"
                         android:lineSpacingMultiplier="1.4" />
@@ -116,7 +116,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="OpenRouter API Key"
-                        app:helperText="可选，留空则使用内置 Key"
+                        app:helperText="以 sk-or- 开头，免费注册即可获取"
                         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                         <com.google.android.material.textfield.TextInputEditText

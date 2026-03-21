@@ -171,10 +171,9 @@ object MainEntryNew {
             Log.d(TAG, "✓ ContextBuilder initialized")
 
             // 5. Initialize session manager (use workspace directory, aligned with OpenClaw)
-            val workspaceDir = File(Environment.getExternalStorageDirectory(), ".androidforclaw/workspace")
-            if (!workspaceDir.exists()) {
-                workspaceDir.mkdirs()
-                Log.d(TAG, "Created workspace directory: ${workspaceDir.absolutePath}")
+            val workspaceDir = com.xiaomo.androidforclaw.workspace.StoragePaths.workspace.also {
+                it.mkdirs()
+                Log.d(TAG, "Using workspace: ${it.absolutePath}")
             }
             sessionManager = SessionManager(
                 workspace = workspaceDir

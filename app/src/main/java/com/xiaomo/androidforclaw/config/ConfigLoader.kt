@@ -28,8 +28,8 @@ class ConfigLoader(private val context: Context) {
         private const val OPENCLAW_CONFIG_FILE = "openclaw.json"
     }
 
-    private val configDir = File("/sdcard/.androidforclaw")
-    private val openclawConfigFile = File(configDir, OPENCLAW_CONFIG_FILE)
+    private val configDir: File get() = com.xiaomo.androidforclaw.workspace.StoragePaths.root
+    private val openclawConfigFile: File get() = File(configDir, OPENCLAW_CONFIG_FILE)
 
     // Config cache
     private var cachedOpenClawConfig: OpenClawConfig? = null
