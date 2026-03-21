@@ -2,7 +2,7 @@ package com.xiaomo.androidforclaw.agent.session
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/(all)
+ * - ../openclaw/src/agents/session-dirs.ts, command/session-store.ts
  *
  * AndroidForClaw adaptation: persist and restore agent sessions on Android.
  */

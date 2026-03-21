@@ -2,9 +2,7 @@ package com.xiaomo.androidforclaw.agent.skills.browser
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/skills/(all)
- *
- * AndroidForClaw adaptation: generic browser action skill.
+ * - ../openclaw/src/browser/client-actions.ts
  */
 
 

@@ -2,9 +2,7 @@ package com.xiaomo.androidforclaw.providers.llm
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/model-(all)
- *
- * AndroidForClaw adaptation: LLM request/response model definitions.
+ * - ../openclaw/src/agents/content-blocks.ts, pi-tools.types.ts
  */
 
 

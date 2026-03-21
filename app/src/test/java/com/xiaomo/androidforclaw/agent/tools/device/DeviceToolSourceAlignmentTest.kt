@@ -7,8 +7,12 @@ import java.io.File
 
 class DeviceToolSourceAlignmentTest {
 
+    // Resolve project root from Gradle's working directory (app/)
+    private val projectRoot = File(System.getProperty("user.dir")!!).let {
+        if (it.name == "app") it.parentFile else it
+    }
     private val sourceFile = File(
-        "/Users/qiao/.openclaw/workspace-dev-androidclaw/AndroidForClaw/app/src/main/java/com/xiaomo/androidforclaw/agent/tools/device/DeviceTool.kt"
+        projectRoot, "app/src/main/java/com/xiaomo/androidforclaw/agent/tools/device/DeviceTool.kt"
     )
 
     @Test

@@ -2,7 +2,7 @@ package com.xiaomo.androidforclaw.agent.tools
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/tools/(all)
+ * - ../openclaw/src/agents/tools/web-fetch.ts
  *
  * AndroidForClaw adaptation: web fetch tool.
  */

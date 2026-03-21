@@ -1,8 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/gateway/cron/(all)
- *
- * AndroidForClaw adaptation: cron scheduling.
+ * - ../openclaw/src/cron/service.ts (startup)
  */
 package com.xiaomo.androidforclaw.cron
 

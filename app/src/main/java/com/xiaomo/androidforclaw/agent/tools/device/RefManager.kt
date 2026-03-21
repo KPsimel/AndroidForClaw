@@ -2,11 +2,7 @@ package com.xiaomo.androidforclaw.agent.tools.device
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/tools/browser/(all)
- *
- * AndroidForClaw adaptation: ref ID management for Playwright-aligned device tool.
- * Maps accessibility tree nodes to stable ref IDs (e1, e2, ...) and resolves
- * refs back to screen coordinates for action execution.
+ * - ../openclaw/src/browser/pw-role-snapshot.ts
  */
 
 import android.graphics.Rect

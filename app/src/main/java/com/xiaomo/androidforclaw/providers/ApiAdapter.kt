@@ -2,7 +2,7 @@ package com.xiaomo.androidforclaw.providers
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/pi-embedded-runner/(all)
+ * - ../openclaw/src/agents/pi-embedded-payloads.ts
  *
  * AndroidForClaw adaptation: provider auth/header/body request shaping.
  */

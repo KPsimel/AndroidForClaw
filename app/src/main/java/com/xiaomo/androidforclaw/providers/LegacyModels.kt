@@ -2,9 +2,7 @@ package com.xiaomo.androidforclaw.providers
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/model-(all)
- *
- * AndroidForClaw adaptation: provider dispatch and compatibility.
+ * - 无 OpenClaw 对应 (Android 平台独有)
  */
 
 

@@ -2,8 +2,13 @@ package com.xiaomo.androidforclaw.agent.context
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/(all)
- * - ../openclaw/src/config/(all)
+ * - ../openclaw/src/agents/system-prompt.ts (core: buildAgentSystemPrompt — 22-section structure)
+ * - ../openclaw/src/agents/pi-embedded-runner/system-prompt.ts (buildEmbeddedSystemPrompt wrapper)
+ * - ../openclaw/src/agents/bootstrap-budget.ts (per-file/total budget, truncation)
+ * - ../openclaw/src/agents/pi-embedded-helpers.ts (loadWorkspaceBootstrapFiles, context file loading)
+ *
+ * Note: OpenClaw context.ts is context-window token resolution (model→token cache), NOT system prompt.
+ * That logic maps to ContextWindowGuard.kt instead.
  *
  * AndroidForClaw adaptation: build system prompt, tools section, skills context.
  */

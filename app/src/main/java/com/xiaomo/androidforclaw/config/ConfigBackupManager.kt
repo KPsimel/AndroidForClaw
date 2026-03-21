@@ -2,9 +2,7 @@ package com.xiaomo.androidforclaw.config
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/config/(all)
- *
- * AndroidForClaw adaptation: config backup/restore helpers.
+ * - ../openclaw/src/config/backup-rotation.ts
  */
 
 

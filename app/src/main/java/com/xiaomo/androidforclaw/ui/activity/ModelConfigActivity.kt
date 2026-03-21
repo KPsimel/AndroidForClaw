@@ -1,8 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/gateway/(all)
- *
- * AndroidForClaw adaptation: Android UI layer.
+ * - 无 OpenClaw 对应 (Android 平台独有)
  */
 package com.xiaomo.androidforclaw.ui.activity
 
@@ -224,7 +222,7 @@ class ModelConfigActivity : AppCompatActivity() {
         binding.tilApiKey.hint = provider.keyHint
         binding.etApiKey.setText("")
         if (!provider.keyRequired) {
-            binding.tilApiKey.helperText = "可选（有内置免费 Key）"
+            binding.tilApiKey.helperText = "可选（有内置 Key）"
         } else {
             binding.tilApiKey.helperText = null
         }
@@ -366,10 +364,7 @@ class ModelConfigActivity : AppCompatActivity() {
             tvName.text = model.name
             tvId.text = model.id
 
-            if (model.free) {
-                tvBadge.visibility = View.VISIBLE
-                tvBadge.text = "免费"
-            } else if (model.reasoning) {
+            if (model.reasoning) {
                 tvBadge.visibility = View.VISIBLE
                 tvBadge.text = "推理"
                 tvBadge.setTextColor(getColor(android.R.color.holo_blue_dark))

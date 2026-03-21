@@ -1,8 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/gateway/(all)
- *
- * AndroidForClaw adaptation: Android UI layer.
+ * - 无 OpenClaw 对应 (Android 平台独有)
  */
 package com.xiaomo.androidforclaw.ui.activity
 
@@ -104,11 +102,11 @@ class ModelSetupActivity : AppCompatActivity() {
                 name = "小米 MiMo",
                 baseUrl = "https://api.xiaomimimo.com/v1",
                 api = "openai-completions",
-                hint = "小米 MiMo 大模型，免费使用。注册: xiaomimimo.com",
+                hint = "小米 MiMo 大模型。注册: xiaomimimo.com",
                 models = listOf(
-                    ModelPreset("mimo-v2-flash", "MiMo V2 Flash (免费，262K)", reasoning = false, contextWindow = 262144, maxTokens = 8192),
-                    ModelPreset("mimo-v2-pro", "MiMo V2 Pro (免费，1M，推理)", reasoning = true, contextWindow = 1048576, maxTokens = 32000),
-                    ModelPreset("mimo-v2-omni", "MiMo V2 Omni (免费，262K，推理+图片)", reasoning = true, contextWindow = 262144, maxTokens = 32000)
+                    ModelPreset("mimo-v2-pro", "MiMo V2 Pro (1M，推理)", reasoning = true, contextWindow = 1048576, maxTokens = 32000),
+                    ModelPreset("mimo-v2-flash", "MiMo V2 Flash (262K)", reasoning = false, contextWindow = 262144, maxTokens = 8192),
+                    ModelPreset("mimo-v2-omni", "MiMo V2 Omni (262K，推理+图片)", reasoning = true, contextWindow = 262144, maxTokens = 32000)
                 ),
                 authHeader = true
             ),
@@ -226,7 +224,7 @@ class ModelSetupActivity : AppCompatActivity() {
                 else -> "API Key"
             }
             (tilApiKey as? com.google.android.material.textfield.TextInputLayout)?.helperText = when (providerKey) {
-                "xiaomi" -> "免费使用，注册: platform.xiaomimimo.com"
+                "xiaomi" -> "注册: platform.xiaomimimo.com"
                 "openrouter" -> "以 sk-or- 开头"
                 "anthropic" -> "以 sk-ant- 开头"
                 "openai" -> "以 sk- 开头"
@@ -256,12 +254,11 @@ class ModelSetupActivity : AppCompatActivity() {
                 actModel.setText(modelNames[0], false)
             }
 
+            tilModel.visibility = View.VISIBLE
             if (providerKey == "custom") {
-                tilModel.visibility = View.VISIBLE
                 actModel.inputType = android.text.InputType.TYPE_CLASS_TEXT
                 actModel.threshold = 100
             } else {
-                tilModel.visibility = View.GONE
                 actModel.inputType = android.text.InputType.TYPE_NULL
                 actModel.threshold = 1
             }
@@ -321,7 +318,8 @@ class ModelSetupActivity : AppCompatActivity() {
         val matchedPreset = if (selectedProvider == "custom") {
             null
         } else {
-            preset.models.firstOrNull()
+            preset.models.firstOrNull { it.displayName == selectedModelDisplay }
+                ?: preset.models.firstOrNull()
         }
         val modelId = if (selectedProvider == "custom") {
             selectedModelDisplay ?: ""

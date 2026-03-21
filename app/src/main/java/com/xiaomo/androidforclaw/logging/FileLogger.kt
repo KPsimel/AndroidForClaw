@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/gateway/(all)
+ * - ../openclaw/src/logging/, logger.ts
  *
  * AndroidForClaw adaptation: file logging.
  */

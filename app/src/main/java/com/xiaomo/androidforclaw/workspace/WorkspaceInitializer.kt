@@ -1,8 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/config/(all)
- *
- * AndroidForClaw adaptation: workspace initialization.
+ * - ../openclaw/src/agents/workspace.ts
  */
 package com.xiaomo.androidforclaw.workspace
 

@@ -2,10 +2,13 @@ package com.xiaomo.androidforclaw.providers
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/pi-embedded-runner/(all)
- * - ../openclaw/src/agents/model-(all)
+ * - ../openclaw/src/agents/pi-embedded-runner/run/attempt.ts (LLM call: session create, stream, tool dispatch)
+ * - ../openclaw/src/agents/pi-embedded-runner/run/payloads.ts (request payload construction)
+ * - ../openclaw/src/agents/pi-embedded-payloads.ts (provider-specific payload formatting)
  *
- * AndroidForClaw adaptation: unified provider dispatch for Android.
+ * Note: pi-embedded-runner.ts is a barrel re-export; actual logic is in pi-embedded-runner/run/*.ts
+ *
+ * AndroidForClaw adaptation: unified provider dispatch for Android (non-streaming batch calls).
  */
 
 

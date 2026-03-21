@@ -13,6 +13,9 @@ import java.util.concurrent.TimeUnit
 import kotlin.math.sqrt
 
 /**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/memory/embeddings.ts, embeddings-openai.ts
+ *
  * Embedding provider — aligned with OpenClaw embedding integration.
  * Calls OpenAI-compatible embedding API (text-embedding-3-small).
  */

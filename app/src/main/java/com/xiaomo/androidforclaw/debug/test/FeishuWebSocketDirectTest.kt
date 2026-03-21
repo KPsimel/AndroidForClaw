@@ -1,8 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/channels/feishu/(all)
- *
- * AndroidForClaw adaptation: Feishu connection debug tests.
+ * - 无 OpenClaw 对应 (Android 平台独有)
  */
 package com.xiaomo.androidforclaw.test
 

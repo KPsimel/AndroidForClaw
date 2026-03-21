@@ -2,8 +2,7 @@ package com.xiaomo.androidforclaw.config
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/config/(all)
- * - ../openclaw/types/(all).d.ts
+ * - ../openclaw/src/config/config.ts, types.openclaw.ts, types.agents.ts, types.channels.ts, types.gateway.ts, types.models.ts, types.skills.ts, types.memory.ts, types.tools.ts, types.cron.ts
  *
  * AndroidForClaw adaptation: Kotlin config model aligned to OpenClaw schema.
  */

@@ -2,9 +2,7 @@ package com.xiaomo.androidforclaw.agent.skills
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/skills/(all)
- *
- * AndroidForClaw adaptation: serialized skill install/update locking.
+ * - ../openclaw/src/agents/skills-install.ts
  */
 
 

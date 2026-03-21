@@ -2,7 +2,7 @@ package com.xiaomo.androidforclaw.agent.tools
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/tools/(all)
+ * - ../openclaw/src/agents/apply-patch.ts
  *
  * AndroidForClaw adaptation: low-level file write tool.
  */

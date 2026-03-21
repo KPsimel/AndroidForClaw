@@ -2,9 +2,7 @@ package com.xiaomo.androidforclaw.agent.tools
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/tools/(all)
- *
- * AndroidForClaw adaptation: directory listing tool.
+ * - ../openclaw/src/agents/pi-tools.schema.ts
  */
 
 

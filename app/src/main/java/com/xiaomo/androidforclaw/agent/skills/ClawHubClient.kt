@@ -2,9 +2,7 @@ package com.xiaomo.androidforclaw.agent.skills
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/skills/(all)
- *
- * AndroidForClaw adaptation: remote skill hub client.
+ * - ../openclaw/src/agents/skills-install.ts (ClawHub API)
  */
 
 

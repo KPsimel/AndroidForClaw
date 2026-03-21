@@ -2,9 +2,7 @@ package com.xiaomo.androidforclaw.agent.tools.memory
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/tools/(all)
- *
- * AndroidForClaw adaptation: agent tool implementation.
+ * - ../openclaw/src/agents/tools/memory-tool.ts
  */
 
 

@@ -2,7 +2,8 @@ package com.xiaomo.androidforclaw.agent.context
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/(all)
+ * - ../openclaw/src/agents/session-tool-result-guard.ts (session-level guard)
+ * - ../openclaw/src/agents/pi-embedded-runner/tool-result-context-guard.ts (per-run guard)
  *
  * AndroidForClaw adaptation: bound tool result size within context limits.
  */

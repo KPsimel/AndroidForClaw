@@ -2,9 +2,7 @@ package com.xiaomo.androidforclaw.agent.tools
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/gateway/(all)
- *
- * AndroidForClaw adaptation: explicit config read tool.
+ * - 无 OpenClaw 对应 (Android 平台独有)
  */
 
 

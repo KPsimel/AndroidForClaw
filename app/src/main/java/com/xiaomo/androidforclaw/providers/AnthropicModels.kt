@@ -2,9 +2,7 @@ package com.xiaomo.androidforclaw.providers
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/docs/providers/(all)
- *
- * AndroidForClaw adaptation: Anthropic model catalog constants.
+ * - 无 OpenClaw 对应 (Android 平台独有)
  */
 
 

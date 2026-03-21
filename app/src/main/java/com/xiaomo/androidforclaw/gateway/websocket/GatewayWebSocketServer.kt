@@ -14,6 +14,9 @@ import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
 
 /**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/gateway/server-ws-runtime.ts
+ *
  * Gateway WebSocket RPC Server
  *
  * Implements OpenClaw Protocol v3:

@@ -2,9 +2,7 @@ package com.xiaomo.androidforclaw.core
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/gateway/(all)
- *
- * AndroidForClaw adaptation: serialized keyed async work queue.
+ * - ../openclaw/src/infra/ (keyed-async-queue pattern)
  */
 
 

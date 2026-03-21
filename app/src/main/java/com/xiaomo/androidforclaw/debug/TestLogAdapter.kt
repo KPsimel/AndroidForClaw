@@ -1,8 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/(all)
- *
- * AndroidForClaw adaptation: debug and test runners.
+ * - 无 OpenClaw 对应 (Android 平台独有)
  */
 package com.xiaomo.androidforclaw.ui.adapter
 

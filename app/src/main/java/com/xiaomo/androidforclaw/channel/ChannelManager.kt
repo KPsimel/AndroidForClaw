@@ -1,8 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/channels/(all)
- *
- * AndroidForClaw adaptation: channel management.
+ * - ../openclaw/src/channels/session.ts, registry.ts
  */
 package com.xiaomo.androidforclaw.channel
 

@@ -2,9 +2,7 @@ package com.xiaomo.androidforclaw.agent.skills
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/skills/(all)
- *
- * AndroidForClaw adaptation: in-app skill metadata model.
+ * - ../openclaw/src/agents/skills.ts
  */
 
 

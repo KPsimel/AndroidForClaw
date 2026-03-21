@@ -2,7 +2,8 @@ package com.xiaomo.androidforclaw.agent.context
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/(all)
+ * - ../openclaw/src/agents/pi-embedded-runner/tool-result-truncation.ts (truncateOversizedToolResultsInSession)
+ * - ../openclaw/src/agents/pi-embedded-runner/tool-result-char-estimator.ts (char estimation)
  *
  * AndroidForClaw adaptation: truncate tool outputs before prompt injection.
  */

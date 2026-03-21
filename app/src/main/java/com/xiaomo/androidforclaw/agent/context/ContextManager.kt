@@ -2,7 +2,7 @@ package com.xiaomo.androidforclaw.agent.context
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/(all)
+ * - ../openclaw/src/agents/agent-command.ts (context overflow recovery)
  *
  * AndroidForClaw adaptation: manage context growth and recovery.
  */

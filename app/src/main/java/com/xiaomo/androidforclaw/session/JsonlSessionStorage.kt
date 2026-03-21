@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/(all)
+ * - ../openclaw/src/agents/session-dirs.ts, command/session-store.ts
  *
  * AndroidForClaw adaptation: session persistence.
  */

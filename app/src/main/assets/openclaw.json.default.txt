@@ -7,7 +7,7 @@
                 "models": [
                     {
                         "id": "openrouter/hunter-alpha",
-                        "name": "Hunter Alpha (免费)",
+                        "name": "Hunter Alpha",
                         "contextWindow": 1048576,
                         "maxTokens": 65536
                     }

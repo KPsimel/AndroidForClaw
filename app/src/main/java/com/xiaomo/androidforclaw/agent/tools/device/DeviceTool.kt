@@ -2,7 +2,7 @@ package com.xiaomo.androidforclaw.agent.tools.device
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/tools/browser/(all)
+ * - ../openclaw/src/agents/tools/browser-tool.ts (Android adaptation)
  *
  * AndroidForClaw adaptation: unified device control tool aligned with
  * Playwright/OpenClaw browser tool pattern.

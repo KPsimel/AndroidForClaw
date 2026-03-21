@@ -2,7 +2,7 @@ package com.xiaomo.androidforclaw.agent.tools
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/tools/(all)
+ * - ../openclaw/src/agents/tools/web-search.ts
  *
  * AndroidForClaw adaptation: web search tool using Brave Search API.
  * Aligned with OpenClaw web_search tool schema and behavior.

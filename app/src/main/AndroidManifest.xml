@@ -234,11 +234,7 @@
         </service> <!-- AI测试Activity -->
         <activity
             android:name="com.xiaomo.androidforclaw.ui.activity.AITestActivity"
-            android:screenOrientation="portrait" /> <!-- Web服务 - 系统级权限 -->
-        <service
-            android:name="com.xiaomo.androidforclaw.service.WebService"
-            android:enabled="true"
-            android:exported="true" /> <!-- 文件提供者 - 系统级权限 -->
+            android:screenOrientation="portrait" /> <!-- 文件提供者 - 系统级权限 -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"

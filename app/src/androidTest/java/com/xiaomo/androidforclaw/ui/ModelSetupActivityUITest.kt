@@ -103,7 +103,7 @@ class ModelSetupActivityUITest {
         launchActivity()
         onView(withText("🤖")).check(matches(isDisplayed()))
         onView(withText("欢迎使用 AndroidForClaw")).check(matches(isDisplayed()))
-        onView(withText("已内置免费 Key，可直接开始使用")).check(matches(isDisplayed()))
+        onView(withText("已内置 Key，可直接开始使用")).check(matches(isDisplayed()))
     }
 
     @Test
@@ -119,10 +119,10 @@ class ModelSetupActivityUITest {
     }
 
     @Test
-    fun test05_modelDropdownHiddenInDefaultQuickSetup() {
+    fun test05_modelDropdownVisibleInDefaultQuickSetup() {
         launchActivity()
         onView(withId(R.id.til_model))
-            .check(matches(withEffectiveVisibility(Visibility.GONE)))
+            .check(matches(withEffectiveVisibility(Visibility.VISIBLE)))
     }
 
     @Test
@@ -145,10 +145,10 @@ class ModelSetupActivityUITest {
     // ==================== 2. 默认模式 ====================
 
     @Test
-    fun test08_defaultQuickSetupDoesNotAskForModel() {
+    fun test08_defaultQuickSetupShowsModelDropdown() {
         launchActivity()
         onView(withId(R.id.til_model))
-            .check(matches(withEffectiveVisibility(Visibility.GONE)))
+            .check(matches(withEffectiveVisibility(Visibility.VISIBLE)))
     }
 
     @Test
@@ -214,7 +214,7 @@ class ModelSetupActivityUITest {
             .check(matches(withHint("Anthropic API Key")))
 
         onView(withId(R.id.til_model))
-            .check(matches(withEffectiveVisibility(Visibility.GONE)))
+            .check(matches(withEffectiveVisibility(Visibility.VISIBLE)))
     }
 
     @Test
@@ -227,7 +227,7 @@ class ModelSetupActivityUITest {
             .check(matches(withHint("OpenAI API Key")))
 
         onView(withId(R.id.til_model))
-            .check(matches(withEffectiveVisibility(Visibility.GONE)))
+            .check(matches(withEffectiveVisibility(Visibility.VISIBLE)))
     }
 
     @Test
@@ -257,7 +257,7 @@ class ModelSetupActivityUITest {
         onView(withId(R.id.tv_advanced)).perform(scrollTo(), click())
         onView(withId(R.id.chip_openrouter)).check(matches(isChecked()))
         onView(withId(R.id.til_model))
-            .check(matches(withEffectiveVisibility(Visibility.GONE)))
+            .check(matches(withEffectiveVisibility(Visibility.VISIBLE)))
     }
 
     // ==================== 5. 不填 Key 直接开始（内置 Key）====================

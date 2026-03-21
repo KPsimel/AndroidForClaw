@@ -1,8 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/gateway/(all)
- *
- * AndroidForClaw adaptation: gateway server and RPC methods.
+ * - ../openclaw/src/gateway/server-ws-runtime.ts
  */
 package com.xiaomo.androidforclaw.gateway.websocket
 

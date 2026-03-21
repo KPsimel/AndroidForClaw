@@ -2,10 +2,7 @@ package com.xiaomo.androidforclaw.agent.tools.device
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/tools/browser/(all)
- *
- * AndroidForClaw adaptation: format accessibility tree output aligned with
- * Playwright's snapshot format (aria refs).
+ * - ../openclaw/src/browser/pw-tools-core.snapshot.ts
  */
 
 object SnapshotFormatter {

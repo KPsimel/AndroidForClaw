@@ -291,6 +291,20 @@ class AgentLoopCapabilityTest {
     }
 
     @Test
+    fun `LLM_TIMEOUT_MS is 180 seconds`() {
+        val field = AgentLoop::class.java.getDeclaredField("LLM_TIMEOUT_MS")
+            .apply { isAccessible = true }
+        assertEquals(180_000L, field.getLong(null))
+    }
+
+    @Test
+    fun `AGENT_LOOP_TOTAL_TIMEOUT_MS is 4 minutes`() {
+        val field = AgentLoop::class.java.getDeclaredField("AGENT_LOOP_TOTAL_TIMEOUT_MS")
+            .apply { isAccessible = true }
+        assertEquals(4 * 60 * 1000L, field.getLong(null))
+    }
+
+    @Test
     fun `maxIterations default is 40`() {
         // Can't instantiate AgentLoop without Context, but verify the constant is documented
         // The constructor default is 40, matching OpenClaw's agent loop max iterations

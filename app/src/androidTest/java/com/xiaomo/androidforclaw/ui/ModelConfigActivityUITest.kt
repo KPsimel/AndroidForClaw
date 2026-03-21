@@ -371,13 +371,28 @@ class ModelConfigActivityUITest {
     }
 
     @Test
-    fun test31_page2_openRouter_freeBadge() {
+    fun test31_page2_openRouter_firstModelNoBadge() {
+        // Hunter Alpha is free but not reasoning, so no badge is shown
         navigateToOpenRouter()
         activityRule.scenario.onActivity { activity ->
             val container = activity.findViewById<ViewGroup>(R.id.container_preset_models)
             val badge = container.getChildAt(0)?.findViewById<TextView>(R.id.tv_model_badge)
-            assertThat("Badge visible", badge?.visibility, `is`(View.VISIBLE))
-            assertThat("Badge text", badge?.text?.toString(), `is`("免费"))
+            // Badge should not be visible for non-reasoning models (free badge was removed)
+            assertThat("Badge not visible", badge?.visibility, not(`is`(View.VISIBLE)))
+        }
+    }
+
+    @Test
+    fun test31b_page2_openRouter_reasoningBadge() {
+        // DeepSeek R1 (index 1) has reasoning=true, should show "推理" badge
+        navigateToOpenRouter()
+        activityRule.scenario.onActivity { activity ->
+            val container = activity.findViewById<ViewGroup>(R.id.container_preset_models)
+            if (container.childCount > 1) {
+                val badge = container.getChildAt(1)?.findViewById<TextView>(R.id.tv_model_badge)
+                assertThat("Reasoning badge visible", badge?.visibility, `is`(View.VISIBLE))
+                assertThat("Reasoning badge text", badge?.text?.toString(), `is`("推理"))
+            }
         }
     }
 

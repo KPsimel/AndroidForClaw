@@ -2,7 +2,7 @@ package com.xiaomo.androidforclaw.agent.session
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/(all)
+ * - ../openclaw/src/agents/session-transcript-repair.ts, pi-embedded-utils.ts
  *
  * AndroidForClaw adaptation: sanitize history before prompt submission.
  */

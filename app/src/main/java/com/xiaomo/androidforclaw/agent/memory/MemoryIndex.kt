@@ -14,6 +14,9 @@ import java.nio.ByteOrder
 import kotlin.math.sqrt
 
 /**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/memory/sqlite.ts, sqlite-vec.ts, search-manager.ts, hybrid.ts
+ *
  * Memory Index — SQLite + FTS5 + vector search.
  * Aligned with OpenClaw MemoryIndexManager.
  */

@@ -2,7 +2,7 @@ package com.xiaomo.androidforclaw.agent.skills
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/skills/(all)
+ * - ../openclaw/src/agents/skills.ts, skills-status.ts
  *
  * AndroidForClaw adaptation: bundled/managed/workspace skill discovery and cache.
  */

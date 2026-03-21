@@ -2,10 +2,7 @@ package com.xiaomo.androidforclaw.core
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/(all)
- * - ../openclaw/src/gateway/(all)
- *
- * AndroidForClaw adaptation: main agent execution entry for Android runtime.
+ * - ../openclaw/src/agents/agent-command.ts, ../openclaw/src/gateway/boot.ts
  */
 
 

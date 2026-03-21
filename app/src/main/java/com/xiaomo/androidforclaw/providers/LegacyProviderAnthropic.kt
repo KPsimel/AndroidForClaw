@@ -2,9 +2,7 @@ package com.xiaomo.androidforclaw.providers
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/model-(all)
- *
- * AndroidForClaw adaptation: legacy Anthropic provider compatibility layer.
+ * - ../openclaw/src/agents/pi-embedded-payloads.ts (legacy)
  */
 
 

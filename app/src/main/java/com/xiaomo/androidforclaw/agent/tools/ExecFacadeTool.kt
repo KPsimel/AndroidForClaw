@@ -2,9 +2,7 @@ package com.xiaomo.androidforclaw.agent.tools
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/tools/(all)
- *
- * AndroidForClaw adaptation: single exec entry with backend routing.
+ * - ../openclaw/src/agents/bash-tools.ts
  */
 
 import android.content.Context

@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/gateway/cron/(all)
+ * - ../openclaw/src/cron/run-log.ts
  *
  * AndroidForClaw adaptation: cron scheduling.
  */

@@ -2,9 +2,7 @@ package com.xiaomo.androidforclaw.agent.memory
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/(all)
- *
- * AndroidForClaw adaptation: estimate token usage for Android agent context.
+ * - 无 OpenClaw 对应 (Android 平台独有)
  */
 
 

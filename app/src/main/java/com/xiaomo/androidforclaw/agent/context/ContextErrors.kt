@@ -2,9 +2,7 @@ package com.xiaomo.androidforclaw.agent.context
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/(all)
- *
- * AndroidForClaw adaptation: agent context construction and budget control.
+ * - ../openclaw/src/agents/failover-error.ts
  */
 
 

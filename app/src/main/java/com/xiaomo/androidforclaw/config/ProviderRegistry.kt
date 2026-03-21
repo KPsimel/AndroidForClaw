@@ -2,8 +2,7 @@ package com.xiaomo.androidforclaw.config
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/(all)
- * - ../openclaw/docs/providers/openai.md
+ * - ../openclaw/src/agents/models-config.providers.ts, model-catalog.ts
  *
  * AndroidForClaw adaptation: provider catalog and model defaults.
  */
@@ -165,10 +164,10 @@ object ProviderRegistry {
     val OPENROUTER = ProviderDefinition(
         id = "openrouter",
         name = "OpenRouter",
-        description = "聚合平台，免费+付费模型",
+        description = "聚合平台，多种模型",
         baseUrl = OPENROUTER_BASE_URL,
         api = ModelApi.OPENAI_COMPLETIONS,
-        keyRequired = false, // 有内置免费 key
+        keyRequired = false, // 有内置 key
         keyHint = "OpenRouter API Key (sk-or-v1-...)",
         envVarName = "OPENROUTER_API_KEY",
         tutorialSteps = listOf(
@@ -181,7 +180,7 @@ object ProviderRegistry {
         presetModels = listOf(
             PresetModel(
                 id = "openrouter/hunter-alpha",
-                name = "Hunter Alpha (免费)",
+                name = "Hunter Alpha",
                 free = true,
                 contextWindow = 1048576,
                 maxTokens = 65536,
@@ -190,7 +189,7 @@ object ProviderRegistry {
             ),
             PresetModel(
                 id = "deepseek/deepseek-r1:free",
-                name = "DeepSeek R1 (免费)",
+                name = "DeepSeek R1",
                 free = true,
                 contextWindow = 163840,
                 maxTokens = 8192,
@@ -199,7 +198,7 @@ object ProviderRegistry {
             ),
             PresetModel(
                 id = "google/gemini-2.5-flash-preview:thinking",
-                name = "Gemini 2.5 Flash (免费)",
+                name = "Gemini 2.5 Flash",
                 free = true,
                 contextWindow = 1048576,
                 maxTokens = 65536,
@@ -574,9 +573,9 @@ object ProviderRegistry {
         ),
         tutorialUrl = "https://api.xiaomimimo.com/",
         presetModels = listOf(
-            PresetModel("mimo-v2-flash", "MiMo V2 Flash (免费，262K)", reasoning = false, contextWindow = 262144, maxTokens = 8192),
-            PresetModel("mimo-v2-pro", "MiMo V2 Pro (免费，1M，推理)", reasoning = true, contextWindow = 1048576, maxTokens = 32000),
-            PresetModel("mimo-v2-omni", "MiMo V2 Omni (免费，262K，推理+图片)", reasoning = true, contextWindow = 262144, maxTokens = 32000)
+            PresetModel("mimo-v2-pro", "MiMo V2 Pro (1M，推理)", reasoning = true, contextWindow = 1048576, maxTokens = 32000),
+            PresetModel("mimo-v2-flash", "MiMo V2 Flash (262K)", reasoning = false, contextWindow = 262144, maxTokens = 8192),
+            PresetModel("mimo-v2-omni", "MiMo V2 Omni (262K，推理+图片)", reasoning = true, contextWindow = 262144, maxTokens = 32000)
         ),
         supportsDiscovery = false,
         group = ProviderGroup.PRIMARY,

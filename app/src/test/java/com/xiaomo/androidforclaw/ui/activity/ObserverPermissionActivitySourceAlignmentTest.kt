@@ -6,8 +6,12 @@ import java.io.File
 
 class ObserverPermissionActivitySourceAlignmentTest {
 
+    // Resolve project root from Gradle's working directory (app/)
+    private val projectRoot = File(System.getProperty("user.dir")!!).let {
+        if (it.name == "app") it.parentFile else it
+    }
     private val sourceFile = File(
-        "/Users/qiao/.openclaw/workspace-dev-androidclaw/AndroidForClaw/extensions/observer/src/main/java/com/xiaomo/androidforclaw/accessibility/PermissionActivity.kt"
+        projectRoot, "extensions/observer/src/main/java/com/xiaomo/androidforclaw/accessibility/PermissionActivity.kt"
     )
 
     @Test

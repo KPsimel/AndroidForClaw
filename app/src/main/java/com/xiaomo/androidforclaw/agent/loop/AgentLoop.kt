@@ -4,9 +4,13 @@ import com.xiaomo.androidforclaw.util.ReasoningTagFilter
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/(all)
+ * - ../openclaw/src/agents/pi-embedded-runner/run.ts (core: runEmbeddedPiAgent loop, overflow recovery, auth failover)
+ * - ../openclaw/src/agents/agent-command.ts (session entry, model resolve, fallback orchestration)
+ * - ../openclaw/src/agents/pi-embedded-subscribe.ts (streaming tool execution callbacks — not yet implemented here)
  *
  * AndroidForClaw adaptation: iterative agent loop, tool calling, progress updates.
+ * Note: OpenClaw splits the loop across run.ts (retry/overflow) and subscribe.ts (streaming/tool dispatch);
+ * AndroidForClaw merges both into this single class with non-streaming batch calls.
  */
 
 

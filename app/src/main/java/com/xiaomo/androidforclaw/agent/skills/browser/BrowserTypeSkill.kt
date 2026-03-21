@@ -2,9 +2,7 @@ package com.xiaomo.androidforclaw.agent.skills.browser
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/skills/(all)
- *
- * AndroidForClaw adaptation: browser typing skill.
+ * - ../openclaw/src/browser/client-actions-core.ts
  */
 
 

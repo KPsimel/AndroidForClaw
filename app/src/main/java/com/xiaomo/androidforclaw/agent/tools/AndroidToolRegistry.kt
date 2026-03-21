@@ -2,7 +2,7 @@ package com.xiaomo.androidforclaw.agent.tools
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/tools/(all)
+ * - ../openclaw/src/agents/tool-catalog.ts
  *
  * AndroidForClaw adaptation: agent tool implementation.
  */

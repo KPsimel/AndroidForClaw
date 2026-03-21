@@ -9,6 +9,9 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 /**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/memory/manager.ts
+ *
  * Memory Manager — aligned with OpenClaw memory system.
  *
  * Features:

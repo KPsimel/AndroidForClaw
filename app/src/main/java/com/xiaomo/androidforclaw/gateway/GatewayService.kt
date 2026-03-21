@@ -1,6 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/gateway/(all)
+ * - ../openclaw/src/gateway/server-methods.ts, server-methods-list.ts
  *
  * AndroidForClaw adaptation: gateway server and RPC methods.
  */

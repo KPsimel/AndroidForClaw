@@ -2,9 +2,7 @@ package com.xiaomo.androidforclaw.providers
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/(all)
- *
- * AndroidForClaw adaptation: legacy model/provider compatibility bridge.
+ * - ../openclaw/src/agents/pi-embedded-runner.ts (legacy wrapper)
  */
 
 

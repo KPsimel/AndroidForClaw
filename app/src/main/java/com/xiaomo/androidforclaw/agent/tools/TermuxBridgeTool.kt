@@ -1,8 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/tools/(all)
- *
- * AndroidForClaw adaptation: Termux exec bridge.
+ * - 无 OpenClaw 对应 (Android 平台独有)
  */
 package com.xiaomo.androidforclaw.agent.tools
 

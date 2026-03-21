@@ -2,9 +2,7 @@ package com.xiaomo.androidforclaw.agent
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/(all)
- *
- * AndroidForClaw adaptation: agent runtime support.
+ * - 无 OpenClaw 对应 (Android 平台独有)
  */
 
 

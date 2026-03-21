@@ -2,9 +2,7 @@ package com.xiaomo.androidforclaw.core
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/gateway/(all)
- *
- * AndroidForClaw adaptation: keep app/runtime alive in Android foreground service mode.
+ * - 无 OpenClaw 对应 (Android 平台独有)
  */
 
 

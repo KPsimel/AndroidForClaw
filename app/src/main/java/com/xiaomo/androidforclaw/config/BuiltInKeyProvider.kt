@@ -2,9 +2,7 @@ package com.xiaomo.androidforclaw.config
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/config/(all)
- *
- * AndroidForClaw adaptation: built-in/provider key resolution for local Android runtime.
+ * - 无 OpenClaw 对应 (Android 平台独有)
  */
 
 

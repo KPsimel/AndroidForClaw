@@ -1,8 +1,6 @@
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/(all)
- *
- * AndroidForClaw adaptation: utility helpers.
+ * - ../openclaw/src/agents/pi-embedded-utils.ts
  */
 package com.xiaomo.androidforclaw.util
 

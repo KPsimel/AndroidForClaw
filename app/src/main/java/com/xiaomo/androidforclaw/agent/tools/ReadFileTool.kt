@@ -2,7 +2,7 @@ package com.xiaomo.androidforclaw.agent.tools
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/tools/(all)
+ * - ../openclaw/src/agents/pi-tools.read.ts
  *
  * AndroidForClaw adaptation: low-level file read tool.
  */

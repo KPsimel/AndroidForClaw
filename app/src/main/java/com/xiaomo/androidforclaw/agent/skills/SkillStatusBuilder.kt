@@ -2,9 +2,7 @@ package com.xiaomo.androidforclaw.agent.skills
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/skills/(all)
- *
- * AndroidForClaw adaptation: build skill status/introspection responses.
+ * - ../openclaw/src/agents/skills-status.ts
  */
 
 

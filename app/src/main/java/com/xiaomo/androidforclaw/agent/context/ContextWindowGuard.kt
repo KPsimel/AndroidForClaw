@@ -2,9 +2,10 @@ package com.xiaomo.androidforclaw.agent.context
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/(all)
+ * - ../openclaw/src/agents/context-window-guard.ts (evaluateContextWindowGuard, resolveContextWindowInfo)
+ * - ../openclaw/src/agents/context.ts (model context-window token resolution cache)
  *
- * AndroidForClaw adaptation: context budget guard.
+ * AndroidForClaw adaptation: context budget guard + context window token resolution.
  */
 
 

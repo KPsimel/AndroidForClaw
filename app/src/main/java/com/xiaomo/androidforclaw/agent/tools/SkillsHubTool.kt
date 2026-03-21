@@ -2,10 +2,7 @@ package com.xiaomo.androidforclaw.agent.tools
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/skills/(all)
- *
- * AndroidForClaw adaptation: ClawHub skill search/install agent tools.
- * Exposes gateway RPC skills.search / skills.install as agent-callable tools.
+ * - ../openclaw/src/agents/skills-install.ts
  */
 
 import android.content.Context

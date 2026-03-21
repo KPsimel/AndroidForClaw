@@ -2,9 +2,7 @@ package com.xiaomo.androidforclaw.providers
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/(all)
- *
- * AndroidForClaw adaptation: unify LLM/provider failure reporting.
+ * - ../openclaw/src/agents/failover-error.ts
  */
 
 

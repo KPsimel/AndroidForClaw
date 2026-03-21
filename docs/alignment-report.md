@@ -1,9 +1,14 @@
 # AndroidForClaw ↔ OpenClaw 对齐报告
 
-> 更新时间: 2026-03-15
+> 更新时间: 2026-03-20
 > OpenClaw 版本: 2026.3.11 (29dc654)
+> MAPPING.md 路径校验: 2026-03-20 (所有路径已对照 OpenClaw 源码矫正)
 
-## 总体对齐度: 88%
+## 总体对齐度: ~78%
+
+> 注: 此前报告为 88%,经 2026-03-20 逐文件对照 OpenClaw 源码重新评估后下调。
+> 主要差距来自: Security (15%)、Channels (60%)、Sessions/Subagent 工具 (0%)。
+> 核心 Agent Loop/Context/Tools 路径对齐度仍为 85-95%。
 
 ## 模块对齐详情
 
@@ -81,7 +86,9 @@
 | 浏览器 | browser (Playwright) | device (Playwright-aligned) | ✅ Android 适配 |
 | 消息 | message | send_image | ⚠️ 部分实现 |
 | 配置 | N/A (CLI) | config_get, config_set | ✅ Android 独有 |
-| 脚本 | N/A | javascript, javascript_exec | ✅ Android 独有 |
+| 会话工具 | sessions_spawn/send/list/history/yield | 未实现 | ❌ |
+| 子代理 | subagents, agents_list | 未实现 | ❌ |
+| 图片 | image, image_generate | 未实现 | ❌ |
 | 技能商店 | skills (gateway RPC) | skills_search, skills_install | ✅ |
 | PDF | pdf | 未实现 | ❌ |
 | TTS | tts | 未实现 | ❌ |
@@ -170,11 +177,29 @@
 
 ## 未对齐项（待做）
 
-| 优先级 | 模块 | 说明 |
-|--------|------|------|
-| P1 | Agent Loop | 流式响应 (SSE streaming) |
-| P1 | Tools | message 工具完善 |
-| P2 | Agent Loop | Subagent/sessions_spawn |
-| P2 | Context | compaction safeguard 模式 |
-| P3 | Tools | PDF/TTS/Canvas |
-| P3 | Channels | iMessage/IRC/LINE |
+| 优先级 | 模块 | 说明 | OpenClaw 源文件 |
+|--------|------|------|----------------|
+| **P0** | Security | Pairing 配对机制 | `src/pairing/` |
+| **P0** | Security | External Content 包装 | `src/security/external-content.ts` |
+| **P0** | Security | DM Policy | `src/security/dm-policy-shared.ts` |
+| P1 | Agent Loop | 流式响应 (SSE streaming) | `src/agents/pi-embedded-subscribe.ts` |
+| P1 | Tools | message 工具完善 | `src/agents/tools/message-tool.ts` |
+| P1 | Tools | Sessions 工具族 (spawn/send/list/history/yield) | `src/agents/tools/sessions-*.ts` |
+| P2 | Agent Loop | Subagent 体系 | `src/agents/subagent-*.ts` |
+| P2 | Context | compaction safeguard 模式 | `src/agents/compaction.ts` |
+| P2 | Infra | Context Engine 注册/委托 | `src/context-engine/` |
+| P3 | Tools | PDF/TTS/Canvas/Image | `src/agents/tools/{pdf,tts,canvas,image}-tool.ts` |
+| P3 | Channels | iMessage/IRC/LINE | - |
+
+## 源码参考路径勘误 (2026-03-20)
+
+MAPPING.md 中大量 OpenClaw 路径在 2026-03-20 经对照修正:
+- `src/commands/*.ts` → 实际为 `src/agents/tools/*.ts` 或 `src/agents/bash-tools.*.ts`
+- `src/agents/run-agent-loop.ts` → `src/agents/agent-command.ts`
+- `src/agents/tool-registry.ts` → `src/agents/tool-catalog.ts`
+- `src/agents/skills-loader.ts` → `src/agents/skills.ts`
+- `src/agents/build-context.ts` → `src/agents/context.ts`
+- `src/gateway/gateway-server.ts` → `src/gateway/server.ts`
+- `src/config/config-loader.ts` → `src/config/io.ts`
+- `src/memory/memory-manager.ts` → `src/memory/manager.ts`
+- 详见 [MAPPING.md](../MAPPING.md)

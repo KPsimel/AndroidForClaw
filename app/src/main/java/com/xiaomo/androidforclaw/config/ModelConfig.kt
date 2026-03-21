@@ -2,7 +2,7 @@ package com.xiaomo.androidforclaw.config
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/(all), ../openclaw/types/(all).d.ts
+ * - ../openclaw/src/agents/models-config.ts, config/types.models.ts
  *
  * AndroidForClaw adaptation: provider/model config structures.
  */

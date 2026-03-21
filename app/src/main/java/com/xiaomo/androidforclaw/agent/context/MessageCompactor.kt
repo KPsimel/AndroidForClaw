@@ -2,7 +2,7 @@ package com.xiaomo.androidforclaw.agent.context
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/(all)
+ * - ../openclaw/src/agents/compaction.ts
  *
  * AndroidForClaw adaptation: compact prior conversation context.
  */

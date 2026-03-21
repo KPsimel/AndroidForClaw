@@ -2,7 +2,7 @@ package com.xiaomo.androidforclaw.agent.tools
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/tools/(all)
+ * - ../openclaw/src/agents/pi-tools.ts
  *
  * AndroidForClaw adaptation: unified function-call dispatcher across universal tools and Android tools.
  */

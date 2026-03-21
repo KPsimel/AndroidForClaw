@@ -2,10 +2,7 @@ package com.xiaomo.androidforclaw.agent.tools.device
 
 /**
  * OpenClaw Source Reference:
- * - ../openclaw/src/agents/tools/browser/(all)
- *
- * AndroidForClaw adaptation: build snapshot from Android accessibility tree.
- * Converts ViewNode list to RefNode list with Playwright-style ref IDs.
+ * - ../openclaw/src/browser/pw-role-snapshot.ts
  */
 
 import android.graphics.Rect

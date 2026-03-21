@@ -3,6 +3,9 @@ package com.xiaomo.androidforclaw.agent.memory
 import java.security.MessageDigest
 
 /**
+ * OpenClaw Source Reference:
+ * - ../openclaw/src/memory/manager.ts (chunkMarkdown)
+ *
  * Markdown chunking utilities — aligned with OpenClaw chunkMarkdown()
  */
 object ChunkUtils {
