@@ -121,3 +121,4 @@ tmp-screens/
 local.properties
 test.keystore
 .cc-connect/
+termux-app-upstream/
