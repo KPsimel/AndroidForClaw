@@ -244,6 +244,9 @@ class NodeRuntime(
         _remoteAddress.value = remote
         _seamColorArgb.value = DEFAULT_SEAM_COLOR_ARGB
         applyMainSessionKey(mainSessionKey)
+        // Ensure chat bootstrap runs even when sessionKey == mainSessionKey (e.g. both "main").
+        // applyMainSessionKey no-ops in that case, leaving healthOk=false.
+        chat.refresh()
         updateStatus()
         // Re-bootstrap chat after operator connects — the initial bootstrap
         // may have failed if the connection wasn't ready yet.
