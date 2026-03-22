@@ -869,20 +869,7 @@ fun SessionControlBar(
                                 }
                             }
 
-                            // Delete button
-                            if (onDeleteSession != null) {
-                                IconButton(
-                                    onClick = { showDeleteConfirm = session.id },
-                                    modifier = Modifier.size(36.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Delete,
-                                        contentDescription = "删除会话",
-                                        tint = Color(0xFFBBBBBB),
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                }
-                            }
+                            // Delete via long press or swipe (no visible button)
                         }
                     }
                     HorizontalDivider(color = Color(0xFFF5F5F5))
