@@ -6,6 +6,7 @@ package com.xiaomo.androidforclaw.mcp
 
 import android.util.Log
 import com.xiaomo.androidforclaw.accessibility.AccessibilityProxy
+import com.xiaomo.androidforclaw.util.PlaywrightStyleViewTree
 import fi.iki.elonen.NanoHTTPD
 import kotlinx.coroutines.runBlocking
 import org.json.JSONArray
@@ -59,16 +60,26 @@ class ObserverMcpServer private constructor(port: Int) : NanoHTTPD(port) {
         }
     }
 
+    // ── Ref store (last snapshot refs for tap-by-ref) ──────────
+    @Volatile
+    private var lastSnapshotRefs: Map<String, PlaywrightStyleViewTree.RefEntry> = emptyMap()
+
+    private fun resolveRefCoords(ref: String): Pair<Int, Int>? {
+        val entry = lastSnapshotRefs[ref] ?: return null
+        return entry.node.point.x to entry.node.point.y
+    }
+
     // ── Tool definitions ────────────────────────────────────────
 
     private val mcpTools = listOf(
         McpTool(
             name = "get_view_tree",
-            description = "获取当前屏幕的 UI 树（View hierarchy），返回所有可见元素及其属性",
+            description = "Get current screen UI tree in Playwright-style snapshot format. Returns role-based nodes with [ref=eN] identifiers. Use ref values with tap/long_press tools for precise element targeting.",
             inputSchema = mapOf(
                 "type" to "object",
                 "properties" to mapOf(
-                    "use_cache" to mapOf("type" to "boolean", "description" to "是否使用缓存 (默认 true)")
+                    "use_cache" to mapOf("type" to "boolean", "description" to "Use cached tree (default true)"),
+                    "interactive_only" to mapOf("type" to "boolean", "description" to "Only return interactive elements like buttons, textboxes, etc. (default false)")
                 )
             )
         ),
@@ -79,26 +90,26 @@ class ObserverMcpServer private constructor(port: Int) : NanoHTTPD(port) {
         ),
         McpTool(
             name = "tap",
-            description = "点击屏幕上的指定坐标",
+            description = "Tap on screen. Use ref from get_view_tree (e.g. ref='e3') OR x,y coordinates.",
             inputSchema = mapOf(
                 "type" to "object",
                 "properties" to mapOf(
-                    "x" to mapOf("type" to "integer", "description" to "X 坐标"),
-                    "y" to mapOf("type" to "integer", "description" to "Y 坐标")
-                ),
-                "required" to listOf("x", "y")
+                    "ref" to mapOf("type" to "string", "description" to "Element ref from get_view_tree snapshot (e.g. 'e3')"),
+                    "x" to mapOf("type" to "integer", "description" to "X coordinate (used if ref not provided)"),
+                    "y" to mapOf("type" to "integer", "description" to "Y coordinate (used if ref not provided)")
+                )
             )
         ),
         McpTool(
             name = "long_press",
-            description = "长按屏幕上的指定坐标",
+            description = "Long press on screen. Use ref from get_view_tree OR x,y coordinates.",
             inputSchema = mapOf(
                 "type" to "object",
                 "properties" to mapOf(
-                    "x" to mapOf("type" to "integer", "description" to "X 坐标"),
-                    "y" to mapOf("type" to "integer", "description" to "Y 坐标")
-                ),
-                "required" to listOf("x", "y")
+                    "ref" to mapOf("type" to "string", "description" to "Element ref from get_view_tree snapshot (e.g. 'e3')"),
+                    "x" to mapOf("type" to "integer", "description" to "X coordinate"),
+                    "y" to mapOf("type" to "integer", "description" to "Y coordinate")
+                )
             )
         ),
         McpTool(
@@ -273,9 +284,22 @@ class ObserverMcpServer private constructor(port: Int) : NanoHTTPD(port) {
         return when (name) {
             "get_view_tree" -> runBlocking {
                 val useCache = args["use_cache"] as? Boolean ?: true
+                val interactiveOnly = args["interactive_only"] as? Boolean ?: false
                 val nodes = AccessibilityProxy.dumpViewTree(useCache)
+                val result = PlaywrightStyleViewTree.buildSnapshot(nodes)
+                // Store refs for tap-by-ref
+                lastSnapshotRefs = result.refs
+
+                val output = buildString {
+                    appendLine(result.snapshot)
+                    appendLine()
+                    appendLine("---")
+                    appendLine("Refs: ${result.stats.refCount} | Interactive: ${result.stats.interactiveNodes} | Total nodes: ${result.stats.totalNodes}")
+                    appendLine("Use [ref=eN] with tap/long_press tools to interact with elements.")
+                }
+
                 McpToolCallResult(
-                    content = listOf(McpToolCallResult.ContentItem(type = "text", text = nodes.joinToString("\n") { it.toString() }))
+                    content = listOf(McpToolCallResult.ContentItem(type = "text", text = output))
                 )
             }
 
@@ -300,17 +324,37 @@ class ObserverMcpServer private constructor(port: Int) : NanoHTTPD(port) {
             }
 
             "tap" -> runBlocking {
-                val x = (args["x"] as? Number)?.toInt() ?: return@runBlocking paramError("x")
-                val y = (args["y"] as? Number)?.toInt() ?: return@runBlocking paramError("y")
+                val ref = args["ref"] as? String
+                val (x, y) = if (ref != null) {
+                    resolveRefCoords(ref) ?: return@runBlocking McpToolCallResult(
+                        content = listOf(McpToolCallResult.ContentItem(type = "text", text = "Unknown ref: $ref. Run get_view_tree first to get valid refs.")),
+                        isError = true
+                    )
+                } else {
+                    val xArg = (args["x"] as? Number)?.toInt() ?: return@runBlocking paramError("x or ref")
+                    val yArg = (args["y"] as? Number)?.toInt() ?: return@runBlocking paramError("y or ref")
+                    xArg to yArg
+                }
                 val ok = AccessibilityProxy.tap(x, y)
-                textResult(if (ok) "Tapped at ($x, $y)" else "Tap failed")
+                val refInfo = if (ref != null) " (ref=$ref)" else ""
+                textResult(if (ok) "Tapped at ($x, $y)$refInfo" else "Tap failed at ($x, $y)$refInfo")
             }
 
             "long_press" -> runBlocking {
-                val x = (args["x"] as? Number)?.toInt() ?: return@runBlocking paramError("x")
-                val y = (args["y"] as? Number)?.toInt() ?: return@runBlocking paramError("y")
+                val ref = args["ref"] as? String
+                val (x, y) = if (ref != null) {
+                    resolveRefCoords(ref) ?: return@runBlocking McpToolCallResult(
+                        content = listOf(McpToolCallResult.ContentItem(type = "text", text = "Unknown ref: $ref. Run get_view_tree first to get valid refs.")),
+                        isError = true
+                    )
+                } else {
+                    val xArg = (args["x"] as? Number)?.toInt() ?: return@runBlocking paramError("x or ref")
+                    val yArg = (args["y"] as? Number)?.toInt() ?: return@runBlocking paramError("y or ref")
+                    xArg to yArg
+                }
                 val ok = AccessibilityProxy.longPress(x, y)
-                textResult(if (ok) "Long pressed at ($x, $y)" else "Long press failed")
+                val refInfo = if (ref != null) " (ref=$ref)" else ""
+                textResult(if (ok) "Long pressed at ($x, $y)$refInfo" else "Long press failed at ($x, $y)$refInfo")
             }
 
             "swipe" -> runBlocking {
