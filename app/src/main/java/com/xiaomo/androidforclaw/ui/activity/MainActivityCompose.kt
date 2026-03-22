@@ -156,8 +156,13 @@ class MainActivityCompose : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Check and request file management permission
-        checkAndRequestStoragePermission()
+        // Storage permission: request after legal consent is accepted.
+        // For returning users who already accepted, check immediately.
+        val legalAlreadyAccepted = getSharedPreferences("forclaw_legal", MODE_PRIVATE)
+            .getBoolean("legal.accepted", false)
+        if (legalAlreadyAccepted) {
+            checkAndRequestStoragePermission()
+        }
 
         // Check if model setup is needed (first run, no API key configured)
         if (ModelSetupActivity.isNeeded(this)) {
@@ -209,6 +214,8 @@ class MainActivityCompose : ComponentActivity() {
                         onAccept = {
                             legalPrefs.edit().putBoolean("legal.accepted", true).apply()
                             legalAccepted = true
+                            // Request storage permission after legal consent
+                            checkAndRequestStoragePermission()
                         },
                         onDecline = { finishAffinity() },
                         onOpenPrivacy = { LegalActivity.start(this@MainActivityCompose, LegalActivity.TYPE_PRIVACY) },
