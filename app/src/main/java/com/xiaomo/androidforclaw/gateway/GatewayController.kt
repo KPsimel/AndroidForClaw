@@ -79,6 +79,20 @@ class GatewayController(
     var isRunning = false
         private set
 
+    /** 本地进程内事件接收器，由 LocalGatewayChannel 注册，绕过 WebSocket 直接收取事件。 */
+    @Volatile var localEventSink: ((event: String, payloadJson: String) -> Unit)? = null
+
+    /** 广播事件：同时发给 WebSocket 客户端和本地 channel。 */
+    private fun broadcastEvent(frame: EventFrame) {
+        server?.broadcast(frame)
+        localEventSink?.let { sink ->
+            try {
+                val payloadJson = com.google.gson.Gson().toJson(frame.payload)
+                sink(frame.event, payloadJson)
+            } catch (_: Throwable) { /* 序列化失败忽略 */ }
+        }
+    }
+
     /**
      * Start the Gateway WebSocket server
      */
@@ -165,7 +179,7 @@ class GatewayController(
                             agentLoop.progressFlow.collect { update ->
                                 when (update) {
                                     is ProgressUpdate.BlockReply -> {
-                                        server?.broadcast(EventFrame(event = "agent", payload = mapOf(
+                                        broadcastEvent(EventFrame(event = "agent", payload = mapOf(
                                             "sessionKey" to sessionKey,
                                             "stream" to "assistant",
                                             "data" to mapOf("text" to update.text)
@@ -174,7 +188,7 @@ class GatewayController(
                                     is ProgressUpdate.ToolCall -> {
                                         val toolCallId = "tc_${UUID.randomUUID()}"
                                         pendingToolCallIds[update.name] = toolCallId
-                                        server?.broadcast(EventFrame(event = "agent", payload = mapOf(
+                                        broadcastEvent(EventFrame(event = "agent", payload = mapOf(
                                             "sessionKey" to sessionKey,
                                             "stream" to "tool",
                                             "data" to mapOf(
@@ -187,7 +201,7 @@ class GatewayController(
                                     }
                                     is ProgressUpdate.ToolResult -> {
                                         val toolCallId = pendingToolCallIds.remove(update.name) ?: "tc_${UUID.randomUUID()}"
-                                        server?.broadcast(EventFrame(event = "agent", payload = mapOf(
+                                        broadcastEvent(EventFrame(event = "agent", payload = mapOf(
                                             "sessionKey" to sessionKey,
                                             "stream" to "tool",
                                             "data" to mapOf(
@@ -221,13 +235,13 @@ class GatewayController(
                             sessionManager.save(session)
 
                             // Send final assistant text (full accumulated)
-                            server?.broadcast(EventFrame(event = "agent", payload = mapOf(
+                            broadcastEvent(EventFrame(event = "agent", payload = mapOf(
                                 "sessionKey" to sessionKey,
                                 "stream" to "assistant",
                                 "data" to mapOf("text" to text)
                             )))
                             // OpenClaw client expects "state" in chat events
-                            server?.broadcast(EventFrame(event = "chat", payload = mapOf(
+                            broadcastEvent(EventFrame(event = "chat", payload = mapOf(
                                 "state" to "final",
                                 "sessionKey" to sessionKey,
                                 "runId" to runId,
@@ -241,7 +255,7 @@ class GatewayController(
                         } catch (e: kotlinx.coroutines.CancellationException) {
                             streamJob.cancel()
                             Log.i(TAG, "chat.send cancelled (abort): $runId")
-                            server?.broadcast(EventFrame(event = "chat", payload = mapOf(
+                            broadcastEvent(EventFrame(event = "chat", payload = mapOf(
                                 "state" to "aborted",
                                 "sessionKey" to sessionKey,
                                 "runId" to runId
@@ -250,12 +264,12 @@ class GatewayController(
                             streamJob.cancel()
                             Log.e(TAG, "chat.send agent failed: ${e.message}", e)
                             val errorMsg = e.message ?: "error"
-                            server?.broadcast(EventFrame(event = "agent", payload = mapOf(
+                            broadcastEvent(EventFrame(event = "agent", payload = mapOf(
                                 "sessionKey" to sessionKey,
                                 "stream" to "error",
                                 "data" to mapOf("error" to errorMsg)
                             )))
-                            server?.broadcast(EventFrame(event = "chat", payload = mapOf(
+                            broadcastEvent(EventFrame(event = "chat", payload = mapOf(
                                 "state" to "error",
                                 "sessionKey" to sessionKey,
                                 "runId" to runId,
@@ -632,5 +646,15 @@ class GatewayController(
                 ?: throw IllegalArgumentException("runId required"),
             timeout = (paramsMap["timeout"] as? Number)?.toLong()
         )
+    }
+
+    /**
+     * 本地进程内直接调用 RPC 方法（绕过 WebSocket），返回 JSON 字符串。
+     * 供 LocalGatewayChannel 调用。
+     */
+    suspend fun handleLocalRequest(method: String, paramsJson: String?): String {
+        val srv = server ?: throw IllegalStateException("Gateway not started")
+        val result = srv.handleLocalRequest(method, paramsJson)
+        return com.google.gson.Gson().toJson(result)
     }
 }

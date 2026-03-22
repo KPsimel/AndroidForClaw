@@ -46,6 +46,11 @@ import java.util.concurrent.atomic.AtomicLong
 class NodeRuntime(
   context: Context,
   val prefs: SecurePrefs = SecurePrefs(context.applicationContext),
+  /**
+   * 本地进程内 channel（可选）。提供时 ChatController 直接使用，绕过 WebSocket。
+   * 不影响 nodeSession（设备命令仍可通过远程 gateway 调用）。
+   */
+  private val localChatChannel: com.xiaomo.base.IGatewayChannel? = null,
 ) {
   private val appContext = context.applicationContext
   private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -318,12 +323,16 @@ class NodeRuntime(
         nodeSession.sendNodeEvent(event = event, payloadJson = payloadJson)
       }
     }
+    // 本地 channel：注册事件监听器，绕过 WebSocket 直接接收 agent 事件
+    localChatChannel?.setEventListener { event, payloadJson ->
+      handleGatewayEvent(event, payloadJson)
+    }
   }
 
   private val chat: ChatController =
     ChatController(
       scope = scope,
-      session = operatorSession,
+      session = localChatChannel ?: operatorSession,
       json = json,
       supportsChatSubscribe = false,
     )
@@ -634,6 +643,8 @@ class NodeRuntime(
   }
 
   private fun autoConnectIfNeeded() {
+    // 本地模式：跳过 WebSocket 自动连接
+    if (localChatChannel != null) return
     if (didAutoConnect) return
     if (_isConnected.value) return
     val endpoint = resolvePreferredGatewayEndpoint() ?: return
@@ -642,6 +653,8 @@ class NodeRuntime(
   }
 
   private fun reconnectPreferredGatewayOnForeground() {
+    // 本地模式：跳过 WebSocket 重连
+    if (localChatChannel != null) return
     if (_isConnected.value) return
     if (_pendingGatewayTrust.value != null) return
     if (connectedEndpoint != null) {
@@ -829,6 +842,25 @@ class NodeRuntime(
       return
     }
     connect(GatewayEndpoint.manual(host = host, port = port))
+  }
+
+  /**
+   * 本地进程内直连模式：直接标记已连接，不走 WebSocket。
+   * 只在 localChatChannel 已注入时有效。
+   */
+  fun connectLocal() {
+    if (localChatChannel == null) {
+      // 回退到 WebSocket 连接
+      connectManual()
+      return
+    }
+    operatorConnected = true
+    operatorStatusText = "Connected (local)"
+    _serverName.value = "AndroidForClaw"
+    _remoteAddress.value = "local"
+    applyMainSessionKey("main")
+    chat.refresh()
+    updateStatus()
   }
 
   fun disconnect() {

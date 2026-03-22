@@ -221,6 +221,10 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     ensureRuntime().connectManual()
   }
 
+  fun connectLocal() {
+    ensureRuntime().connectLocal()
+  }
+
   fun disconnect() {
     runtimeRef.value?.disconnect()
   }

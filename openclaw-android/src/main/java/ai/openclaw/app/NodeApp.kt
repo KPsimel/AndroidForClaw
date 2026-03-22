@@ -8,10 +8,13 @@ open class NodeApp : Application() {
 
   @Volatile private var runtimeInstance: NodeRuntime? = null
 
+  /** 子类可覆盖，提供本地进程内 channel（绕过 WebSocket）。 */
+  open fun provideLocalChatChannel(): com.xiaomo.base.IGatewayChannel? = null
+
   fun ensureRuntime(): NodeRuntime {
     runtimeInstance?.let { return it }
     return synchronized(this) {
-      runtimeInstance ?: NodeRuntime(this, prefs).also { runtimeInstance = it }
+      runtimeInstance ?: NodeRuntime(this, prefs, provideLocalChatChannel()).also { runtimeInstance = it }
     }
   }
 

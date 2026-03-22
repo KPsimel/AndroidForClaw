@@ -234,6 +234,9 @@ dependencies {
     implementation project(':extensions:observer')
     implementation project(':extensions:termux')
 
+    // ========== Base Module ==========
+    implementation project(':base')
+
     // ========== Self-Control Module ==========
     implementation project(':self-control')
 

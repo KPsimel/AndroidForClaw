@@ -59,6 +59,28 @@ class GatewayWebSocketServer(
     fun getActiveConnections(): Int = connections.size
 
     /**
+     * 本地进程内直接调用已注册的 RPC 方法，绕过 WebSocket 网络层。
+     * 返回 JSON 字符串，或在方法未找到时抛出异常。
+     */
+    suspend fun handleLocalRequest(method: String, paramsJson: String?): Any? {
+        val handler = handlers[method] ?: throw IllegalArgumentException("Unknown method: $method")
+        val params: Any? = if (paramsJson.isNullOrBlank()) {
+            null
+        } else {
+            try {
+                val jsonObj = org.json.JSONObject(paramsJson)
+                // Convert to Map for handlers that expect Map<String, Any?>
+                val map = mutableMapOf<String, Any?>()
+                for (k in jsonObj.keys()) map[k] = jsonObj.opt(k)
+                map
+            } catch (_: Throwable) {
+                paramsJson
+            }
+        }
+        return handler(params)
+    }
+
+    /**
      * Broadcast an event to all connected clients
      */
     fun broadcast(event: EventFrame) {

@@ -18,7 +18,7 @@ import android.speech.SpeechRecognizer
 import android.util.Base64
 import android.util.Log
 import androidx.core.content.ContextCompat
-import ai.openclaw.app.gateway.GatewaySession
+// GatewaySession replaced by IGatewayChannel
 import ai.openclaw.app.isCanonicalMainSessionKey
 import java.io.File
 import java.util.UUID
@@ -44,7 +44,7 @@ import kotlinx.serialization.json.buildJsonObject
 class TalkModeManager(
   private val context: Context,
   private val scope: CoroutineScope,
-  private val session: GatewaySession,
+  private val session: com.xiaomo.base.IGatewayChannel,
   private val supportsChatSubscribe: Boolean,
   private val isConnected: () -> Boolean,
 ) {
@@ -500,7 +500,7 @@ class TalkModeManager(
     }
   }
 
-  private suspend fun subscribeChatIfNeeded(session: GatewaySession, sessionKey: String) {
+  private suspend fun subscribeChatIfNeeded(session: com.xiaomo.base.IGatewayChannel, sessionKey: String) {
     if (!supportsChatSubscribe) return
     val key = sessionKey.trim()
     if (key.isEmpty()) return
@@ -528,7 +528,7 @@ class TalkModeManager(
     return lines.joinToString("\n")
   }
 
-  private suspend fun sendChat(message: String, session: GatewaySession): String {
+  private suspend fun sendChat(message: String, session: com.xiaomo.base.IGatewayChannel): String {
     val runId = UUID.randomUUID().toString()
     val params =
       buildJsonObject {
@@ -599,7 +599,7 @@ class TalkModeManager(
   }
 
   private suspend fun waitForAssistantText(
-    session: GatewaySession,
+    session: com.xiaomo.base.IGatewayChannel,
     sinceSeconds: Double,
     timeoutMs: Long,
   ): String? {
@@ -613,7 +613,7 @@ class TalkModeManager(
   }
 
   private suspend fun fetchLatestAssistantText(
-    session: GatewaySession,
+    session: com.xiaomo.base.IGatewayChannel,
     sinceSeconds: Double? = null,
   ): String? {
     val key = mainSessionKey.ifBlank { "main" }

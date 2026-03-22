@@ -82,6 +82,9 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
         // Gateway Controller
         private var gatewayController: GatewayController? = null
 
+        // 本地进程内 channel（绕过 WebSocket）
+        private var localGatewayChannel: com.xiaomo.androidforclaw.gateway.LocalGatewayChannel? = null
+
         // Feishu Channel
         private var feishuChannel: FeishuChannel? = null
         private var feishuWakeLock: android.os.PowerManager.WakeLock? = null
@@ -180,6 +183,8 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
             }
         }
     }
+
+    override fun provideLocalChatChannel(): com.xiaomo.base.IGatewayChannel? = localGatewayChannel
 
     override fun onCreate() {
         super.onCreate()
@@ -672,6 +677,10 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
             )
 
             Log.i(TAG, "✅ GatewayController 实例创建成功")
+
+            // 创建本地进程内 channel，绕过 WebSocket
+            localGatewayChannel = com.xiaomo.androidforclaw.gateway.LocalGatewayChannel(gatewayController!!)
+            Log.i(TAG, "✅ LocalGatewayChannel 创建成功")
 
             // Start service
             gatewayController?.start()

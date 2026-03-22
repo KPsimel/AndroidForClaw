@@ -88,7 +88,7 @@ class GatewaySession(
   private val onEvent: (event: String, payloadJson: String?) -> Unit,
   private val onInvoke: (suspend (InvokeRequest) -> InvokeResult)? = null,
   private val onTlsFingerprint: ((stableId: String, fingerprint: String) -> Unit)? = null,
-) {
+) : com.xiaomo.base.IGatewayChannel {
   private companion object {
     // Keep connect timeout above observed gateway unauthorized close on lower-end devices.
     private const val CONNECT_RPC_TIMEOUT_MS = 12_000L
@@ -179,7 +179,7 @@ class GatewaySession(
   fun currentCanvasHostUrl(): String? = canvasHostUrl
   fun currentMainSessionKey(): String? = mainSessionKey
 
-  suspend fun sendNodeEvent(event: String, payloadJson: String?): Boolean {
+  override suspend fun sendNodeEvent(event: String, payloadJson: String?): Boolean {
     val conn = currentConnection ?: return false
     val parsedPayload = payloadJson?.let { parseJsonOrNull(it) }
     val params =
@@ -202,7 +202,7 @@ class GatewaySession(
     }
   }
 
-  suspend fun request(method: String, paramsJson: String?, timeoutMs: Long = 15_000): String {
+  override suspend fun request(method: String, paramsJson: String?, timeoutMs: Long): String {
     val conn = currentConnection ?: throw IllegalStateException("not connected")
     val params =
       if (paramsJson.isNullOrBlank()) {

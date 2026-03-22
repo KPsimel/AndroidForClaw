@@ -198,14 +198,9 @@ class MainActivityCompose : ComponentActivity() {
                 mutableStateOf(legalPrefs.getBoolean("legal.accepted", false))
             }
 
-            // Trigger loopback connection with retry — Gateway may still be starting.
+            // 本地直连：同进程，无需 WebSocket 握手
             LaunchedEffect(Unit) {
-                repeat(5) { attempt ->
-                    openClawViewModel.connectManual()
-                    // Wait and check if connected; if so, stop retrying
-                    kotlinx.coroutines.delay(if (attempt == 0) 500L else 2000L)
-                    if (openClawViewModel.isConnected.value) return@LaunchedEffect
-                }
+                openClawViewModel.connectLocal()
             }
 
             OpenClawTheme {

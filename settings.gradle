@@ -35,6 +35,7 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "AndroidForClaw"
+include ':base'
 include ':app'
 include ':openclaw-android'
 include ':extensions:feishu'
