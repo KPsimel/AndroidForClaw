@@ -108,6 +108,10 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
         private var discordTyping: DiscordTyping? = null
         private val discordProcessingJobs = mutableMapOf<String, Job>()
 
+        // Weixin Channel
+        private var weixinChannel: com.xiaomo.weixin.WeixinChannel? = null
+        fun getWeixinChannel(): com.xiaomo.weixin.WeixinChannel? = weixinChannel
+
         // Accessibility Health Monitor
         private var healthMonitor: AccessibilityHealthMonitor? = null
 
@@ -253,6 +257,7 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
         // 📱 Start Feishu Channel (if enabled)
         startFeishuChannelIfEnabled()
         startDiscordChannelIfEnabled()
+        startWeixinChannelIfEnabled()
 
         // 🪟 Initialize floating window manager
         com.xiaomo.androidforclaw.ui.float.SessionFloatWindow.init(this)
@@ -2019,6 +2024,186 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
             } catch (e2: Exception) {
                 Log.e(TAG, "发送错误消息失败", e2)
             }
+        }
+    }
+
+    // ── Weixin Channel ───────────────────────────────────────────────────────
+
+    private fun startWeixinChannelIfEnabled() {
+        Log.i(TAG, "⏰ startWeixinChannelIfEnabled() 被调用")
+        GlobalScope.launch(Dispatchers.IO) {
+            try {
+                val configLoader = ConfigLoader(this@MyApplication)
+                val openClawConfig = configLoader.loadOpenClawConfig()
+                val weixinCfg = openClawConfig.channels.weixin
+
+                if (weixinCfg == null || !weixinCfg.enabled) {
+                    Log.i(TAG, "⏭️  Weixin Channel 未启用，跳过")
+                    return@launch
+                }
+
+                Log.i(TAG, "✅ Weixin Channel 已启用，准备启动...")
+
+                val config = com.xiaomo.weixin.WeixinConfig(
+                    enabled = true,
+                    baseUrl = weixinCfg.baseUrl,
+                    cdnBaseUrl = weixinCfg.cdnBaseUrl,
+                    routeTag = weixinCfg.routeTag,
+                )
+
+                val channel = com.xiaomo.weixin.WeixinChannel(config)
+                val configured = channel.init()
+
+                if (!configured) {
+                    Log.w(TAG, "Weixin Channel 未登录，需要先扫码")
+                    return@launch
+                }
+
+                val started = channel.start()
+                if (!started) {
+                    Log.e(TAG, "Weixin Channel 启动失败")
+                    return@launch
+                }
+
+                weixinChannel = channel
+                Log.i(TAG, "✅ Weixin Channel 启动成功")
+
+                // Collect inbound messages and dispatch to agent
+                channel.messageFlow?.collect { msg ->
+                    Log.i(TAG, "📨 Weixin 收到消息: from=${msg.fromUserId} body=${msg.body.take(50)}")
+
+                    if (msg.body.isBlank()) {
+                        Log.d(TAG, "Weixin: 空消息，跳过")
+                        return@collect
+                    }
+
+                    launch {
+                        try {
+                            // Send typing indicator
+                            channel.sender?.sendTyping(msg.fromUserId)
+
+                            // Process message through agent
+                            val response = processWeixinMessage(msg)
+
+                            // Send reply
+                            if (response.isNotBlank() && !shouldSkipWeixinReply(response)) {
+                                val sanitized = com.xiaomo.androidforclaw.agent.session.HistorySanitizer
+                                    .stripControlTokensFromText(response)
+                                    .replace(Regex("(?:^|\\s+|\\*+)NO_REPLY\\s*$"), "")
+                                    .replace(Regex("(?:^|\\s+|\\*+)HEARTBEAT_OK\\s*$"), "")
+                                    .trim()
+                                if (sanitized.isNotBlank()) {
+                                    channel.sender?.sendText(msg.fromUserId, sanitized)
+                                }
+                            }
+
+                            // Cancel typing
+                            channel.sender?.cancelTyping(msg.fromUserId)
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Weixin 消息处理异常", e)
+                            try {
+                                channel.sender?.sendText(msg.fromUserId, "处理消息时出错：${e.message}")
+                            } catch (_: Exception) {}
+                        }
+                    }
+                }
+
+            } catch (e: Exception) {
+                Log.e(TAG, "Weixin Channel 启动异常", e)
+            }
+        }
+    }
+
+    private fun shouldSkipWeixinReply(response: String): Boolean {
+        val trimmed = response.trim()
+        return trimmed == "NO_REPLY" || trimmed == "HEARTBEAT_OK" || trimmed.isEmpty()
+    }
+
+    private suspend fun processWeixinMessage(
+        msg: com.xiaomo.weixin.messaging.WeixinInboundMessage
+    ): String = withContext(Dispatchers.IO) {
+        try {
+            val sessionId = "weixin_${msg.fromUserId}"
+            Log.i(TAG, "🆔 Weixin Session ID: $sessionId")
+
+            if (MainEntryNew.getSessionManager() == null) {
+                MainEntryNew.initialize(this@MyApplication)
+            }
+            val sessionManager = MainEntryNew.getSessionManager()
+                ?: return@withContext "系统错误：无法创建会话"
+
+            val session = sessionManager.getOrCreate(sessionId)
+
+            val rawHistory = session.getRecentMessages(20)
+            val contextHistory = cleanupToolMessages(rawHistory)
+
+            val taskDataManager = TaskDataManager.getInstance()
+            val toolRegistry = ToolRegistry(
+                context = this@MyApplication,
+                taskDataManager = taskDataManager
+            )
+            val androidToolRegistry = AndroidToolRegistry(
+                context = this@MyApplication,
+                taskDataManager = taskDataManager
+            )
+
+            val configLoader = ConfigLoader(this@MyApplication)
+            val contextBuilder = ContextBuilder(
+                context = this@MyApplication,
+                toolRegistry = toolRegistry,
+                androidToolRegistry = androidToolRegistry,
+                configLoader = configLoader
+            )
+            val llmProvider = com.xiaomo.androidforclaw.providers.UnifiedLLMProvider(this@MyApplication)
+            val contextManager = com.xiaomo.androidforclaw.agent.context.ContextManager(llmProvider)
+
+            val config = configLoader.loadOpenClawConfig()
+            val maxIterations = config.agent.maxIterations
+
+            // Use weixin-specific model if configured
+            val weixinModel = config.channels.weixin?.model
+
+            val agentLoop = AgentLoop(
+                llmProvider = llmProvider,
+                toolRegistry = toolRegistry,
+                androidToolRegistry = androidToolRegistry,
+                contextManager = contextManager,
+                maxIterations = maxIterations,
+                modelRef = weixinModel
+            )
+
+            val channelCtx = ContextBuilder.ChannelContext(
+                channel = "weixin",
+                chatId = msg.fromUserId,
+                chatType = "p2p",
+                senderId = msg.fromUserId,
+                messageId = msg.messageId?.toString() ?: ""
+            )
+            val systemPrompt = contextBuilder.buildSystemPrompt(
+                userGoal = msg.body,
+                packageName = "",
+                testMode = "chat",
+                channelContext = channelCtx
+            )
+
+            val result = agentLoop.run(
+                systemPrompt = systemPrompt,
+                userMessage = msg.body,
+                contextHistory = contextHistory.map { it.toNewMessage() },
+            )
+
+            // Save to session history
+            session.addMessage(com.xiaomo.androidforclaw.providers.LegacyMessage(
+                role = "user", content = msg.body
+            ))
+            session.addMessage(com.xiaomo.androidforclaw.providers.LegacyMessage(
+                role = "assistant", content = result.finalContent
+            ))
+
+            result.finalContent
+        } catch (e: Exception) {
+            Log.e(TAG, "processWeixinMessage 异常", e)
+            "处理消息时出错：${e.message}"
         }
     }
 

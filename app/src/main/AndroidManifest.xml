@@ -169,6 +169,12 @@
             android:screenOrientation="portrait"
             android:theme="@style/Theme.PhoneForClaw" />
 
+        <activity
+            android:name="com.xiaomo.androidforclaw.ui.activity.WeixinChannelActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.PhoneForClaw" />
+
         <!-- 法律条款页面 -->
         <activity
             android:name="com.xiaomo.androidforclaw.ui.activity.LegalActivity"

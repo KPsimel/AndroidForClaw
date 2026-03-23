@@ -145,6 +145,17 @@ fun ChannelListScreen(onBack: () -> Unit) {
                     context.startActivity(intent)
                 }
             )
+
+            // Weixin Channel card
+            ChannelCard(
+                name = "微信 (Weixin)",
+                description = "微信 ClawBot 扫码接入",
+                enabled = config.channels.weixin?.enabled ?: false,
+                onClick = {
+                    val intent = Intent(context, WeixinChannelActivity::class.java)
+                    context.startActivity(intent)
+                }
+            )
         }
     }
 }

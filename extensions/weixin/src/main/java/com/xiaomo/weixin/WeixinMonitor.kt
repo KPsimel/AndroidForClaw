@@ -1,0 +1,146 @@
+/**
+ * OpenClaw Source Reference:
+ * - @tencent-weixin/openclaw-weixin/src/monitor/monitor.ts
+ *
+ * Long-poll loop: getUpdates → parse → dispatch inbound messages.
+ */
+package com.xiaomo.weixin
+
+import android.util.Log
+import com.xiaomo.weixin.api.*
+import com.xiaomo.weixin.messaging.ContextTokenStore
+import com.xiaomo.weixin.messaging.WeixinInboundMessage
+import com.xiaomo.weixin.messaging.parseInbound
+import com.xiaomo.weixin.storage.WeixinAccountStore
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+
+class WeixinMonitor(
+    private val api: WeixinApi,
+    private val accountId: String,
+) {
+    companion object {
+        private const val TAG = "WeixinMonitor"
+        private const val SESSION_EXPIRED_ERRCODE = -14
+        private const val MAX_CONSECUTIVE_FAILURES = 3
+        private const val BACKOFF_DELAY_MS = 30_000L
+        private const val RETRY_DELAY_MS = 2_000L
+        private const val SESSION_PAUSE_MS = 5 * 60_000L // 5 min
+    }
+
+    private val _messageFlow = MutableSharedFlow<WeixinInboundMessage>(
+        replay = 0,
+        extraBufferCapacity = 100,
+    )
+    val messageFlow: SharedFlow<WeixinInboundMessage> = _messageFlow.asSharedFlow()
+
+    private var monitorJob: Job? = null
+    @Volatile private var running = false
+
+    fun start(scope: CoroutineScope) {
+        if (running) {
+            Log.w(TAG, "Monitor already running")
+            return
+        }
+        running = true
+        monitorJob = scope.launch(Dispatchers.IO) {
+            runPollLoop()
+        }
+        Log.i(TAG, "Monitor started for account=$accountId")
+    }
+
+    fun stop() {
+        running = false
+        monitorJob?.cancel()
+        monitorJob = null
+        Log.i(TAG, "Monitor stopped")
+    }
+
+    private suspend fun runPollLoop() {
+        var getUpdatesBuf = WeixinAccountStore.loadSyncBuf()
+        var consecutiveFailures = 0
+
+        if (getUpdatesBuf.isNotBlank()) {
+            Log.i(TAG, "Resuming from saved sync buf (${getUpdatesBuf.length} bytes)")
+        } else {
+            Log.i(TAG, "No previous sync buf, starting fresh")
+        }
+
+        while (running && currentCoroutineContext().isActive) {
+            try {
+                val resp = api.getUpdates(getUpdatesBuf)
+
+                // Check for API errors
+                val isApiError = (resp.ret != null && resp.ret != 0) ||
+                        (resp.errcode != null && resp.errcode != 0)
+
+                if (isApiError) {
+                    val isSessionExpired = resp.errcode == SESSION_EXPIRED_ERRCODE ||
+                            resp.ret == SESSION_EXPIRED_ERRCODE
+
+                    if (isSessionExpired) {
+                        Log.e(TAG, "Session expired (errcode=$SESSION_EXPIRED_ERRCODE), pausing ${SESSION_PAUSE_MS / 60000}min")
+                        consecutiveFailures = 0
+                        delay(SESSION_PAUSE_MS)
+                        continue
+                    }
+
+                    consecutiveFailures++
+                    Log.e(TAG, "getUpdates error: ret=${resp.ret} errcode=${resp.errcode} errmsg=${resp.errmsg} ($consecutiveFailures/$MAX_CONSECUTIVE_FAILURES)")
+
+                    if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
+                        Log.e(TAG, "$MAX_CONSECUTIVE_FAILURES consecutive failures, backing off ${BACKOFF_DELAY_MS}ms")
+                        consecutiveFailures = 0
+                        delay(BACKOFF_DELAY_MS)
+                    } else {
+                        delay(RETRY_DELAY_MS)
+                    }
+                    continue
+                }
+
+                consecutiveFailures = 0
+
+                // Save new sync buf
+                if (!resp.getUpdatesBuf.isNullOrBlank()) {
+                    WeixinAccountStore.saveSyncBuf(resp.getUpdatesBuf)
+                    getUpdatesBuf = resp.getUpdatesBuf
+                }
+
+                // Process messages
+                val msgs = resp.msgs ?: emptyList()
+                for (msg in msgs) {
+                    // Skip bot's own messages
+                    if (msg.messageType == MessageType.BOT) continue
+
+                    val fromUser = msg.fromUserId ?: continue
+                    Log.i(TAG, "Inbound message from=$fromUser types=${msg.itemList?.map { it.type }?.joinToString(",") ?: "none"}")
+
+                    val inbound = parseInbound(msg, accountId)
+                    if (inbound.body.isNotBlank() || inbound.hasMedia) {
+                        _messageFlow.emit(inbound)
+                    }
+                }
+
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                if (!running) return
+
+                consecutiveFailures++
+                Log.e(TAG, "getUpdates exception ($consecutiveFailures/$MAX_CONSECUTIVE_FAILURES): ${e.message}")
+
+                if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
+                    Log.e(TAG, "Backing off ${BACKOFF_DELAY_MS}ms after $MAX_CONSECUTIVE_FAILURES failures")
+                    consecutiveFailures = 0
+                    delay(BACKOFF_DELAY_MS)
+                } else {
+                    delay(RETRY_DELAY_MS)
+                }
+            }
+        }
+
+        Log.i(TAG, "Poll loop ended")
+    }
+}

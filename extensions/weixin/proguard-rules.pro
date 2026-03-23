@@ -1,0 +1,1 @@
+# Weixin channel proguard rules

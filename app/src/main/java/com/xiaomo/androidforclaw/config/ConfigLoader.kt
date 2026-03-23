@@ -420,7 +420,11 @@ class ConfigLoader private constructor() {
         val signalJson = channelsJson?.optJSONObject("signal")
         val signal = signalJson?.let { parseSignalConfig(it) }
 
-        return ChannelsConfig(feishu = feishu, discord = discord, slack = slack, telegram = telegram, whatsapp = whatsapp, signal = signal)
+        val weixinJson = channelsJson?.optJSONObject("weixin")
+            ?: channelsJson?.optJSONObject("openclaw-weixin")
+        val weixin = weixinJson?.let { parseWeixinConfig(it) }
+
+        return ChannelsConfig(feishu = feishu, discord = discord, slack = slack, telegram = telegram, whatsapp = whatsapp, signal = signal, weixin = weixin)
     }
 
     /**
@@ -658,6 +662,18 @@ class ConfigLoader private constructor() {
             groupPolicy = json.optString("groupPolicy", "open"),
             requireMention = json.optBoolean("requireMention", true),
             historyLimit = if (json.has("historyLimit")) json.optInt("historyLimit") else null,
+            model = if (json.has("model")) json.optString("model") else null
+        )
+    }
+
+    private fun parseWeixinConfig(json: JSONObject): WeixinChannelConfig {
+        return WeixinChannelConfig(
+            enabled = json.optBoolean("enabled", false),
+            baseUrl = json.optString("baseUrl", "https://ilinkai.weixin.qq.com")
+                .ifEmpty { "https://ilinkai.weixin.qq.com" },
+            cdnBaseUrl = json.optString("cdnBaseUrl", "https://novac2c.cdn.weixin.qq.com/c2c")
+                .ifEmpty { "https://novac2c.cdn.weixin.qq.com/c2c" },
+            routeTag = if (json.has("routeTag")) json.optString("routeTag") else null,
             model = if (json.has("model")) json.optString("model") else null
         )
     }
@@ -958,6 +974,16 @@ class ConfigLoader private constructor() {
             if (signal.historyLimit != null) obj.put("historyLimit", signal.historyLimit) else obj.remove("historyLimit")
             if (signal.model != null) obj.put("model", signal.model) else obj.remove("model")
             channelsObj.put("signal", obj)
+        }
+
+        config.channels.weixin?.let { weixin ->
+            val obj = channelsObj.optJSONObject("weixin") ?: JSONObject()
+            obj.put("enabled", weixin.enabled)
+            obj.put("baseUrl", weixin.baseUrl)
+            obj.put("cdnBaseUrl", weixin.cdnBaseUrl)
+            if (weixin.routeTag != null) obj.put("routeTag", weixin.routeTag) else obj.remove("routeTag")
+            if (weixin.model != null) obj.put("model", weixin.model) else obj.remove("model")
+            channelsObj.put("weixin", obj)
         }
 
         root.put("channels", channelsObj)

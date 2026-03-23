@@ -70,7 +70,8 @@ data class ChannelsConfig(
     val slack: SlackChannelConfig? = null,
     val telegram: TelegramChannelConfig? = null,
     val whatsapp: WhatsAppChannelConfig? = null,
-    val signal: SignalChannelConfig? = null
+    val signal: SignalChannelConfig? = null,
+    val weixin: WeixinChannelConfig? = null,
 )
 
 data class FeishuChannelConfig(
@@ -241,6 +242,19 @@ data class SignalChannelConfig(
     val groupPolicy: String = "open",
     val requireMention: Boolean = true,
     val historyLimit: Int? = null,
+    /** Android 扩展：覆盖该渠道使用的模型，格式 "providerId/modelId"，为空则使用全局默认 */
+    val model: String? = null
+)
+
+data class WeixinChannelConfig(
+    // 对齐 @tencent-weixin/openclaw-weixin
+    val enabled: Boolean = false,
+    /** API base URL (default: https://ilinkai.weixin.qq.com) */
+    val baseUrl: String = "https://ilinkai.weixin.qq.com",
+    /** CDN base URL */
+    val cdnBaseUrl: String = "https://novac2c.cdn.weixin.qq.com/c2c",
+    /** Route tag for API requests */
+    val routeTag: String? = null,
     /** Android 扩展：覆盖该渠道使用的模型，格式 "providerId/modelId"，为空则使用全局默认 */
     val model: String? = null
 )
