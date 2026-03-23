@@ -436,7 +436,7 @@ class ConfigLoader private constructor() {
         }
 
         return GatewayConfig(
-            port = json.optInt("port", 18789),
+            port = json.optInt("port", 19789),
             mode = json.optString("mode", "local"),
             bind = json.optString("bind", "loopback"),
             auth = auth

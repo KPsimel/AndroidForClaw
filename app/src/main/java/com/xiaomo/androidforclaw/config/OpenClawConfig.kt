@@ -248,7 +248,7 @@ data class SignalChannelConfig(
 // ============ gateway（对齐 types.gateway.d.ts）============
 
 data class GatewayConfig(
-    val port: Int = 18789,
+    val port: Int = 19789,
     val mode: String = "local",
     val bind: String = "loopback",
     val auth: GatewayAuthConfig? = null
@@ -384,5 +384,5 @@ object ConfigDefaults {
     const val DEFAULT_TIMEOUT_MS = 300000L
     const val DEFAULT_SCREENSHOT_QUALITY = 85
     const val DEFAULT_SCREENSHOT_MAX_WIDTH = 1080
-    const val DEFAULT_GATEWAY_PORT = 18789
+    const val DEFAULT_GATEWAY_PORT = 19789
 }
