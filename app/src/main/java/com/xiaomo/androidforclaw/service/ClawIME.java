@@ -16,6 +16,7 @@ import android.util.Log;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.ExtractedTextRequest;
 import android.view.inputmethod.InputConnection;
 import android.view.inputmethod.InputMethodManager;
@@ -23,6 +24,8 @@ import android.widget.Button;
 import com.xiaomo.androidforclaw.R;
 
 public class ClawIME extends InputMethodService {
+    private static final String TAG = "ClawIME";
+
     private String IME_MESSAGE = "ADB_INPUT_TEXT";
     private String IME_CHARS = "ADB_INPUT_CHARS";
     private String IME_KEYCODE = "ADB_INPUT_CODE";
@@ -30,30 +33,37 @@ public class ClawIME extends InputMethodService {
     private String IME_EDITORCODE = "ADB_EDITOR_CODE";
     private String IME_MESSAGE_B64 = "ADB_INPUT_B64";
     private String IME_CLEAR_TEXT = "ADB_CLEAR_TEXT";
-    private String IME_SEND_MESSAGE = "ADB_SEND_MESSAGE"; // 新增：专门用于发送消息
+    private String IME_SEND_MESSAGE = "ADB_SEND_MESSAGE";
     private BroadcastReceiver mReceiver = null;
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        // 在 Service 创建时就注册实例，确保 Manager 尽早持有引用
+        ClawIMEManager.INSTANCE.registerInstance(this);
+        Log.d(TAG, "onCreate: instance registered");
+    }
 
     @Override
     public View onCreateInputView() {
         View mInputView = getLayoutInflater().inflate(R.layout.claw_keyboard, null);
 
-        // Register this instance to ClawIMEManager
+        // 确保注册（防御性）
         ClawIMEManager.INSTANCE.registerInstance(this);
 
         if (mReceiver == null) {
             IntentFilter filter = new IntentFilter(IME_MESSAGE);
             filter.addAction(IME_CHARS);
             filter.addAction(IME_KEYCODE);
-            filter.addAction(IME_MESSAGE); // IME_META_KEYCODE // Change IME_MESSAGE to get more values.
             filter.addAction(IME_EDITORCODE);
             filter.addAction(IME_MESSAGE_B64);
             filter.addAction(IME_CLEAR_TEXT);
-            filter.addAction(IME_SEND_MESSAGE); // 新增：注册发送消息的action
+            filter.addAction(IME_SEND_MESSAGE);
             mReceiver = new AdbReceiver();
 
-            // Android 14+ 需要显式指定 RECEIVER_NOT_EXPORTED
+            // 使用 RECEIVER_EXPORTED 让 ADB broadcast 和同进程广播都能到达
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                registerReceiver(mReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+                registerReceiver(mReceiver, filter, Context.RECEIVER_EXPORTED);
             } else {
                 registerReceiver(mReceiver, filter);
             }
@@ -66,6 +76,23 @@ public class ClawIME extends InputMethodService {
         }
 
         return mInputView;
+    }
+
+    @Override
+    public void onStartInput(EditorInfo attribute, boolean restarting) {
+        super.onStartInput(attribute, restarting);
+        // 每次进入编辑会话时刷新注册，确保 Manager 持有最新实例
+        ClawIMEManager.INSTANCE.registerInstance(this);
+        Log.d(TAG, "onStartInput: restarting=" + restarting +
+                ", inputType=" + (attribute != null ? attribute.inputType : "null"));
+    }
+
+    @Override
+    public void onStartInputView(EditorInfo info, boolean restarting) {
+        super.onStartInputView(info, restarting);
+        // 键盘显示时再次确认注册
+        ClawIMEManager.INSTANCE.registerInstance(this);
+        Log.d(TAG, "onStartInputView: keyboard shown, restarting=" + restarting);
     }
 
     public void onDestroy() {
@@ -92,7 +119,7 @@ public class ClawIME extends InputMethodService {
     class AdbReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            Log.d("ClawIME", "onReceive: " + intent.getAction());
+            Log.d(TAG, "onReceive: " + intent.getAction());
             if (intent.getAction().equals(IME_MESSAGE)) {
                 // normal message
                 String msg = intent.getStringExtra("msg");
@@ -103,7 +130,7 @@ public class ClawIME extends InputMethodService {
                 }
                 // meta codes
                 String metaCodes = intent.getStringExtra("mcode"); // Get message.
-                Log.d("ClawIME", "onReceive: metaCodes = " + metaCodes);
+                Log.d(TAG, "onReceive: metaCodes = " + metaCodes);
                 if (metaCodes != null) {
                     String[] mcodes = metaCodes.split(","); // Get mcodes in string.
                     if (mcodes != null) {
@@ -211,26 +238,26 @@ public class ClawIME extends InputMethodService {
                 }
             }
 
-            // 新增：处理发送消息的广播
+            // 处理发送消息的广播
             if (intent.getAction().equals(IME_SEND_MESSAGE)) {
-                Log.d("ClawIME", "onReceive: IME_SEND_MESSAGE");
+                Log.d(TAG, "onReceive: IME_SEND_MESSAGE");
                 InputConnection ic = getCurrentInputConnection();
                 if (ic != null) {
                     // 先尝试 IME_ACTION_SEND
                     boolean sent = ic.performEditorAction(android.view.inputmethod.EditorInfo.IME_ACTION_SEND);
-                    Log.d("ClawIME", "performEditorAction IME_ACTION_SEND: " + sent);
+                    Log.d(TAG, "performEditorAction IME_ACTION_SEND: " + sent);
 
                     // 如果失败，再尝试其他常见的发送动作
                     if (!sent) {
                         sent = ic.performEditorAction(android.view.inputmethod.EditorInfo.IME_ACTION_GO);
-                        Log.d("ClawIME", "performEditorAction IME_ACTION_GO: " + sent);
+                        Log.d(TAG, "performEditorAction IME_ACTION_GO: " + sent);
                     }
 
                     // 如果还是失败，尝试发送回车键
                     if (!sent) {
                         ic.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER));
                         ic.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_ENTER));
-                        Log.d("ClawIME", "sendKeyEvent KEYCODE_ENTER as fallback");
+                        Log.d(TAG, "sendKeyEvent KEYCODE_ENTER as fallback");
                     }
                 }
             }

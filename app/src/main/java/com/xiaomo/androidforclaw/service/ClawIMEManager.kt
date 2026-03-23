@@ -62,16 +62,26 @@ object ClawIMEManager {
     }
 
     /**
-     * 检查 ClawIME 是否已连接 (实例存在且有输入连接)
+     * 检查 ClawIME 是否已连接
+     * 只要实例存在就认为已连接（currentInputConnection 只在编辑会话中才非 null，
+     * 但 IME 服务本身是活的，tap 输入框后 connection 会自动就绪）
      */
     fun isConnected(): Boolean {
-        val connected = clawImeInstance?.currentInputConnection != null
-        Log.d(TAG, "isConnected: $connected")
-        return connected
+        val hasInstance = clawImeInstance != null
+        val hasIc = clawImeInstance?.currentInputConnection != null
+        Log.d(TAG, "isConnected: instance=$hasInstance, inputConnection=$hasIc")
+        return hasInstance
     }
 
     /**
-     * 输入文本
+     * 检查当前是否有活跃的输入连接（输入框有焦点且键盘已弹出）
+     */
+    fun hasActiveInputConnection(): Boolean {
+        return clawImeInstance?.currentInputConnection != null
+    }
+
+    /**
+     * 输入文本（带重试，等待 InputConnection 就绪）
      */
     fun inputText(text: String): Boolean {
         val ime = clawImeInstance
@@ -80,14 +90,29 @@ object ClawIMEManager {
             return false
         }
 
-        val ic = ime.currentInputConnection
+        // 等待 InputConnection 就绪（tap 后可能需要一点时间）
+        var ic = ime.currentInputConnection
         if (ic == null) {
-            Log.e(TAG, "No input connection available")
+            Log.d(TAG, "InputConnection not ready, waiting...")
+            for (i in 1..10) {
+                try { Thread.sleep(100) } catch (_: InterruptedException) {}
+                ic = ime.currentInputConnection
+                if (ic != null) {
+                    Log.d(TAG, "InputConnection ready after ${i * 100}ms")
+                    break
+                }
+            }
+        }
+
+        if (ic == null) {
+            Log.e(TAG, "No input connection available after waiting 1s")
             return false
         }
 
         return try {
+            ic.beginBatchEdit()
             ic.commitText(text, 1)
+            ic.endBatchEdit()
             Log.d(TAG, "✓ Input text: ${text.take(50)}${if (text.length > 50) "..." else ""}")
             true
         } catch (e: Exception) {
@@ -100,17 +125,7 @@ object ClawIMEManager {
      * 清空输入框
      */
     fun clearText(): Boolean {
-        val ime = clawImeInstance
-        if (ime == null) {
-            Log.e(TAG, "ClawIME instance not available")
-            return false
-        }
-
-        val ic = ime.currentInputConnection
-        if (ic == null) {
-            Log.e(TAG, "No input connection available")
-            return false
-        }
+        val ic = waitForInputConnection() ?: return false
 
         return try {
             // REF: stackoverflow/33082004 author: Maxime Epain
@@ -132,17 +147,7 @@ object ClawIMEManager {
      * 发送消息 (执行编辑器动作或回车)
      */
     fun sendMessage(): Boolean {
-        val ime = clawImeInstance
-        if (ime == null) {
-            Log.e(TAG, "ClawIME instance not available")
-            return false
-        }
-
-        val ic = ime.currentInputConnection
-        if (ic == null) {
-            Log.e(TAG, "No input connection available")
-            return false
-        }
+        val ic = waitForInputConnection() ?: return false
 
         return try {
             // 先尝试 IME_ACTION_SEND
@@ -171,20 +176,37 @@ object ClawIMEManager {
     }
 
     /**
-     * 发送按键事件
+     * 等待 InputConnection 就绪（最多 1 秒）
      */
-    fun sendKey(keyCode: Int): Boolean {
+    private fun waitForInputConnection(): android.view.inputmethod.InputConnection? {
         val ime = clawImeInstance
         if (ime == null) {
             Log.e(TAG, "ClawIME instance not available")
-            return false
+            return null
         }
-
-        val ic = ime.currentInputConnection
+        var ic = ime.currentInputConnection
         if (ic == null) {
-            Log.e(TAG, "No input connection available")
-            return false
+            Log.d(TAG, "InputConnection not ready, waiting...")
+            for (i in 1..10) {
+                try { Thread.sleep(100) } catch (_: InterruptedException) {}
+                ic = ime.currentInputConnection
+                if (ic != null) {
+                    Log.d(TAG, "InputConnection ready after ${i * 100}ms")
+                    break
+                }
+            }
         }
+        if (ic == null) {
+            Log.e(TAG, "No input connection available after waiting 1s")
+        }
+        return ic
+    }
+
+    /**
+     * 发送按键事件
+     */
+    fun sendKey(keyCode: Int): Boolean {
+        val ic = waitForInputConnection() ?: return false
 
         return try {
             ic.sendKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, keyCode))
@@ -194,6 +216,20 @@ object ClawIMEManager {
         } catch (e: Exception) {
             Log.e(TAG, "Failed to send key", e)
             false
+        }
+    }
+
+    /**
+     * 获取当前输入框中的文本（调试用）
+     */
+    fun getCurrentText(): String? {
+        val ic = clawImeInstance?.currentInputConnection ?: return null
+        return try {
+            val extracted = ic.getExtractedText(ExtractedTextRequest(), 0)
+            extracted?.text?.toString()
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to get current text", e)
+            null
         }
     }
 }
