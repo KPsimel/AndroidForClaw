@@ -139,6 +139,32 @@ fun ForClawConnectTab() {
             ),
         )
 
+        // ── Web Clipboard ────────────────────────────────────
+        val localIp = remember {
+            try {
+                java.net.NetworkInterface.getNetworkInterfaces()?.toList()
+                    ?.flatMap { it.inetAddresses.toList() }
+                    ?.firstOrNull { !it.isLoopbackAddress && it is java.net.Inet4Address }
+                    ?.hostAddress ?: "未连接 WiFi"
+            } catch (_: Exception) { "获取失败" }
+        }
+        val clipboardUrl = if (localIp.contains(".")) "http://$localIp:8080/clipboard" else localIp
+        StatusCard(
+            title = "Web Clipboard",
+            icon = Icons.Default.ContentPaste,
+            rows = listOf(
+                StatusRow("地址", clipboardUrl),
+                StatusRow("用途", "电脑输入 → 手机剪切板"),
+            ),
+            onClick = {
+                if (clipboardUrl.startsWith("http")) {
+                    val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(clipboardUrl))
+                    context.startActivity(intent)
+                }
+            },
+            clickLabel = "打开",
+        )
+
         // ── Channels ──────────────────────────────────────────
         StatusCard(
             title = "Channels",

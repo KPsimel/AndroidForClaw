@@ -57,6 +57,10 @@ class GatewayServer(
     private val channelManager = ChannelManager(context)
     private val activeConnections = mutableSetOf<GatewayWebSocket>()
 
+    // Web Clipboard: PC → Phone text transfer
+    private val clipboardHistory = mutableListOf<Pair<String, Long>>() // (text, timestamp)
+    private val clipboardMaxHistory = 20
+
     init {
         Log.d(TAG, "Gateway Server initialized on port $port")
         instance = this
@@ -76,6 +80,11 @@ class GatewayServer(
         // HTTP API
         if (uri.startsWith("/api/")) {
             return handleApiRequest(session)
+        }
+
+        // Web Clipboard (for easy config input from PC)
+        if (uri == "/clipboard" || uri == "/clipboard/") {
+            return serveClipboardPage()
         }
 
         // Static files (WebUI)
@@ -103,6 +112,23 @@ class GatewayServer(
                 newFixedLengthResponse(Response.Status.OK, "application/json", json.toString())
             }
 
+            uri == "/clipboard/send" && session.method == NanoHTTPD.Method.POST -> {
+                handleClipboardSend(session)
+            }
+
+            uri == "/clipboard/history" -> {
+                val json = org.json.JSONArray()
+                synchronized(clipboardHistory) {
+                    clipboardHistory.forEach { item ->
+                        json.put(JSONObject().apply {
+                            put("text", item.first)
+                            put("timestamp", item.second)
+                        })
+                    }
+                }
+                newFixedLengthResponse(Response.Status.OK, "application/json", json.toString())
+            }
+
             uri == "/device/status" -> {
                 val status = channelManager.getCurrentAccount()
                 val json = JSONObject().apply {
@@ -124,6 +150,213 @@ class GatewayServer(
                 newFixedLengthResponse(Response.Status.NOT_FOUND, "text/plain", "API not found: $uri")
             }
         }
+    }
+
+    /**
+     * Handle clipboard send from PC
+     */
+    private fun handleClipboardSend(session: IHTTPSession): Response {
+        try {
+            val contentLength = session.headers["content-length"]?.toIntOrNull() ?: 0
+            val body = mutableMapOf<String, String>()
+            session.parseBody(body)
+
+            val postData = body["postData"] ?: ""
+            val json = JSONObject(postData)
+            val text = json.optString("text", "")
+
+            if (text.isBlank()) {
+                return newFixedLengthResponse(Response.Status.BAD_REQUEST, "application/json",
+                    """{"error":"empty text"}""")
+            }
+
+            // Save to history
+            synchronized(clipboardHistory) {
+                clipboardHistory.add(0, Pair(text, System.currentTimeMillis()))
+                if (clipboardHistory.size > clipboardMaxHistory) {
+                    clipboardHistory.removeAt(clipboardHistory.size - 1)
+                }
+            }
+
+            // Copy to system clipboard on main thread
+            android.os.Handler(android.os.Looper.getMainLooper()).post {
+                try {
+                    val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                    val clip = android.content.ClipData.newPlainText("web_clipboard", text)
+                    clipboardManager.setPrimaryClip(clip)
+                    Log.d(TAG, "📋 Web clipboard: copied ${text.length} chars to system clipboard")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to copy to clipboard", e)
+                }
+            }
+
+            // Broadcast to connected WebSocket clients
+            broadcast("clipboard.received", JSONObject().apply {
+                put("text", text)
+                put("timestamp", System.currentTimeMillis())
+            })
+
+            Log.d(TAG, "📋 Web clipboard received: ${text.take(50)}...")
+            return newFixedLengthResponse(Response.Status.OK, "application/json",
+                """{"ok":true,"length":${text.length}}""")
+        } catch (e: Exception) {
+            Log.e(TAG, "Clipboard send failed", e)
+            return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, "application/json",
+                """{"error":"${e.message}"}""")
+        }
+    }
+
+    /**
+     * Get clipboard history (for external access)
+     */
+    fun getClipboardHistory(): List<Pair<String, Long>> {
+        synchronized(clipboardHistory) {
+            return clipboardHistory.toList()
+        }
+    }
+
+    /**
+     * Serve the web clipboard page (inline HTML, no external dependencies)
+     */
+    private fun serveClipboardPage(): Response {
+        val html = """
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AndroidForClaw - Web Clipboard</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, system-ui, sans-serif; background: #0a0a0a; color: #e0e0e0; min-height: 100vh; }
+.container { max-width: 640px; margin: 0 auto; padding: 24px 16px; }
+h1 { font-size: 20px; font-weight: 600; margin-bottom: 4px; color: #fff; }
+.subtitle { font-size: 13px; color: #888; margin-bottom: 24px; }
+.input-area { position: relative; margin-bottom: 16px; }
+textarea { width: 100%; min-height: 120px; padding: 14px; border: 1px solid #333; border-radius: 10px; background: #1a1a1a; color: #fff; font-size: 15px; font-family: 'SF Mono', monospace; resize: vertical; outline: none; transition: border-color 0.2s; }
+textarea:focus { border-color: #4a9eff; }
+textarea::placeholder { color: #555; }
+.actions { display: flex; gap: 10px; margin-bottom: 24px; }
+button { flex: 1; padding: 12px; border: none; border-radius: 10px; font-size: 15px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+.btn-send { background: #4a9eff; color: #fff; }
+.btn-send:hover { background: #3a8eef; }
+.btn-send:active { transform: scale(0.98); }
+.btn-send:disabled { background: #333; color: #666; cursor: not-allowed; }
+.btn-clear { background: #2a2a2a; color: #aaa; flex: 0.4; }
+.btn-clear:hover { background: #333; }
+.status { text-align: center; font-size: 13px; color: #4a9eff; min-height: 20px; margin-bottom: 20px; transition: opacity 0.3s; }
+.status.error { color: #ff4a4a; }
+.status.ok { color: #4aff8a; }
+h2 { font-size: 14px; color: #888; margin-bottom: 12px; font-weight: 500; }
+.history { list-style: none; }
+.history-item { background: #1a1a1a; border: 1px solid #222; border-radius: 8px; padding: 12px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; position: relative; }
+.history-item:hover { border-color: #444; background: #222; }
+.history-text { font-size: 14px; font-family: 'SF Mono', monospace; word-break: break-all; white-space: pre-wrap; max-height: 80px; overflow: hidden; }
+.history-time { font-size: 11px; color: #555; margin-top: 6px; }
+.history-copied { position: absolute; top: 12px; right: 12px; font-size: 11px; color: #4aff8a; opacity: 0; transition: opacity 0.3s; }
+.history-item.copied .history-copied { opacity: 1; }
+.empty { text-align: center; color: #444; font-size: 14px; padding: 40px 0; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>📋 Web Clipboard</h1>
+<p class="subtitle">在电脑上输入，手机上自动复制到剪切板</p>
+
+<div class="input-area">
+<textarea id="text" placeholder="粘贴 API Key、配置内容或任意文本..." autofocus></textarea>
+</div>
+<div class="actions">
+<button class="btn-send" id="sendBtn" onclick="send()">发送到手机</button>
+<button class="btn-clear" onclick="clearInput()">清空</button>
+</div>
+<div class="status" id="status"></div>
+
+<h2>历史记录（点击复制）</h2>
+<ul class="history" id="history"></ul>
+<div class="empty" id="empty">暂无记录</div>
+</div>
+
+<script>
+const textarea = document.getElementById('text');
+const statusEl = document.getElementById('status');
+const historyEl = document.getElementById('history');
+const emptyEl = document.getElementById('empty');
+const sendBtn = document.getElementById('sendBtn');
+
+async function send() {
+  const text = textarea.value.trim();
+  if (!text) return;
+  sendBtn.disabled = true;
+  statusEl.className = 'status';
+  statusEl.textContent = '发送中...';
+  try {
+    const res = await fetch('/api/clipboard/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      statusEl.className = 'status ok';
+      statusEl.textContent = '✅ 已发送到手机剪切板 (' + data.length + ' 字符)';
+      textarea.value = '';
+      loadHistory();
+    } else {
+      throw new Error(data.error || 'unknown');
+    }
+  } catch (e) {
+    statusEl.className = 'status error';
+    statusEl.textContent = '❌ 发送失败: ' + e.message;
+  }
+  sendBtn.disabled = false;
+  setTimeout(() => { statusEl.textContent = ''; }, 3000);
+}
+
+function clearInput() { textarea.value = ''; textarea.focus(); }
+
+textarea.addEventListener('keydown', function(e) {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); send(); }
+});
+
+async function loadHistory() {
+  try {
+    const res = await fetch('/api/clipboard/history');
+    const items = await res.json();
+    if (items.length === 0) {
+      historyEl.innerHTML = '';
+      emptyEl.style.display = 'block';
+      return;
+    }
+    emptyEl.style.display = 'none';
+    historyEl.innerHTML = items.map((item, i) => {
+      const t = new Date(item.timestamp).toLocaleString('zh-CN');
+      const preview = item.text.length > 200 ? item.text.substring(0, 200) + '...' : item.text;
+      return '<li class="history-item" onclick="copyItem(this, ' + i + ')" data-text="' + escapeAttr(item.text) + '">'
+        + '<div class="history-text">' + escapeHtml(preview) + '</div>'
+        + '<div class="history-time">' + t + '</div>'
+        + '<div class="history-copied">已复制</div></li>';
+    }).join('');
+  } catch (e) {}
+}
+
+function copyItem(el, idx) {
+  const text = el.getAttribute('data-text');
+  navigator.clipboard.writeText(text).then(() => {
+    el.classList.add('copied');
+    setTimeout(() => el.classList.remove('copied'), 1500);
+  });
+}
+
+function escapeHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escapeAttr(s) { return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+loadHistory();
+</script>
+</body>
+</html>
+        """.trimIndent()
+        return newFixedLengthResponse(Response.Status.OK, "text/html", html)
     }
 
     /**
