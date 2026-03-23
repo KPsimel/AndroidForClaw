@@ -239,46 +239,64 @@ class DeviceTool(private val context: Context) : Tool {
     private suspend fun executeType(args: Map<String, Any?>): ToolResult {
         val text = args["text"] as? String ?: return ToolResult.error("Missing 'text' for kind=type")
 
+        val clipboardHelper = com.xiaomo.androidforclaw.service.ClipboardInputHelper
         val clawIme = com.xiaomo.androidforclaw.service.ClawIMEManager
         val clawImeActive = clawIme.isClawImeEnabled(context) && clawIme.isConnected()
+        val accessibilityAvailable = AccessibilityProxy.isServiceReady()
+        val clipboardAvailable = accessibilityAvailable && clipboardHelper.isClipboardAvailable(context)
 
-        // If ref provided, try to focus input (needs accessibility or ClawIME)
+        // If ref provided, try to focus input
         val resolved = resolveCoordinate(args)
         if (resolved != null) {
             val (x, y, _) = resolved
-            if (clawImeActive) {
-                // ClawIME is active, tap ref without accessibility (use shell input tap)
+            if (accessibilityAvailable) {
+                AccessibilityProxy.tap(x, y)
+                delay(POST_ACTION_DELAY_MS)
+            } else if (clawImeActive) {
                 Runtime.getRuntime().exec(arrayOf("sh", "-c", "input tap $x $y")).waitFor()
                 delay(POST_ACTION_DELAY_MS)
             } else {
-                // No ClawIME, need accessibility
-                val focused = AccessibilityProxy.tap(x, y)
-                if (!focused) {
-                    return ToolResult.error("输入失败：ClawIME 未激活，且无障碍服务未开启。请先切换到 ClawIME 输入法或开启无障碍权限")
-                }
-                delay(POST_ACTION_DELAY_MS)
+                return ToolResult.error("输入失败：无障碍服务和 ClawIME 均未启用，无法聚焦输入框")
             }
         }
 
-        // Type text
+        // Type text: 优先剪切板 → 兜底 ClawIME → 兜底 shell input
         try {
             val typed: Boolean
-            if (clawImeActive) {
+            val method: String
+
+            if (clipboardAvailable) {
+                // 优先走剪切板粘贴（最可靠，支持所有字符）
+                typed = clipboardHelper.inputTextViaClipboard(context, text)
+                method = "clipboard"
+                Log.d(TAG, "Clipboard.inputText('${text.take(30)}'): $typed")
+            } else if (clawImeActive) {
+                // 兜底到 ClawIME 键盘输入
                 typed = clawIme.inputText(text)
-                Log.d(TAG, "ClawIME.inputText('$text'): $typed")
+                method = "clawime"
+                Log.d(TAG, "ClawIME.inputText('${text.take(30)}'): $typed")
             } else {
-                // Fallback to input text (limited to ASCII)
+                // 最终兜底：shell input text（仅支持 ASCII）
                 val escaped = text.replace("'", "'\\''")
                 val proc = Runtime.getRuntime().exec(arrayOf("sh", "-c", "input text '$escaped'"))
                 val exitCode = proc.waitFor()
                 typed = exitCode == 0
-                Log.d(TAG, "input text exitCode: $exitCode")
+                method = "shell"
+                Log.d(TAG, "shell input text exitCode: $exitCode")
             }
+
             if (!typed) {
-                return ToolResult.error("Type failed: could not commit text. Make sure ClawIME (built-in input method) is activated, or an input method keyboard is open.")
+                val hint = if (!accessibilityAvailable && !clawImeActive) {
+                    "请开启无障碍服务（推荐，支持剪切板粘贴），或切换到 ClawIME 输入法"
+                } else if (!accessibilityAvailable) {
+                    "剪切板粘贴需要无障碍服务。请在设置中开启无障碍权限以获得更好的输入体验"
+                } else {
+                    "输入失败，请重试"
+                }
+                return ToolResult.error("Type failed: $hint")
             }
             val refLabel = (args["ref"] as? String)?.let { refManager.getRefNode(it)?.text }
-            return ToolResult.success("Typed '${text.take(100)}'${refLabel?.let { " into '$it'" } ?: ""}")
+            return ToolResult.success("Typed '${text.take(100)}'${refLabel?.let { " into '$it'" } ?: ""} (via $method)")
         } catch (e: Exception) {
             return ToolResult.error("Type failed: ${e.message}")
         }
