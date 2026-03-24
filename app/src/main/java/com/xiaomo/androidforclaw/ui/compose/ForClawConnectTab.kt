@@ -21,9 +21,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.xiaomo.androidforclaw.R
 import com.xiaomo.androidforclaw.accessibility.AccessibilityProxy
 import com.xiaomo.androidforclaw.agent.skills.SkillsLoader
 import com.xiaomo.androidforclaw.config.ConfigLoader
@@ -40,7 +42,8 @@ fun ForClawConnectTab() {
     val context = LocalContext.current
 
     // ── LLM 配置 ──────────────────────────────────────────────
-    var providerName by remember { mutableStateOf("加载中...") }
+    val loadingText = stringResource(R.string.connect_loading)
+    var providerName by remember { mutableStateOf(loadingText) }
     var modelId by remember { mutableStateOf("") }
     var apiKeyOk by remember { mutableStateOf(false) }
 
@@ -85,7 +88,7 @@ fun ForClawConnectTab() {
                     val key = entry.second.apiKey
                     apiKeyOk = !key.isNullOrBlank() && !key.startsWith("\${") && key != "未配置"
                 } else {
-                    providerName = "未配置"
+                    providerName = context.getString(R.string.connect_api_not_configured)
                     apiKeyOk = false
                 }
 
@@ -111,7 +114,7 @@ fun ForClawConnectTab() {
                     it.enabled
                 } ?: false
             } catch (_: Exception) {
-                providerName = "读取失败"
+                providerName = context.getString(R.string.connect_read_failed)
             }
 
             // Gateway (local in-process channel)
@@ -134,27 +137,29 @@ fun ForClawConnectTab() {
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         // ── LLM API 配置 ──────────────────────────────────────
+        val notConfigured = stringResource(R.string.connect_api_not_configured)
+        val configured = stringResource(R.string.connect_api_configured)
         StatusCard(
-            title = "LLM API",
+            title = stringResource(R.string.connect_llm_api),
             icon = Icons.Default.SmartToy,
             rows = listOf(
-                StatusRow("服务商", providerName.ifBlank { "未配置" }),
-                StatusRow("默认模型", modelId.ifBlank { "—" }),
-                StatusRow("API Key", if (apiKeyOk) "已配置" else "未配置", if (apiKeyOk) StatusLevel.Ok else StatusLevel.Error),
+                StatusRow(stringResource(R.string.connect_provider), providerName.ifBlank { notConfigured }),
+                StatusRow(stringResource(R.string.connect_default_model), modelId.ifBlank { "—" }),
+                StatusRow(stringResource(R.string.connect_api_key), if (apiKeyOk) configured else notConfigured, if (apiKeyOk) StatusLevel.Ok else StatusLevel.Error),
             ),
             onClick = {
                 context.startActivity(Intent(context, ModelConfigActivity::class.java))
             },
-            clickLabel = "修改配置",
+            clickLabel = stringResource(R.string.connect_modify_config),
         )
 
         // ── Gateway ───────────────────────────────────────────
         StatusCard(
-            title = "本地 Gateway",
+            title = stringResource(R.string.connect_local_gateway),
             icon = Icons.Default.Router,
             rows = listOf(
-                StatusRow("端口", "ws://127.0.0.1:8765"),
-                StatusRow("状态", if (gatewayRunning) "运行中" else "未运行",
+                StatusRow(stringResource(R.string.connect_port_label), "ws://127.0.0.1:8765"),
+                StatusRow(stringResource(R.string.connect_status_label), if (gatewayRunning) stringResource(R.string.connect_running) else stringResource(R.string.connect_not_running),
                     if (gatewayRunning) StatusLevel.Ok else StatusLevel.Neutral),
             ),
         )
@@ -186,20 +191,21 @@ fun ForClawConnectTab() {
         )
 
         // ── Channels ──────────────────────────────────────────
+        val enabled = stringResource(R.string.connect_enabled)
         val channelEntries = buildList {
-            if (feishuEnabled)   add(StatusRow("飞书",      "已启用", StatusLevel.Ok))
-            if (discordEnabled)  add(StatusRow("Discord",  "已启用", StatusLevel.Ok))
-            if (telegramEnabled) add(StatusRow("Telegram", "已启用", StatusLevel.Ok))
-            if (slackEnabled)    add(StatusRow("Slack",    "已启用", StatusLevel.Ok))
-            if (whatsappEnabled) add(StatusRow("WhatsApp", "已启用", StatusLevel.Ok))
-            if (signalEnabled)   add(StatusRow("Signal",   "已启用", StatusLevel.Ok))
-            if (weixinEnabled)   add(StatusRow("微信",      "已启用", StatusLevel.Ok))
+            if (feishuEnabled)   add(StatusRow(stringResource(R.string.connect_feishu), enabled, StatusLevel.Ok))
+            if (discordEnabled)  add(StatusRow("Discord",  enabled, StatusLevel.Ok))
+            if (telegramEnabled) add(StatusRow("Telegram", enabled, StatusLevel.Ok))
+            if (slackEnabled)    add(StatusRow("Slack",    enabled, StatusLevel.Ok))
+            if (whatsappEnabled) add(StatusRow("WhatsApp", enabled, StatusLevel.Ok))
+            if (signalEnabled)   add(StatusRow("Signal",   enabled, StatusLevel.Ok))
+            if (weixinEnabled)   add(StatusRow(stringResource(R.string.connect_weixin), enabled, StatusLevel.Ok))
         }
         StatusCard(
-            title = "Channels",
+            title = stringResource(R.string.connect_channels),
             icon = Icons.Default.Hub,
             rows = channelEntries.ifEmpty {
-                listOf(StatusRow("渠道", "未配置", StatusLevel.Neutral))
+                listOf(StatusRow(stringResource(R.string.connect_channels), notConfigured, StatusLevel.Neutral))
             },
             onClick = {
                 context.startActivity(
@@ -211,46 +217,48 @@ fun ForClawConnectTab() {
                     }
                 )
             },
-            clickLabel = "管理",
+            clickLabel = stringResource(R.string.connect_manage),
         )
 
         // ── Skills ────────────────────────────────────────────
         StatusCard(
-            title = "Skills",
+            title = stringResource(R.string.connect_skills),
             icon = Icons.Default.Build,
             rows = listOf(
-                StatusRow("已加载", if (skillsCount > 0) "$skillsCount 个" else "加载中..."),
+                StatusRow(stringResource(R.string.skill_loaded), if (skillsCount > 0) stringResource(R.string.connect_skills_loaded, skillsCount) else stringResource(R.string.connect_loading)),
             ),
         )
 
         // ── MCP Server（给外部 Agent 用，非 AndroidForClaw 自身）───
         val mcpRunning = remember { mutableStateOf(com.xiaomo.androidforclaw.mcp.ObserverMcpServer.isRunning()) }
         StatusCard(
-            title = "MCP Server",
+            title = stringResource(R.string.connect_mcp_server),
             icon = Icons.Default.Dns,
             rows = listOf(
-                StatusRow("状态", if (mcpRunning.value) "运行中" else "已停止",
+                StatusRow(stringResource(R.string.connect_status_label), if (mcpRunning.value) stringResource(R.string.connect_running) else stringResource(R.string.connect_mcp_stopped),
                     if (mcpRunning.value) StatusLevel.Ok else StatusLevel.Neutral),
-                StatusRow("端口", "${com.xiaomo.androidforclaw.mcp.ObserverMcpServer.DEFAULT_PORT}"),
+                StatusRow(stringResource(R.string.connect_port_label), "${com.xiaomo.androidforclaw.mcp.ObserverMcpServer.DEFAULT_PORT}"),
             ),
             onClick = {
                 context.startActivity(Intent(context,
                     com.xiaomo.androidforclaw.ui.activity.McpConfigActivity::class.java))
             },
-            clickLabel = "配置",
+            clickLabel = stringResource(R.string.connect_mcp_config),
         )
 
         // ── 权限 ─────────────────────────────────────────────
         val allPermissionsOk = accessibilityOk && screenCaptureOk
+        val granted = stringResource(R.string.connect_granted)
+        val notGranted = stringResource(R.string.connect_not_granted)
         StatusCard(
-            title = "权限",
+            title = stringResource(R.string.connect_permissions),
             icon = Icons.Default.Security,
             rows = listOf(
-                StatusRow("无障碍", if (accessibilityOk) "已授权" else "未授权",
+                StatusRow(stringResource(R.string.connect_accessibility), if (accessibilityOk) granted else notGranted,
                     if (accessibilityOk) StatusLevel.Ok else StatusLevel.Error),
-                StatusRow("悬浮窗", if (overlayOk) "已授权" else "未授权（可选）",
+                StatusRow(stringResource(R.string.connect_overlay), if (overlayOk) granted else notGranted,
                     if (overlayOk) StatusLevel.Ok else StatusLevel.Neutral),
-                StatusRow("录屏", if (screenCaptureOk) "已授权" else "未授权",
+                StatusRow(stringResource(R.string.connect_screen_capture), if (screenCaptureOk) granted else notGranted,
                     if (screenCaptureOk) StatusLevel.Ok else StatusLevel.Error),
             ),
             onClick = {
@@ -267,7 +275,7 @@ fun ForClawConnectTab() {
                         com.xiaomo.androidforclaw.ui.activity.PermissionsActivity::class.java))
                 }
             },
-            clickLabel = if (allPermissionsOk) "查看" else "去授权",
+            clickLabel = if (allPermissionsOk) stringResource(R.string.connect_view) else stringResource(R.string.connect_go_grant),
         )
     }
 }

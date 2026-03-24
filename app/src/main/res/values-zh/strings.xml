@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- App基本信息 -->
-    <string name="app_name">AndroidClaw</string>
+    <string name="app_name">ForClaw</string>
 
     <!-- Shell命令相关 -->
     <string name="command_hint">Shell 命令</string>
@@ -18,6 +18,7 @@
     <string name="delete">删除</string>
     <string name="edit">编辑</string>
     <string name="cancel">取消</string>
+    <string name="action_cancel">取消</string>
     <string name="done">完成</string>
     <string name="pair">配对</string>
     <string name="skip">跳过</string>
@@ -202,4 +203,90 @@
     <string name="language_english">English</string>
     <string name="language_chinese">中文</string>
     <string name="language_change_restart">语言已更改。请重启应用以使更改生效。</string>
+
+    <!-- Settings tab sections -->
+    <string name="settings_section_config">配置</string>
+    <string name="settings_model_config">模型配置</string>
+    <string name="settings_model_config_desc">API Key 和模型参数</string>
+    <string name="settings_channels">Channels</string>
+    <string name="settings_channels_desc">飞书、Discord 等多渠道接入</string>
+    <string name="settings_skills">Skills</string>
+    <string name="settings_skills_desc">管理 Agent Skills</string>
+    <string name="settings_termux">Termux 配置</string>
+    <string name="settings_termux_desc">配置 Termux SSH 连接</string>
+    <string name="settings_section_files">文件</string>
+    <string name="settings_select_editor">选择文本编辑器</string>
+    <string name="settings_cannot_open">无法打开: %s</string>
+    <string name="settings_file_not_found">文件不存在</string>
+    <string name="settings_section_ui">界面</string>
+    <string name="settings_float_window">会话悬浮窗</string>
+    <string name="settings_float_window_desc">在后台显示会话信息</string>
+    <string name="settings_section_app">应用</string>
+    <string name="settings_check_update">检查更新</string>
+    <string name="settings_current_version">当前版本 v%s</string>
+    <string name="settings_checking_update">正在检查更新…</string>
+    <string name="settings_up_to_date">已是最新版本 v%s</string>
+    <string name="settings_check_failed">检查失败: %s</string>
+    <string name="settings_restart_app">重启应用</string>
+    <string name="settings_restart_desc">重新加载配置和所有服务</string>
+    <string name="settings_restart_title">重启应用</string>
+    <string name="settings_restart_message">将关闭并重新启动应用，重新加载所有配置和服务。\n\n确定要重启吗？</string>
+    <string name="settings_restart_confirm">重启</string>
+    <string name="settings_section_legal">法律</string>
+    <string name="settings_privacy_policy">隐私政策</string>
+    <string name="settings_privacy_desc">查看隐私政策</string>
+    <string name="settings_terms">用户协议</string>
+    <string name="settings_terms_desc">查看用户协议</string>
+    <string name="settings_section_about">关于</string>
+    <string name="settings_version">版本</string>
+    <string name="settings_email">邮箱</string>
+    <string name="settings_wechat">微信</string>
+    <string name="settings_feishu_group">飞书体验群</string>
+    <string name="settings_feishu_join">点击加入</string>
+    <string name="settings_github">GitHub 仓库</string>
+    <string name="settings_github_desc">查看源码 / 提交 Issue</string>
+    <string name="settings_copyright">© 2024–2025 AndroidForClaw</string>
+    <string name="settings_inspired">Inspired by OpenClaw</string>
+    <string name="settings_copied">已复制</string>
+    <string name="settings_cannot_open_link">无法打开链接</string>
+
+    <!-- Connect tab (ForClaw) -->
+    <string name="connect_llm_api">LLM API</string>
+    <string name="connect_provider">服务商</string>
+    <string name="connect_default_model">默认模型</string>
+    <string name="connect_api_key">API Key</string>
+    <string name="connect_api_configured">已配置</string>
+    <string name="connect_api_not_configured">未配置</string>
+    <string name="connect_loading">加载中…</string>
+    <string name="connect_read_failed">读取失败</string>
+    <string name="connect_modify_config">修改配置</string>
+    <string name="connect_local_gateway">本地 Gateway</string>
+    <string name="connect_port_label">端口</string>
+    <string name="connect_status_label">状态</string>
+    <string name="connect_running">运行中</string>
+    <string name="connect_not_running">未运行</string>
+    <string name="connect_channels">Channels</string>
+    <string name="connect_feishu">飞书</string>
+    <string name="connect_weixin">微信</string>
+    <string name="connect_enabled">已启用</string>
+    <string name="connect_manage">管理</string>
+    <string name="connect_skills">Skills</string>
+    <string name="connect_skills_loaded">%d 个</string>
+    <string name="connect_mcp_server">MCP Server</string>
+    <string name="connect_mcp_stopped">已停止</string>
+    <string name="connect_mcp_config">配置</string>
+    <string name="connect_permissions">权限</string>
+    <string name="connect_accessibility">无障碍</string>
+    <string name="connect_overlay">悬浮窗</string>
+    <string name="connect_screen_capture">录屏</string>
+    <string name="connect_granted">已授权</string>
+    <string name="connect_not_granted">未授权</string>
+    <string name="connect_go_grant">去授权</string>
+    <string name="connect_view">查看</string>
+
+    <!-- Channel model picker -->
+    <string name="picker_model_override">模型（可选覆盖）</string>
+    <string name="picker_model_label">模型</string>
+    <string name="picker_use_global">使用全局默认模型</string>
+    <string name="picker_no_provider">⚠ 未配置任何 Provider，请先在「模型配置」页添加</string>
 </resources>

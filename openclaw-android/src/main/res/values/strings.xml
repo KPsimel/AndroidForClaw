@@ -1,3 +1,88 @@
 <resources>
     <string name="app_name">OpenClaw Node</string>
+
+    <!-- Bottom tabs -->
+    <string name="tab_chat">Chat</string>
+    <string name="tab_connect">Connect</string>
+    <string name="tab_voice">Voice</string>
+    <string name="tab_screen">Screen</string>
+    <string name="tab_settings">Settings</string>
+
+    <!-- Brand / status -->
+    <string name="brand_name">ForClaw</string>
+    <string name="status_offline">Offline</string>
+
+    <!-- Chat sender labels -->
+    <string name="sender_you">You</string>
+    <string name="sender_ai">ForClaw</string>
+    <string name="sender_system">System</string>
+    <string name="sender_live_suffix">· Live</string>
+
+    <!-- Chat delete dialog -->
+    <string name="delete_session">Delete Session</string>
+    <string name="delete_session_confirm">Delete \"%s\"? Cannot be undone.</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_cancel">Cancel</string>
+
+    <!-- Chat misc -->
+    <string name="chat_error_label">CHAT ERROR</string>
+    <string name="chat_thinking">Thinking…</string>
+    <string name="chat_thinking_full">ForClaw is thinking…</string>
+    <string name="tools_label">Tools</string>
+    <string name="tools_running">Running tools…</string>
+    <string name="tools_completed">Tools completed</string>
+    <string name="unsupported_attachment">Unsupported attachment</string>
+
+    <!-- Voice tab -->
+    <string name="voice_tap_mic">Tap the mic to start</string>
+    <string name="voice_auto_send">Each pause sends a turn automatically.</string>
+    <string name="voice_listening_response">Listening response…</string>
+    <string name="voice_speaker">Speaker</string>
+    <string name="voice_muted">Muted</string>
+    <string name="voice_mute_speaker">Mute speaker</string>
+    <string name="voice_unmute_speaker">Unmute speaker</string>
+    <string name="voice_mic_on">Turn microphone on</string>
+    <string name="voice_mic_off">Turn microphone off</string>
+    <string name="voice_queued">%d queued</string>
+    <string name="voice_sending">Sending</string>
+    <string name="voice_cooldown">Cooldown</string>
+    <string name="voice_listening">Listening</string>
+    <string name="voice_mic_off_label">Mic off</string>
+    <string name="voice_mic_permission_rationale">Microphone permission is required for voice mode.</string>
+    <string name="voice_mic_permission_blocked">Microphone blocked. Open app settings to enable it.</string>
+    <string name="voice_open_settings">Open settings</string>
+
+    <!-- Connect tab -->
+    <string name="connect_title">Gateway Connection</string>
+    <string name="connect_active">Your gateway is active and ready.</string>
+    <string name="connect_get_started">Connect to your gateway to get started.</string>
+    <string name="connect_endpoint">Endpoint</string>
+    <string name="connect_status">Status</string>
+    <string name="connect_not_set">Not set</string>
+    <string name="connect_disconnect">Disconnect</string>
+    <string name="connect_gateway">Connect Gateway</string>
+    <string name="connect_last_error">Last gateway error</string>
+    <string name="connect_copy_report">Copy Report for Claw</string>
+    <string name="connect_advanced">Advanced controls</string>
+    <string name="connect_advanced_desc">Setup code, endpoint, TLS, token, password, onboarding.</string>
+    <string name="connect_method">Connection method</string>
+    <string name="connect_setup_code">Setup Code</string>
+    <string name="connect_manual">Manual</string>
+    <string name="connect_run_on_host">Run these on the gateway host:</string>
+    <string name="connect_paste_setup">Paste setup code</string>
+    <string name="connect_resolved_endpoint">Resolved endpoint</string>
+    <string name="connect_emulator">Android Emulator</string>
+    <string name="connect_localhost">Localhost</string>
+    <string name="connect_host">Host</string>
+    <string name="connect_port">Port</string>
+    <string name="connect_use_tls">Use TLS</string>
+    <string name="connect_use_tls_desc">Switch to secure websocket (`wss`).</string>
+    <string name="connect_token_optional">Token (optional)</string>
+    <string name="connect_password_optional">Password (optional)</string>
+    <string name="connect_run_onboarding">Run onboarding again</string>
+    <string name="connect_trust_title">Trust this gateway?</string>
+    <string name="connect_trust_text">First-time TLS connection.\n\nVerify this SHA-256 fingerprint before trusting:\n%s</string>
+    <string name="connect_trust_confirm">Trust and continue</string>
+    <string name="connect_validation_setup">Paste a valid setup code to connect.</string>
+    <string name="connect_validation_manual">Enter a valid manual host and port to connect.</string>
 </resources>

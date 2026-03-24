@@ -32,11 +32,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ai.openclaw.app.MainViewModel
+import ai.openclaw.app.R
 import ai.openclaw.app.chat.ChatSessionEntry
 import ai.openclaw.app.chat.OutgoingAttachment
 import ai.openclaw.app.ui.mobileAccent
@@ -212,8 +214,8 @@ internal fun ChatThreadSelector(
     } ?: key
     AlertDialog(
       onDismissRequest = { deleteConfirmKey = null },
-      title = { Text("删除会话") },
-      text = { Text("确定要删除「$displayName」吗？删除后不可恢复。") },
+      title = { Text(stringResource(R.string.delete_session)) },
+      text = { Text(stringResource(R.string.delete_session_confirm, displayName)) },
       confirmButton = {
         TextButton(
           onClick = {
@@ -222,12 +224,12 @@ internal fun ChatThreadSelector(
           },
           colors = ButtonDefaults.textButtonColors(contentColor = mobileDanger),
         ) {
-          Text("删除")
+          Text(stringResource(R.string.action_delete))
         }
       },
       dismissButton = {
         TextButton(onClick = { deleteConfirmKey = null }) {
-          Text("取消")
+          Text(stringResource(R.string.action_cancel))
         }
       },
     )

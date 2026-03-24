@@ -10,7 +10,9 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.xiaomo.androidforclaw.R
 import com.xiaomo.androidforclaw.config.OpenClawConfig
 
 /**
@@ -31,9 +33,10 @@ fun ChannelModelPicker(
     modifier: Modifier = Modifier
 ) {
     // 构建可用模型列表：null → 全局默认；其他项来自已配置 providers
-    val models: List<Pair<String?, String>> = remember(config) {
+    val globalDefaultLabel = stringResource(R.string.picker_use_global)
+    val models: List<Pair<String?, String>> = remember(config, globalDefaultLabel) {
         val list = mutableListOf<Pair<String?, String>>()
-        list.add(null to "使用全局默认模型")
+        list.add(null to globalDefaultLabel)
         config.resolveProviders().forEach { (providerId, providerCfg) ->
             providerCfg.models.forEach { model ->
                 val key = "$providerId/${model.id}"
@@ -48,11 +51,11 @@ fun ChannelModelPicker(
 
     val currentLabel = models.find { it.first == selected }?.second
         ?: selected
-        ?: "使用全局默认模型"
+        ?: globalDefaultLabel
 
     Column(modifier = modifier) {
         Text(
-            text = "模型（可选覆盖）",
+            text = stringResource(R.string.picker_model_override),
             style = MaterialTheme.typography.titleSmall
         )
         Spacer(Modifier.height(4.dp))
@@ -70,7 +73,7 @@ fun ChannelModelPicker(
                 modifier = Modifier
                     .fillMaxWidth()
                     .menuAnchor(),
-                label = { Text("模型") }
+                label = { Text(stringResource(R.string.picker_model_label)) }
             )
             ExposedDropdownMenu(
                 expanded = expanded,
@@ -91,7 +94,7 @@ fun ChannelModelPicker(
         if (models.size <= 1) {
             Spacer(Modifier.height(4.dp))
             Text(
-                text = "⚠ 未配置任何 Provider，请先在「模型配置」页添加",
+                text = stringResource(R.string.picker_no_provider),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.error
             )

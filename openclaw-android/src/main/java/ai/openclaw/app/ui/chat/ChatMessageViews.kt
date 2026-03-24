@@ -25,6 +25,8 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import ai.openclaw.app.R
 import ai.openclaw.app.chat.ChatMessage
 import ai.openclaw.app.chat.ChatMessageContent
 import ai.openclaw.app.chat.ChatPendingToolCall
@@ -138,7 +140,7 @@ fun ChatTypingIndicatorBubble() {
       horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
       DotPulse(color = mobileTextSecondary)
-      Text("Thinking...", style = mobileCallout, color = mobileTextSecondary)
+      Text(stringResource(R.string.chat_thinking), style = mobileCallout, color = mobileTextSecondary)
     }
   }
 }
@@ -156,11 +158,11 @@ fun ChatPendingToolsBubble(toolCalls: List<ChatPendingToolCall>) {
 
   ChatBubbleContainer(
     style = bubbleStyle("assistant"),
-    roleLabel = "Tools",
+    roleLabel = stringResource(R.string.tools_label),
   ) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
       Text(
-        if (anyRunning) "Running tools..." else "Tools completed",
+        if (anyRunning) stringResource(R.string.tools_running) else stringResource(R.string.tools_completed),
         style = mobileCaption1.copy(fontWeight = FontWeight.SemiBold),
         color = mobileTextSecondary,
       )
@@ -204,7 +206,7 @@ fun ChatPendingToolsBubble(toolCalls: List<ChatPendingToolCall>) {
 fun ChatStreamingAssistantBubble(text: String) {
   ChatBubbleContainer(
     style = bubbleStyle("assistant").copy(borderColor = mobileAccent),
-    roleLabel = "OpenClaw · Live",
+    roleLabel = "${stringResource(R.string.sender_ai)} ${stringResource(R.string.sender_live_suffix)}",
   ) {
     ChatMarkdown(text = text, textColor = mobileText)
   }
@@ -239,11 +241,12 @@ private fun bubbleStyle(role: String): ChatBubbleStyle {
   }
 }
 
+@Composable
 private fun roleLabel(role: String): String {
   return when (role) {
-    "user" -> "You"
-    "system" -> "System"
-    else -> "OpenClaw"
+    "user" -> stringResource(R.string.sender_you)
+    "system" -> stringResource(R.string.sender_system)
+    else -> stringResource(R.string.sender_ai)
   }
 }
 
@@ -267,7 +270,7 @@ private fun ChatBase64Image(base64: String, mimeType: String?) {
       )
     }
   } else if (imageState.failed) {
-    Text("Unsupported attachment", style = mobileCaption1, color = mobileTextSecondary)
+    Text(stringResource(R.string.unsupported_attachment), style = mobileCaption1, color = mobileTextSecondary)
   }
 }
 
