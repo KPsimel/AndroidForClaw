@@ -110,6 +110,8 @@ fun WeixinChannelScreen(onBack: () -> Unit) {
                 // Logout button
                 OutlinedButton(
                     onClick = {
+                        // 停止微信消息监听
+                        com.xiaomo.androidforclaw.core.MyApplication.getWeixinChannel()?.stop()
                         WeixinAccountStore.clearAccount()
                         isLoggedIn = false
                         accountInfo = ""
@@ -205,6 +207,10 @@ fun WeixinChannelScreen(onBack: () -> Unit) {
                                     accountInfo = "账号: ${loginResult.accountId ?: "未知"}\n用户: ${loginResult.userId ?: "未知"}"
                                     statusText = loginResult.message
                                     qrBitmap = null
+
+                                    // 通知 MyApplication 重新启动微信消息监听
+                                    (context.applicationContext as? com.xiaomo.androidforclaw.core.MyApplication)
+                                        ?.restartWeixinChannel()
                                 } else {
                                     statusText = "❌ ${loginResult.message}"
                                 }

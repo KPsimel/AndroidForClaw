@@ -2029,6 +2029,17 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
 
     // ── Weixin Channel ───────────────────────────────────────────────────────
 
+    /**
+     * 重新启动微信通道（扫码登录成功后调用）。
+     * 会先停掉旧的 channel（如有），再重新初始化并启动 monitor。
+     */
+    fun restartWeixinChannel() {
+        Log.i(TAG, "🔄 restartWeixinChannel() 被调用")
+        weixinChannel?.stop()
+        weixinChannel = null
+        startWeixinChannelIfEnabled()
+    }
+
     private fun startWeixinChannelIfEnabled() {
         Log.i(TAG, "⏰ startWeixinChannelIfEnabled() 被调用")
         GlobalScope.launch(Dispatchers.IO) {
