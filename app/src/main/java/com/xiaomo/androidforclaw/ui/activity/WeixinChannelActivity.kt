@@ -21,10 +21,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.xiaomo.weixin.WeixinChannel
 import com.xiaomo.weixin.WeixinConfig
+import com.xiaomo.weixin.auth.QRCodeGenerator
 import com.xiaomo.weixin.storage.WeixinAccountStore
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class WeixinChannelActivity : ComponentActivity() {
     companion object {
@@ -168,16 +167,15 @@ fun WeixinChannelScreen(onBack: () -> Unit) {
 
                                 val (qrcodeUrl, qrcode) = qrResult
 
-                                // Download QR image
-                                statusText = "正在加载二维码..."
-                                val bitmap = withContext(Dispatchers.IO) {
-                                    downloadQRBitmap(qrcodeUrl)
-                                }
+                                // Generate QR image locally
+                                // qrcodeUrl is a web page link, not an image — use it as QR content
+                                statusText = "正在生成二维码..."
+                                val bitmap = QRCodeGenerator.generate(qrcodeUrl, 512)
                                 if (bitmap != null) {
                                     qrBitmap = bitmap
                                     statusText = "请使用微信扫描二维码"
                                 } else {
-                                    statusText = "⚠️ 二维码加载失败，请重试"
+                                    statusText = "⚠️ 二维码生成失败，请重试"
                                     isLoggingIn = false
                                     return@launch
                                 }
@@ -195,13 +193,9 @@ fun WeixinChannelScreen(onBack: () -> Unit) {
                                         }
                                     },
                                     onQRRefreshed = { newUrl ->
-                                        scope.launch {
-                                            val newBitmap = withContext(Dispatchers.IO) {
-                                                downloadQRBitmap(newUrl)
-                                            }
-                                            if (newBitmap != null) {
-                                                qrBitmap = newBitmap
-                                            }
+                                        val newBitmap = QRCodeGenerator.generate(newUrl, 512)
+                                        if (newBitmap != null) {
+                                            qrBitmap = newBitmap
                                         }
                                     }
                                 )
@@ -276,22 +270,4 @@ fun WeixinChannelScreen(onBack: () -> Unit) {
     }
 }
 
-/**
- * Download QR code image as Bitmap.
- */
-private fun downloadQRBitmap(url: String): Bitmap? {
-    return try {
-        val connection = java.net.URL(url).openConnection() as java.net.HttpURLConnection
-        connection.connectTimeout = 10_000
-        connection.readTimeout = 10_000
-        connection.connect()
-        val inputStream = connection.inputStream
-        val bitmap = android.graphics.BitmapFactory.decodeStream(inputStream)
-        inputStream.close()
-        connection.disconnect()
-        bitmap
-    } catch (e: Exception) {
-        Log.e("WeixinQR", "Failed to download QR bitmap", e)
-        null
-    }
-}
+
