@@ -53,6 +53,11 @@ fun ForClawConnectTab() {
     // ── Channels ───────────────────────────────────────────────
     var feishuEnabled by remember { mutableStateOf(false) }
     var discordEnabled by remember { mutableStateOf(false) }
+    var slackEnabled by remember { mutableStateOf(false) }
+    var telegramEnabled by remember { mutableStateOf(false) }
+    var whatsappEnabled by remember { mutableStateOf(false) }
+    var signalEnabled by remember { mutableStateOf(false) }
+    var weixinEnabled by remember { mutableStateOf(false) }
 
     // ── 权限（LiveData 实时同步）────────────────────────────────
     val accessibilityOk by AccessibilityProxy.isConnected.observeAsState(false)
@@ -89,6 +94,21 @@ fun ForClawConnectTab() {
                         config.channels.feishu.appId.isNotBlank()
                 discordEnabled = config.channels.discord?.let {
                     it.enabled && !it.token.isNullOrBlank()
+                } ?: false
+                slackEnabled = config.channels.slack?.let {
+                    it.enabled && it.botToken.isNotBlank()
+                } ?: false
+                telegramEnabled = config.channels.telegram?.let {
+                    it.enabled && it.botToken.isNotBlank()
+                } ?: false
+                whatsappEnabled = config.channels.whatsapp?.let {
+                    it.enabled && it.phoneNumber.isNotBlank()
+                } ?: false
+                signalEnabled = config.channels.signal?.let {
+                    it.enabled && it.phoneNumber.isNotBlank()
+                } ?: false
+                weixinEnabled = config.channels.weixin?.let {
+                    it.enabled
                 } ?: false
             } catch (_: Exception) {
                 providerName = "读取失败"
@@ -166,14 +186,20 @@ fun ForClawConnectTab() {
         )
 
         // ── Channels ──────────────────────────────────────────
+        val channelEntries = buildList {
+            if (feishuEnabled)   add(StatusRow("飞书",      "已启用", StatusLevel.Ok))
+            if (discordEnabled)  add(StatusRow("Discord",  "已启用", StatusLevel.Ok))
+            if (telegramEnabled) add(StatusRow("Telegram", "已启用", StatusLevel.Ok))
+            if (slackEnabled)    add(StatusRow("Slack",    "已启用", StatusLevel.Ok))
+            if (whatsappEnabled) add(StatusRow("WhatsApp", "已启用", StatusLevel.Ok))
+            if (signalEnabled)   add(StatusRow("Signal",   "已启用", StatusLevel.Ok))
+            if (weixinEnabled)   add(StatusRow("微信",      "已启用", StatusLevel.Ok))
+        }
         StatusCard(
             title = "Channels",
             icon = Icons.Default.Hub,
-            rows = buildList {
-                add(StatusRow("飞书", if (feishuEnabled) "已启用" else "未配置",
-                    if (feishuEnabled) StatusLevel.Ok else StatusLevel.Neutral))
-                add(StatusRow("Discord", if (discordEnabled) "已启用" else "未配置",
-                    if (discordEnabled) StatusLevel.Ok else StatusLevel.Neutral))
+            rows = channelEntries.ifEmpty {
+                listOf(StatusRow("渠道", "未配置", StatusLevel.Neutral))
             },
             onClick = {
                 context.startActivity(
