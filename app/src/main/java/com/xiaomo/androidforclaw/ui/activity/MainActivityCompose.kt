@@ -164,10 +164,10 @@ class MainActivityCompose : ComponentActivity() {
             checkAndRequestStoragePermission()
         }
 
-        // Check if model setup is needed (first run, no API key configured)
-        if (ModelSetupActivity.isNeeded(this)) {
-            Log.i(TAG, "🔧 首次启动，打开模型配置引导...")
-            startActivity(Intent(this, ModelSetupActivity::class.java))
+        // Model setup: only check after storage permission is granted,
+        // otherwise the wizard cannot read/write /sdcard/.androidforclaw/.
+        if (legalAlreadyAccepted && hasStoragePermission()) {
+            launchModelSetupIfNeeded()
         }
 
         // Auto-prune old sessions (>30 days) on startup
@@ -352,6 +352,28 @@ class MainActivityCompose : ComponentActivity() {
 
 
     /**
+     * Whether the app already has file management permission.
+     */
+    private fun hasStoragePermission(): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            Environment.isExternalStorageManager()
+        } else {
+            true // Android 10 and below use scoped storage or legacy permissions
+        }
+    }
+
+    /**
+     * Launch ModelSetupActivity if first run and no API key configured.
+     * Must be called only after storage permission is granted.
+     */
+    private fun launchModelSetupIfNeeded() {
+        if (ModelSetupActivity.isNeeded(this)) {
+            Log.i(TAG, "🔧 首次启动，打开模型配置引导...")
+            startActivity(Intent(this, ModelSetupActivity::class.java))
+        }
+    }
+
+    /**
      * Check and request file management permission.
      * Shows an in-app dialog if permission is not granted.
      */
@@ -407,6 +429,8 @@ class MainActivityCompose : ComponentActivity() {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 if (Environment.isExternalStorageManager()) {
                     Log.i(TAG, "✅ File management permission granted")
+                    // Launch model setup wizard before recreate if needed
+                    launchModelSetupIfNeeded()
                     // Restart to apply — recreate so config/sessions init properly
                     recreate()
                 } else {
