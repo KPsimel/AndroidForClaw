@@ -304,9 +304,9 @@ adb install releases/AndroidForClaw-v1.3.0-release.apk
 
 #### Discord
 
-[![Discord](https://img.shields.io/badge/Discord-加入服务器-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/k9NKrXUN)
+[![Discord](https://img.shields.io/badge/Discord-加入服务器-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/rDpaFym2b8)
 
-**[加入 Discord](https://discord.gg/k9NKrXUN)**
+**[加入 Discord](https://discord.gg/rDpaFym2b8)**
 
 ---
 
