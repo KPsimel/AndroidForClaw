@@ -88,7 +88,7 @@ fun PostOnboardingTabs(
     modifier = modifier,
     containerColor = Color.Transparent,
     contentWindowInsets = WindowInsets(0, 0, 0, 0),
-    topBar = { TopStatusBar() },
+    topBar = { if (activeTab != HomeTab.Screen) TopStatusBar() },
     bottomBar = {
       if (!hideBottomTabBar) {
         BottomTabBar(
