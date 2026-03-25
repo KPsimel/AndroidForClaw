@@ -3,7 +3,6 @@
 
     <!-- Bottom tabs -->
     <string name="tab_chat">Chat</string>
-    <string name="tab_connect">Connect</string>
     <string name="tab_voice">Voice</string>
     <string name="tab_screen">Screen</string>
     <string name="tab_settings">Settings</string>

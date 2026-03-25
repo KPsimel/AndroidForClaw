@@ -10,7 +10,6 @@ import ai.openclaw.app.MainViewModel
 @Composable
 fun RootScreen(
   viewModel: MainViewModel,
-  connectTabSlot: (@Composable () -> Unit)? = null,
   settingsTabSlot: (@Composable () -> Unit)? = null,
 ) {
   val onboardingCompleted by viewModel.onboardingCompleted.collectAsState()
@@ -23,7 +22,6 @@ fun RootScreen(
   PostOnboardingTabs(
     viewModel = viewModel,
     modifier = Modifier.fillMaxSize(),
-    connectTabSlot = connectTabSlot,
     settingsTabSlot = settingsTabSlot,
   )
 }

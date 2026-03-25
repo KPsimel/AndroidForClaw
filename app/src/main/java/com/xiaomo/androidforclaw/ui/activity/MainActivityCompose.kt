@@ -20,7 +20,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModelProvider
-import com.xiaomo.androidforclaw.ui.compose.ForClawConnectTab
 import com.xiaomo.androidforclaw.ui.compose.ForClawSettingsTab
 import com.xiaomo.androidforclaw.util.ChatBroadcastReceiver
 import ai.openclaw.app.MainViewModel
@@ -218,7 +217,6 @@ class MainActivityCompose : ComponentActivity() {
 
                 RootScreen(
                     viewModel = openClawViewModel,
-                    connectTabSlot = { ForClawConnectTab() },
                     settingsTabSlot = { ForClawSettingsTab() },
                 )
             }

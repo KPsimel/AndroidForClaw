@@ -22,7 +22,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ScreenShare
 import androidx.compose.material.icons.filled.ChatBubble
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.RecordVoiceOver
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
@@ -54,7 +53,6 @@ private enum class HomeTab(
   val icon: ImageVector,
 ) {
   Chat(labelRes = R.string.tab_chat, icon = Icons.Default.ChatBubble),
-  Connect(labelRes = R.string.tab_connect, icon = Icons.Default.CheckCircle),
   Voice(labelRes = R.string.tab_voice, icon = Icons.Default.RecordVoiceOver),
   Screen(labelRes = R.string.tab_screen, icon = Icons.AutoMirrored.Filled.ScreenShare),
   Settings(labelRes = R.string.tab_settings, icon = Icons.Default.Settings),
@@ -64,7 +62,6 @@ private enum class HomeTab(
 fun PostOnboardingTabs(
   viewModel: MainViewModel,
   modifier: Modifier = Modifier,
-  connectTabSlot: (@Composable () -> Unit)? = null,
   settingsTabSlot: (@Composable () -> Unit)? = null,
 ) {
   var activeTab by rememberSaveable { mutableStateOf(HomeTab.Chat) }
@@ -134,7 +131,6 @@ fun PostOnboardingTabs(
       }
 
       when (activeTab) {
-        HomeTab.Connect -> if (connectTabSlot != null) connectTabSlot() else ConnectTabScreen(viewModel = viewModel)
         HomeTab.Chat -> if (!chatTabStarted) ChatSheet(viewModel = viewModel)
         HomeTab.Voice -> VoiceTabScreen(viewModel = viewModel)
         HomeTab.Screen -> Unit

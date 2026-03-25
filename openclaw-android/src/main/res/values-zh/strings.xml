@@ -2,7 +2,6 @@
 <resources>
     <!-- Bottom tabs -->
     <string name="tab_chat">对话</string>
-    <string name="tab_connect">连接</string>
     <string name="tab_voice">语音</string>
     <string name="tab_screen">屏幕</string>
     <string name="tab_settings">设置</string>
