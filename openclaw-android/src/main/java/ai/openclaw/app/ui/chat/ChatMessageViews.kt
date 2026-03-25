@@ -26,6 +26,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
 import ai.openclaw.app.R
 import ai.openclaw.app.chat.ChatMessage
 import ai.openclaw.app.chat.ChatMessageContent
@@ -179,13 +181,30 @@ fun ChatPendingToolsBubble(toolCalls: List<ChatPendingToolCall>) {
             color = mobileTextSecondary,
             fontFamily = FontFamily.Monospace,
           )
-          display.detailLine?.let { detail ->
+          // Show tool call detail or raw arguments
+          val detail = display.detailLine
+          if (detail != null) {
             Text(
               detail,
               style = mobileCaption1,
               color = mobileTextSecondary,
               fontFamily = FontFamily.Monospace,
             )
+          } else {
+            call.args?.let { args ->
+              val argsText = args.entries.joinToString(", ") { (k, v) ->
+                val vStr = (v as? JsonPrimitive)?.contentOrNull ?: v.toString()
+                "$k=$vStr"
+              }.let { if (it.length > 500) it.take(500) + "…" else it }
+              if (argsText.isNotEmpty()) {
+                Text(
+                  argsText,
+                  style = mobileCaption1,
+                  color = mobileTextSecondary,
+                  fontFamily = FontFamily.Monospace,
+                )
+              }
+            }
           }
           call.result?.let { result ->
             val preview = result.trim().take(300)
