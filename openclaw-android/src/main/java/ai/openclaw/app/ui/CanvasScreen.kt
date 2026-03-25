@@ -50,6 +50,11 @@ fun CanvasScreen(viewModel: MainViewModel, visible: Boolean, modifier: Modifier 
         visibility = if (visible) View.VISIBLE else View.INVISIBLE
         settings.javaScriptEnabled = true
         settings.domStorageEnabled = true
+        settings.allowFileAccess = true
+        @Suppress("DEPRECATION")
+        settings.allowFileAccessFromFileURLs = true
+        @Suppress("DEPRECATION")
+        settings.allowUniversalAccessFromFileURLs = true
         settings.mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
         settings.useWideViewPort = false
         settings.loadWithOverviewMode = false
