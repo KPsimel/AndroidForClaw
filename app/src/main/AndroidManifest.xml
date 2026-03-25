@@ -178,7 +178,7 @@
         <!-- Canvas (WebView) -->
         <activity
             android:name="com.xiaomo.androidforclaw.canvas.CanvasActivity"
-            android:exported="false"
+            android:exported="true"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:theme="@style/Theme.PhoneForClaw" />
 
