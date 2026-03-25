@@ -31,7 +31,7 @@ import org.junit.runners.MethodSorters
  * 3. 验证 AI 是否正确响应
  *
  * 广播命令格式:
- * adb shell am broadcast -a PHONE_FORCLAW_SEND_MESSAGE --es message "你好"
+ * adb shell am broadcast -a CLAW_SEND_MESSAGE --es message "你好"
  *
  * 注意: 此测试不依赖 UI 元素,而是直接通过系统广播与应用交互
  */
@@ -600,7 +600,7 @@ class ChatE2ETest {
             println("  📡 通过广播发送消息: $text")
 
             // 使用ADB广播发送消息 - 注意参数名是message不是text
-            device.executeShellCommand("am broadcast -a PHONE_FORCLAW_SEND_MESSAGE --es message \"$text\"")
+            device.executeShellCommand("am broadcast -a CLAW_SEND_MESSAGE --es message \"$text\"")
             Thread.sleep(1000)
 
             println("  ✅ 广播发送完成")

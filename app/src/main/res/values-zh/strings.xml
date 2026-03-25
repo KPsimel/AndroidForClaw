@@ -250,7 +250,7 @@
     <string name="settings_copied">已复制</string>
     <string name="settings_cannot_open_link">无法打开链接</string>
 
-    <!-- Connect tab (ForClaw) -->
+    <!-- Connect tab (Claw) -->
     <string name="connect_llm_api">LLM API</string>
     <string name="connect_provider">服务商</string>
     <string name="connect_default_model">默认模型</string>

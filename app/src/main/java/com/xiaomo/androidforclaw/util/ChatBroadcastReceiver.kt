@@ -17,10 +17,10 @@ import com.xiaomo.androidforclaw.core.MyApplication
  * 用途：方便通过 ADB 直接发送消息到聊天界面进行测试
  *
  * 使用方法:
- * adb shell am broadcast -a PHONE_FORCLAW_SEND_MESSAGE --es message "你的消息内容"
+ * adb shell am broadcast -a CLAW_SEND_MESSAGE --es message "你的消息内容"
  *
  * 示例:
- * adb shell am broadcast -a PHONE_FORCLAW_SEND_MESSAGE --es message "使用browser搜索openclaw"
+ * adb shell am broadcast -a CLAW_SEND_MESSAGE --es message "使用browser搜索openclaw"
  */
 class ChatBroadcastReceiver() : BroadcastReceiver() {
 
@@ -34,7 +34,7 @@ class ChatBroadcastReceiver() : BroadcastReceiver() {
 
     companion object {
         private const val TAG = "ChatBroadcastReceiver"
-        const val ACTION_SEND_MESSAGE = "PHONE_FORCLAW_SEND_MESSAGE"
+        const val ACTION_SEND_MESSAGE = "CLAW_SEND_MESSAGE"
         const val EXTRA_MESSAGE = "message"
 
         /**

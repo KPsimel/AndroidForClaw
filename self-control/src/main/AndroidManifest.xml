@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Self-Control Module: Expose PhoneForClaw internal capabilities -->
+    <!-- Self-Control Module: Expose PhoneClaw internal capabilities -->
 
     <application>
         <!-- ContentProvider: 通过 content:// URI 调用 -->

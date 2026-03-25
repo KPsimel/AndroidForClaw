@@ -242,7 +242,7 @@
     <string name="settings_copied">Copied</string>
     <string name="settings_cannot_open_link">Cannot open link</string>
 
-    <!-- Connect tab (ForClaw) -->
+    <!-- Connect tab (Claw) -->
     <string name="connect_llm_api">LLM API</string>
     <string name="connect_provider">Provider</string>
     <string name="connect_default_model">Default Model</string>

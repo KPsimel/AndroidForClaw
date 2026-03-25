@@ -69,13 +69,13 @@
         android:requestLegacyExternalStorage="true"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.PhoneForClaw">
+        android:theme="@style/Theme.PhoneClaw">
         <!-- 主页 - Compose版本 -->
         <activity
             android:name="com.xiaomo.androidforclaw.ui.activity.MainActivityCompose"
             android:exported="true"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.PhoneForClaw">
+            android:theme="@style/Theme.PhoneClaw">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -88,106 +88,106 @@
             android:name="com.xiaomo.androidforclaw.ui.activity.ModelSetupActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.PhoneForClaw" />
+            android:theme="@style/Theme.PhoneClaw" />
 
         <!-- 模型配置页面（两页式） -->
         <activity
             android:name="com.xiaomo.androidforclaw.ui.activity.ModelConfigActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.PhoneForClaw" />
+            android:theme="@style/Theme.PhoneClaw" />
 
         <!-- Skills 管理页面 -->
         <activity
             android:name="com.xiaomo.androidforclaw.ui.activity.SkillsActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.PhoneForClaw" />
+            android:theme="@style/Theme.PhoneClaw" />
 
         <!-- 权限管理页面 -->
         <activity
             android:name="com.xiaomo.androidforclaw.ui.activity.PermissionsActivity"
             android:exported="true"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.PhoneForClaw" />
+            android:theme="@style/Theme.PhoneClaw" />
 
         <!-- Channel 列表页面 -->
         <activity
             android:name="com.xiaomo.androidforclaw.ui.activity.ChannelListActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.PhoneForClaw" />
+            android:theme="@style/Theme.PhoneClaw" />
 
         <!-- Feishu Channel 配置页面 -->
         <activity
             android:name="com.xiaomo.androidforclaw.ui.activity.FeishuChannelActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.PhoneForClaw" />
+            android:theme="@style/Theme.PhoneClaw" />
 
         <!-- MCP Server 配置页面（给外部 Agent 用，与 AndroidForClaw 自身无关） -->
         <activity
             android:name="com.xiaomo.androidforclaw.ui.activity.McpConfigActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.PhoneForClaw" />
+            android:theme="@style/Theme.PhoneClaw" />
 
         <!-- Discord Channel 配置页面 -->
         <activity
             android:name="com.xiaomo.androidforclaw.ui.activity.DiscordChannelActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.PhoneForClaw" />
+            android:theme="@style/Theme.PhoneClaw" />
 
         <activity
             android:name="com.xiaomo.androidforclaw.ui.activity.TelegramChannelActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.PhoneForClaw" />
+            android:theme="@style/Theme.PhoneClaw" />
 
         <activity
             android:name="com.xiaomo.androidforclaw.ui.activity.SlackChannelActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.PhoneForClaw" />
+            android:theme="@style/Theme.PhoneClaw" />
 
         <activity
             android:name="com.xiaomo.androidforclaw.ui.activity.SignalChannelActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.PhoneForClaw" />
+            android:theme="@style/Theme.PhoneClaw" />
 
         <activity
             android:name="com.xiaomo.androidforclaw.ui.activity.TermuxSetupActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.PhoneForClaw" />
+            android:theme="@style/Theme.PhoneClaw" />
 
         <activity
             android:name="com.xiaomo.androidforclaw.ui.activity.WhatsAppChannelActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.PhoneForClaw" />
+            android:theme="@style/Theme.PhoneClaw" />
 
         <activity
             android:name="com.xiaomo.androidforclaw.ui.activity.WeixinChannelActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.PhoneForClaw" />
+            android:theme="@style/Theme.PhoneClaw" />
 
         <!-- Canvas (WebView) -->
         <activity
             android:name="com.xiaomo.androidforclaw.canvas.CanvasActivity"
             android:exported="true"
             android:configChanges="orientation|screenSize|keyboardHidden"
-            android:theme="@style/Theme.PhoneForClaw" />
+            android:theme="@style/Theme.PhoneClaw" />
 
         <!-- 法律条款页面 -->
         <activity
             android:name="com.xiaomo.androidforclaw.ui.activity.LegalActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.PhoneForClaw" />
+            android:theme="@style/Theme.PhoneClaw" />
 
 
         <!-- 前台服务（保活） -->
@@ -271,7 +271,7 @@
             android:enabled="true"
             android:exported="true">
             <intent-filter>
-                <action android:name="PHONE_FORCLAW_SEND_MESSAGE" />
+                <action android:name="CLAW_SEND_MESSAGE" />
             </intent-filter>
         </receiver>
     </application>
