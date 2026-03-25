@@ -175,6 +175,13 @@
             android:screenOrientation="portrait"
             android:theme="@style/Theme.PhoneForClaw" />
 
+        <!-- Canvas (WebView) -->
+        <activity
+            android:name="com.xiaomo.androidforclaw.canvas.CanvasActivity"
+            android:exported="false"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:theme="@style/Theme.PhoneForClaw" />
+
         <!-- 法律条款页面 -->
         <activity
             android:name="com.xiaomo.androidforclaw.ui.activity.LegalActivity"

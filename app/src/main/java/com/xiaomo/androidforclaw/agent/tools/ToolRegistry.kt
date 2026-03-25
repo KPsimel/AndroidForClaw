@@ -78,6 +78,9 @@ class ToolRegistry(
             } catch (_: Exception) { null }
         })
 
+        // === Canvas tool ===
+        register(CanvasTool(context))
+
         // === Config tools ===
         val configMethods = ConfigMethods(context)
         register(ConfigGetTool(configMethods))
