@@ -20,6 +20,7 @@ import com.xiaomo.androidforclaw.databinding.ActivitySkillsBinding
 import com.xiaomo.androidforclaw.databinding.ItemSkillBinding
 import com.xiaomo.androidforclaw.agent.skills.SkillsLoader
 import com.xiaomo.androidforclaw.agent.skills.SkillDocument
+import com.xiaomo.androidforclaw.workspace.StoragePaths
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -124,13 +125,13 @@ class SkillsActivity : AppCompatActivity() {
      */
     private fun detectSkillSource(skillName: String): Pair<String, String> {
         // Check workspace
-        val workspacePath = "/sdcard/.androidforclaw/workspace/skills/$skillName"
+        val workspacePath = "${StoragePaths.workspaceSkills.absolutePath}/$skillName"
         if (File(workspacePath).exists()) {
             return "workspace" to workspacePath
         }
 
         // Check managed
-        val managedPath = "/sdcard/.androidforclaw/skills/$skillName"
+        val managedPath = "${StoragePaths.skills.absolutePath}/$skillName"
         if (File(managedPath).exists()) {
             return "managed" to managedPath
         }

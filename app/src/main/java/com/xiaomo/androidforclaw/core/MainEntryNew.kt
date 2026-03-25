@@ -12,6 +12,7 @@ import android.text.TextUtils
 import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.agent.context.ContextBuilder
 import com.xiaomo.androidforclaw.agent.tools.AndroidToolRegistry
+import com.xiaomo.androidforclaw.workspace.StoragePaths
 import com.xiaomo.androidforclaw.agent.tools.ToolRegistry
 import com.xiaomo.androidforclaw.agent.loop.AgentLoop
 import com.xiaomo.androidforclaw.agent.loop.ProgressUpdate
@@ -139,7 +140,7 @@ object MainEntryNew {
             Log.d(TAG, "✓ ToolRegistry initialized (${toolRegistry.getToolCount()} universal tools)")
 
             // 3. Initialize MemoryManager (memory management + hybrid search index)
-            val workspacePath = "/sdcard/.androidforclaw/workspace"
+            val workspacePath = StoragePaths.workspace.absolutePath
             val openClawCfg = configLoader.loadOpenClawConfig()
             val embeddingProviders = openClawCfg.resolveProviders()
             // Try to find an OpenAI-compatible provider for embeddings

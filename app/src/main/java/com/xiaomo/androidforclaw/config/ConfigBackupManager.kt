@@ -8,6 +8,7 @@ package com.xiaomo.androidforclaw.config
 
 import android.content.Context
 import com.xiaomo.androidforclaw.logging.Log
+import com.xiaomo.androidforclaw.workspace.StoragePaths
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -27,10 +28,10 @@ class ConfigBackupManager(private val context: Context) {
     companion object {
         private const val TAG = "ConfigBackup"
 
-        private const val CONFIG_DIR = "/sdcard/.androidforclaw/config"
-        private const val CONFIG_FILE = "$CONFIG_DIR/openclaw.json"
-        private const val LAST_KNOWN_GOOD_FILE = "$CONFIG_DIR/openclaw.last-known-good.json"
-        private const val BACKUPS_DIR = "/sdcard/.androidforclaw/config-backups"
+        private val CONFIG_DIR = StoragePaths.config.absolutePath
+        private val CONFIG_FILE = "$CONFIG_DIR/openclaw.json"
+        private val LAST_KNOWN_GOOD_FILE = "$CONFIG_DIR/openclaw.last-known-good.json"
+        private val BACKUPS_DIR = StoragePaths.configBackups.absolutePath
 
         private const val MAX_BACKUPS = 10 // Keep maximum 10 historical backups
     }

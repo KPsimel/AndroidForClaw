@@ -23,6 +23,7 @@ import android.widget.Toast
 import com.xiaomo.androidforclaw.accessibility.AccessibilityProxy
 import com.xiaomo.androidforclaw.accessibility.AccessibilityHealthMonitor
 import com.xiaomo.androidforclaw.util.GlobalExceptionHandler
+import com.xiaomo.androidforclaw.workspace.StoragePaths
 import com.xiaomo.androidforclaw.util.SPHelper
 import com.xiaomo.androidforclaw.util.WakeLockManager
 import com.xiaomo.androidforclaw.data.model.TaskDataManager
@@ -653,7 +654,7 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
             val toolRegistry = ToolRegistry(this, taskDataManager)
             val androidToolRegistry = AndroidToolRegistry(this, taskDataManager)
             val skillsLoader = SkillsLoader(this)
-            val workspaceDir = java.io.File("/sdcard/.androidforclaw/workspace")
+            val workspaceDir = StoragePaths.workspace
             val sessionManager = SessionManager(workspaceDir)
 
             // Create AgentLoop (requires these dependencies)

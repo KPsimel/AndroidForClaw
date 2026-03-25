@@ -11,6 +11,7 @@ package com.xiaomo.androidforclaw.agent.tools
 import android.content.Context
 import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.agent.memory.MemoryManager
+import com.xiaomo.androidforclaw.workspace.StoragePaths
 import com.xiaomo.androidforclaw.agent.tools.memory.MemoryGetSkill
 import com.xiaomo.androidforclaw.agent.tools.memory.MemorySearchSkill
 import com.xiaomo.androidforclaw.agent.tools.device.DeviceToolSkillAdapter
@@ -33,7 +34,7 @@ class AndroidToolRegistry(
     private val context: Context,
     private val taskDataManager: TaskDataManager,
     private val memoryManager: MemoryManager? = null,
-    private val workspacePath: String = "/sdcard/.androidforclaw/workspace"
+    private val workspacePath: String = StoragePaths.workspace.absolutePath
 ) {
     companion object {
         private const val TAG = "AndroidToolRegistry"

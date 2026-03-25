@@ -17,6 +17,7 @@ import android.content.Context
 import android.content.Intent
 import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.accessibility.AccessibilityProxy
+import com.xiaomo.androidforclaw.workspace.StoragePaths
 import com.xiaomo.androidforclaw.agent.tools.Tool
 import com.xiaomo.androidforclaw.agent.tools.ToolResult
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
@@ -186,7 +187,7 @@ class DeviceTool(private val context: Context) : Tool {
         if (screenshotResult == null) {
             // Fallback: try shell screencap
             try {
-                val path = "/sdcard/.androidforclaw/workspace/screenshots/device_${System.currentTimeMillis()}.png"
+                val path = "${StoragePaths.workspaceScreenshots.absolutePath}/device_${System.currentTimeMillis()}.png"
                 val process = Runtime.getRuntime().exec(arrayOf("sh", "-c", "screencap -p $path"))
                 process.waitFor(5, java.util.concurrent.TimeUnit.SECONDS)
                 val file = java.io.File(path)

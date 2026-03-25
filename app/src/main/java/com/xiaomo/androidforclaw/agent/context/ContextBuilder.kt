@@ -1,5 +1,7 @@
 package com.xiaomo.androidforclaw.agent.context
 
+import com.xiaomo.androidforclaw.workspace.StoragePaths
+
 /**
  * OpenClaw Source Reference:
  * - ../openclaw/src/agents/system-prompt.ts (core: buildAgentSystemPrompt — 22-section structure)
@@ -99,7 +101,7 @@ class ContextBuilder(
     // Aligned with OpenClaw: workspace in external storage, user accessible
     // OpenClaw: ~/.openclaw/workspace
     // AndroidForClaw: /sdcard/.androidforclaw/workspace
-    private val workspaceDir = File("/sdcard/.androidforclaw/workspace")
+    private val workspaceDir = StoragePaths.workspace
     private val skillsLoader = SkillsLoader(context)
     private val channelManager = ChannelManager(context)
 

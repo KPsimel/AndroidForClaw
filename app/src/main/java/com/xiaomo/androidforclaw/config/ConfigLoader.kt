@@ -11,6 +11,7 @@ package com.xiaomo.androidforclaw.config
 import android.content.Context
 import android.os.FileObserver
 import com.xiaomo.androidforclaw.logging.Log
+import com.xiaomo.androidforclaw.workspace.StoragePaths
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
@@ -765,7 +766,7 @@ class ConfigLoader private constructor() {
     private fun parseMemoryConfig(json: JSONObject): MemoryConfig {
         return MemoryConfig(
             enabled = json.optBoolean("enabled", true),
-            path = json.optString("path", "/sdcard/.androidforclaw/workspace/memory")
+            path = json.optString("path", StoragePaths.workspaceMemory.absolutePath)
         )
     }
 

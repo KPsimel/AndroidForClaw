@@ -16,6 +16,7 @@ import com.xiaomo.androidforclaw.R
 import com.xiaomo.androidforclaw.databinding.ActivityModelSetupBinding
 import com.xiaomo.androidforclaw.config.ConfigLoader
 import com.xiaomo.androidforclaw.config.ModelDefinition
+import com.xiaomo.androidforclaw.workspace.StoragePaths
 import com.xiaomo.androidforclaw.config.ModelsConfig
 import com.xiaomo.androidforclaw.config.ProviderConfig
 
@@ -32,7 +33,7 @@ class ModelSetupActivity : AppCompatActivity() {
         const val EXTRA_MANUAL = "manual"
 
         fun isNeeded(context: android.content.Context): Boolean {
-            val configFile = java.io.File("/sdcard/.androidforclaw/openclaw.json")
+            val configFile = StoragePaths.openclawConfig
             if (!configFile.exists() || configFile.length() == 0L) {
                 Log.i(TAG, "openclaw.json missing or empty, model setup is needed")
                 return true

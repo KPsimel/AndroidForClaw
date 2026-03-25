@@ -14,6 +14,7 @@ import android.os.Handler
 import android.os.Looper
 import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.config.ConfigLoader
+import com.xiaomo.androidforclaw.workspace.StoragePaths
 import java.io.File
 
 /**
@@ -41,8 +42,8 @@ class SkillsLoader(private val context: Context) {
 
         // Three-tier Skills directories (aligns with OpenClaw architecture)
         private const val BUNDLED_SKILLS_PATH = "skills"  // assets path
-        private const val MANAGED_SKILLS_DIR = "/sdcard/.androidforclaw/skills"  // aligns with ~/.openclaw/skills/
-        private const val WORKSPACE_SKILLS_DIR = "/sdcard/.androidforclaw/workspace/skills"  // aligns with ~/.openclaw/workspace/
+        private val MANAGED_SKILLS_DIR = StoragePaths.skills.absolutePath  // aligns with ~/.openclaw/skills/
+        private val WORKSPACE_SKILLS_DIR = StoragePaths.workspaceSkills.absolutePath  // aligns with ~/.openclaw/workspace/
 
         // Skill file name
         private const val SKILL_FILE_NAME = "SKILL.md"
@@ -488,7 +489,7 @@ class SkillsLoader(private val context: Context) {
                 }
 
                 // Try filesystem (installed plugins)
-                val fsPath = File("/sdcard/.androidforclaw/extensions/$pluginName/$skillDir")
+                val fsPath = File(StoragePaths.extensions, "$pluginName/$skillDir")
                 if (fsPath.exists() && fsPath.isDirectory) {
                     count += loadSkillsFromDirectory(fsPath, SkillSource.PLUGIN, skills)
                 }

@@ -15,6 +15,7 @@ import com.xiaomo.androidforclaw.logging.Log
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.withTimeout
 import java.io.ByteArrayOutputStream
+import com.xiaomo.androidforclaw.workspace.StoragePaths
 import java.io.File
 
 /**
@@ -31,7 +32,7 @@ object CanvasManager {
     private const val TAG = "CanvasManager"
 
     /** Canvas 根目录 */
-    private const val CANVAS_ROOT = "/sdcard/.androidforclaw/canvas"
+    private val CANVAS_ROOT = StoragePaths.canvas.absolutePath
 
     /** 当前 CanvasActivity 实例（弱引用，Activity 销毁时自动清空） */
     @Volatile

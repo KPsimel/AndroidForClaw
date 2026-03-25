@@ -8,6 +8,7 @@ package com.xiaomo.androidforclaw.session
 
 import android.content.Context
 import com.xiaomo.androidforclaw.logging.Log
+import com.xiaomo.androidforclaw.workspace.StoragePaths
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import java.io.File
@@ -29,8 +30,8 @@ class JsonlSessionStorage(private val context: Context) {
         private const val TAG = "JsonlSessionStorage"
 
         // Align with OpenClaw: agents/main/sessions/
-        private const val SESSIONS_DIR = "/sdcard/.androidforclaw/agents/main/sessions"
-        private const val SESSIONS_INDEX_FILE = "$SESSIONS_DIR/sessions.json"
+        private val SESSIONS_DIR = StoragePaths.sessions.absolutePath
+        private val SESSIONS_INDEX_FILE = "$SESSIONS_DIR/sessions.json"
     }
 
     private val gson: Gson = GsonBuilder()

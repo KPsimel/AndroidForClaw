@@ -9,6 +9,7 @@ package com.xiaomo.androidforclaw.agent.tools
 import android.content.Context
 import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.DeviceController
+import com.xiaomo.androidforclaw.workspace.StoragePaths
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
 import com.xiaomo.androidforclaw.providers.ParametersSchema
 import com.xiaomo.androidforclaw.providers.ToolDefinition
@@ -74,7 +75,7 @@ class ScreenshotSkill(private val context: Context) : Skill {
             if (screenshotResult == null) {
                 Log.w(TAG, "MediaProjection unavailable, trying shell screencap fallback...")
                 screenshotResult = try {
-                    val screenshotPath = "/sdcard/.androidforclaw/workspace/screenshots/screenshot_${System.currentTimeMillis()}.png"
+                    val screenshotPath = "${StoragePaths.workspaceScreenshots.absolutePath}/screenshot_${System.currentTimeMillis()}.png"
                     val process = Runtime.getRuntime().exec(arrayOf("sh", "-c", "screencap -p $screenshotPath"))
                     process.waitFor(5, java.util.concurrent.TimeUnit.SECONDS)
                     val file = java.io.File(screenshotPath)

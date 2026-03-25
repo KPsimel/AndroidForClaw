@@ -7,6 +7,7 @@ package com.xiaomo.androidforclaw.config
  * AndroidForClaw adaptation: Kotlin config model aligned to OpenClaw schema.
  */
 
+import com.xiaomo.androidforclaw.workspace.StoragePaths
 
 /**
  * OpenClaw Config — 对齐 OpenClaw types.openclaw.d.ts
@@ -365,7 +366,7 @@ data class MessagesConfig(
 
 data class MemoryConfig(
     val enabled: Boolean = true,
-    val path: String = "/sdcard/.androidforclaw/workspace/memory"
+    val path: String = StoragePaths.workspaceMemory.absolutePath
 )
 
 // ============ session / logging / ui ============

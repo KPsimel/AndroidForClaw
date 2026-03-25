@@ -6,6 +6,7 @@ package com.xiaomo.androidforclaw.cron
 
 import android.content.Context
 import com.xiaomo.androidforclaw.logging.Log
+import com.xiaomo.androidforclaw.workspace.StoragePaths
 
 object CronInitializer {
     private const val TAG = "CronInitializer"
@@ -18,7 +19,7 @@ object CronInitializer {
         try {
             val cronConfig = config ?: CronConfig(
                 enabled = true,
-                storePath = "/sdcard/.androidforclaw/config/cron/jobs.json",
+                storePath = StoragePaths.cronJobs.absolutePath,
                 maxConcurrentRuns = 1
             )
 

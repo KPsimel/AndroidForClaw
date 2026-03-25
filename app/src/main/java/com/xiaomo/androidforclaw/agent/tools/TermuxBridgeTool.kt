@@ -7,6 +7,7 @@ package com.xiaomo.androidforclaw.agent.tools
 import android.content.Context
 import android.content.pm.PackageManager
 import com.xiaomo.androidforclaw.logging.Log
+import com.xiaomo.androidforclaw.workspace.StoragePaths
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
 import com.xiaomo.androidforclaw.providers.ParametersSchema
 import com.xiaomo.androidforclaw.providers.PropertySchema
@@ -36,11 +37,11 @@ class TermuxBridgeTool(private val context: Context) : Tool {
         private const val SSH_PORT = 8022
         private const val DEFAULT_TIMEOUT_S = 60
 
-        private const val CONFIG_DIR = "/sdcard/.androidforclaw"
-        private const val SSH_CONFIG_FILE = "$CONFIG_DIR/termux_ssh.json"
-        private const val KEY_DIR = "$CONFIG_DIR/.ssh"
-        private const val PRIVATE_KEY = "$KEY_DIR/id_ed25519"
-        private const val PUBLIC_KEY = "$KEY_DIR/id_ed25519.pub"
+        private val CONFIG_DIR = StoragePaths.root.absolutePath
+        private val SSH_CONFIG_FILE = "$CONFIG_DIR/termux_ssh.json"
+        private val KEY_DIR = "$CONFIG_DIR/.ssh"
+        private val PRIVATE_KEY = "$KEY_DIR/id_ed25519"
+        private val PUBLIC_KEY = "$KEY_DIR/id_ed25519.pub"
 
         private var bcRegistered = false
     }

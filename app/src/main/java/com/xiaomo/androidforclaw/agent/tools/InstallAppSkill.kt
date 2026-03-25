@@ -20,6 +20,7 @@ import com.xiaomo.androidforclaw.providers.FunctionDefinition
 import com.xiaomo.androidforclaw.providers.ParametersSchema
 import com.xiaomo.androidforclaw.providers.PropertySchema
 import com.xiaomo.androidforclaw.providers.ToolDefinition
+import com.xiaomo.androidforclaw.workspace.StoragePaths
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeout
 import java.io.File
@@ -189,8 +190,8 @@ class InstallAppSkill(private val context: Context) : Skill {
         val candidates = listOf(
             File("/sdcard/$path"),
             File("/sdcard/Download/$path"),
-            File("/sdcard/.androidforclaw/$path"),
-            File("/sdcard/.androidforclaw/skills/$path")
+            File(StoragePaths.root, path),
+            File(StoragePaths.skills, path)
         )
         return candidates.firstOrNull { it.exists() }
     }

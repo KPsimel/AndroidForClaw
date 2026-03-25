@@ -21,6 +21,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.xiaomo.androidforclaw.R
+import com.xiaomo.androidforclaw.workspace.StoragePaths
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.tencent.mmkv.MMKV
@@ -75,9 +76,9 @@ fun ForClawSettingsTab() {
             SettingsNavItem(
                 icon = Icons.Default.Description,
                 title = "openclaw.json",
-                subtitle = "/sdcard/.androidforclaw/openclaw.json",
+                subtitle = StoragePaths.openclawConfig.absolutePath,
                 onClick = {
-                    val file = java.io.File("/sdcard/.androidforclaw/openclaw.json")
+                    val file = StoragePaths.openclawConfig
                     if (file.exists()) {
                         try {
                             val uri = androidx.core.content.FileProvider.getUriForFile(

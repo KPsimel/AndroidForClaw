@@ -8,6 +8,7 @@ package com.xiaomo.androidforclaw.agent.skills
 
 import android.content.Context
 import com.xiaomo.androidforclaw.logging.Log
+import com.xiaomo.androidforclaw.workspace.StoragePaths
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -31,8 +32,8 @@ class SkillInstaller(private val context: Context) {
     }
 
     private val clawHubClient = ClawHubClient()
-    private val workspacePath = "/sdcard/.androidforclaw/workspace"
-    private val managedSkillsDir = "/sdcard/.androidforclaw/skills"
+    private val workspacePath = StoragePaths.workspace.absolutePath
+    private val managedSkillsDir = StoragePaths.skills.absolutePath
     private val downloadCacheDir = File(context.cacheDir, "skill-downloads")
     private val lockManager = SkillLockManager(workspacePath)
 

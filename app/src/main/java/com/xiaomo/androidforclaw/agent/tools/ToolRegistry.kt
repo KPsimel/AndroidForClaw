@@ -13,6 +13,7 @@ import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.data.model.TaskDataManager
 import com.xiaomo.androidforclaw.providers.ToolDefinition
 import com.xiaomo.androidforclaw.gateway.methods.ConfigMethods
+import com.xiaomo.androidforclaw.workspace.StoragePaths
 import java.io.File
 
 /**
@@ -46,7 +47,7 @@ class ToolRegistry(
      */
     private fun registerDefaultTools() {
         // Use external storage workspace (aligned with OpenClaw ~/.openclaw/workspace/)
-        val workspace = File("/sdcard/.androidforclaw/workspace")
+        val workspace = StoragePaths.workspace
         workspace.mkdirs()
 
         // === File system tools (from Pi Coding Agent) ===
@@ -69,7 +70,7 @@ class ToolRegistry(
             // Resolve Brave API key from environment or openclaw.json
             System.getenv("BRAVE_API_KEY") ?: try {
                 val json = org.json.JSONObject(
-                    java.io.File("/sdcard/.androidforclaw/openclaw.json").readText()
+                    StoragePaths.openclawConfig.readText()
                 )
                 json.optJSONObject("tools")
                     ?.optJSONObject("web")
@@ -78,7 +79,7 @@ class ToolRegistry(
             } catch (_: Exception) { null }
         })
 
-        // === Canvas tool ===
+        // === Canvas tool (Screen Tab WebView) ===
         register(CanvasTool(context))
 
         // === Config tools ===

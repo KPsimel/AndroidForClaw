@@ -23,6 +23,7 @@ import com.xiaomo.androidforclaw.agent.context.ToolResultContextGuard
 import com.xiaomo.androidforclaw.agent.session.HistorySanitizer
 import com.xiaomo.androidforclaw.config.ConfigLoader
 import com.xiaomo.androidforclaw.agent.tools.AndroidToolRegistry
+import com.xiaomo.androidforclaw.workspace.StoragePaths
 import com.xiaomo.androidforclaw.agent.tools.SkillResult
 import com.xiaomo.androidforclaw.agent.tools.ToolCallDispatcher
 import com.xiaomo.androidforclaw.agent.tools.ToolRegistry
@@ -111,7 +112,7 @@ class AgentLoop(
     }
 
     // Log file configuration
-    private val logDir = File("/sdcard/.androidforclaw/workspace/logs")
+    private val logDir = StoragePaths.workspaceLogs
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.US)
     private var sessionLogFile: File? = null
     private val logBuffer = StringBuilder()
@@ -779,7 +780,7 @@ class AgentLoop(
                                     append("**错误类型**: API 调用失败\n")
                                     append("**错误信息**: ${e.message}\n\n")
                                     append("**建议**: 请检查模型配置和 API Key 是否正确\n")
-                                    append("**配置文件**: /sdcard/.androidforclaw/openclaw.json\n")
+                                    append("**配置文件**: ${StoragePaths.openclawConfig.absolutePath}\n")
                                 }
                                 else -> {
                                     append("**错误信息**: ${e.message}\n")

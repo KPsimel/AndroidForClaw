@@ -2,6 +2,7 @@ package com.xiaomo.androidforclaw.agent.tools
 
 import android.content.Context
 import com.xiaomo.androidforclaw.logging.Log
+import com.xiaomo.androidforclaw.workspace.StoragePaths
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -26,10 +27,10 @@ object TermuxSSHPool {
     private const val CONNECT_TIMEOUT_MS = 5000
     private const val KEEPALIVE_INTERVAL_S = 15
 
-    private const val CONFIG_DIR = "/sdcard/.androidforclaw"
-    private const val SSH_CONFIG_FILE = "$CONFIG_DIR/termux_ssh.json"
-    private const val KEY_DIR = "$CONFIG_DIR/.ssh"
-    private const val PRIVATE_KEY = "$KEY_DIR/id_ed25519"
+    private val CONFIG_DIR = StoragePaths.root.absolutePath
+    private val SSH_CONFIG_FILE = "$CONFIG_DIR/termux_ssh.json"
+    private val KEY_DIR = "$CONFIG_DIR/.ssh"
+    private val PRIVATE_KEY = "$KEY_DIR/id_ed25519"
 
     private const val MAX_RETRIES = 3
     private val RETRY_DELAYS_MS = longArrayOf(500, 1000, 2000)

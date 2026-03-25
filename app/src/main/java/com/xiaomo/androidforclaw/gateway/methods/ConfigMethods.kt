@@ -6,6 +6,7 @@ package com.xiaomo.androidforclaw.gateway.methods
 
 import android.content.Context
 import com.xiaomo.androidforclaw.config.ConfigLoader
+import com.xiaomo.androidforclaw.workspace.StoragePaths
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import java.io.File
@@ -20,7 +21,7 @@ class ConfigMethods(
 ) {
     private val configLoader = ConfigLoader(context)
     private val gson: Gson = GsonBuilder().setPrettyPrinting().create()
-    private val configPath = "/sdcard/.androidforclaw/openclaw.json"
+    private val configPath = StoragePaths.openclawConfig.absolutePath
 
     /**
      * config.get() - Get current configuration

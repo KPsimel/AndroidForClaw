@@ -9,6 +9,7 @@ package com.xiaomo.androidforclaw.agent.skills
 import android.content.Context
 import com.xiaomo.androidforclaw.logging.Log
 import com.xiaomo.androidforclaw.config.ConfigLoader
+import com.xiaomo.androidforclaw.workspace.StoragePaths
 import java.io.File
 
 /**
@@ -32,8 +33,8 @@ class SkillStatusBuilder(private val context: Context) {
      * @param workspacePath Workspace path (default: /sdcard/.androidforclaw/workspace)
      * @return SkillStatusReport
      */
-    fun buildStatus(workspacePath: String = "/sdcard/.androidforclaw/workspace"): SkillStatusReport {
-        val managedSkillsDir = "/sdcard/.androidforclaw/skills"
+    fun buildStatus(workspacePath: String = StoragePaths.workspace.absolutePath): SkillStatusReport {
+        val managedSkillsDir = StoragePaths.skills.absolutePath
         val bundledSkillsPath = "skills" // assets path
         val config = configLoader.loadOpenClawConfig()
 
@@ -75,7 +76,7 @@ class SkillStatusBuilder(private val context: Context) {
                     skillEntries.add(buildStatusEntry(doc, config))
                 }
                 // Also check filesystem
-                val fsPath = File("/sdcard/.androidforclaw/extensions/$pluginName/$skillDir")
+                val fsPath = File(StoragePaths.extensions, "$pluginName/$skillDir")
                 if (fsPath.exists() && fsPath.isDirectory) {
                     loadSkillsFromDirectory(fsPath, SkillSource.PLUGIN).forEach { doc ->
                         skillEntries.add(buildStatusEntry(doc, config))
