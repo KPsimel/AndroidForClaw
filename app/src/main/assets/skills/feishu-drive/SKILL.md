@@ -28,6 +28,14 @@ Root directory (no folder_token).
 
 Returns: files with token, name, type, url, timestamps.
 
+### Get File Info
+
+```json
+{ "action": "info", "file_token": "ABC123", "type": "docx" }
+```
+
+`type`: `doc`, `docx`, `sheet`, `bitable`, `folder`, `file`, `mindnote`, `shortcut`
+
 ### Create Folder
 
 ```json
@@ -65,33 +73,12 @@ In parent folder:
 | `mindnote` | Mind map                |
 | `shortcut` | Shortcut                |
 
-## AndroidForClaw Implementation
-
-**Tool Class**: `FeishuDriveTools.kt`
-
-**Available Tools**:
-- `feishu_drive_list` - List folder contents
-- `feishu_drive_create_folder` - Create new folder
-- `feishu_drive_move` - Move file/folder
-- `feishu_drive_delete` - Delete file/folder
-
-**Example Usage**:
-```kotlin
-// List root folder
-val result = feishuDriveTools.listFolder()
-
-// Create folder
-val result = feishuDriveTools.createFolder(
-    name = "New Folder",
-    parentFolderToken = "fldcnXXX"
-)
-```
-
 ## Permissions
 
 - `drive:drive` - Full access (create, move, delete)
-- `drive:drive:readonly` - Read only (list)
+- `drive:drive:readonly` - Read only (list, info)
 
 ## Known Limitations
 
-- **Bots have no root folder**: Feishu bots use `tenant_access_token` and don't have their own "My Space". Bot can only access files/folders that have been **shared with it**.
+- **Bots have no root folder**: Feishu bots don't have their own "My Space". Bot can only access files/folders that have been **shared with it**.
+- **Workaround**: User must first create a folder manually and share it with the bot, then bot can create subfolders inside it.

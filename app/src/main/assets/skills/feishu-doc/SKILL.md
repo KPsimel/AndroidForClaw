@@ -1,45 +1,87 @@
 ---
 name: feishu-doc
 description: |
-  飞书（Feishu）文档读写操作。当用户提到飞书文档、feishu doc、云文档、或包含 feishu.cn/docx/ 链接时激活。
+  Feishu document read/write operations. Activate when user mentions Feishu docs, cloud docs, or docx links.
 ---
 
-# 飞书文档工具
+# Feishu Document Tool
 
-## Token 提取
+Single tool `feishu_doc` with action parameter for all document operations.
 
-从 URL `https://xxx.feishu.cn/docx/ABC123def` → `document_id` = `ABC123def`
+## Token Extraction
 
-## 可用工具
+From URL `https://xxx.feishu.cn/docx/ABC123def` → `document_id` = `ABC123def`
 
-### feishu_doc_read — 读取文档内容
+## Actions
 
-```json
-{ "document_id": "ABC123def" }
-```
-
-返回：文档纯文本内容。
-
-### feishu_doc_create — 创建新文档
+### Read Document
 
 ```json
-{ "title": "文档标题", "content": "可选的初始内容", "folder_id": "可选的文件夹ID" }
+{ "action": "read", "document_id": "ABC123def" }
 ```
 
-### feishu_doc_update — 更新文档内容
+Returns: title, plain text content, block statistics. Check `hint` field - if present, structured content (tables, images) exists that requires `list_blocks`.
+
+### Write Document (Replace All)
 
 ```json
-{ "document_id": "ABC123def", "content": "要添加的内容" }
+{ "action": "write", "document_id": "ABC123def", "content": "# Title\n\nMarkdown content..." }
 ```
 
-### feishu_doc_delete — 删除文档
+Replaces entire document with markdown content. Supports: headings, lists, code blocks, quotes, links, bold/italic/strikethrough.
+
+**Limitation:** Markdown tables are NOT supported in write mode. Use `create_table` for tables.
+
+### Append Content
 
 ```json
-{ "document_id": "ABC123def" }
+{ "action": "append", "document_id": "ABC123def", "content": "Additional content" }
 ```
 
-## 注意事项
+Appends markdown to end of document.
 
-- `document_id` 从飞书文档 URL 的 `/docx/` 后面提取，保持原始大小写
-- 读取返回纯文本（raw_content），不含格式信息
-- 更新操作是追加内容，不是替换
+### Create Document
+
+```json
+{ "action": "create", "title": "New Document", "folder_id": "fldcnXXX" }
+```
+
+Creates a new document. Optional `folder_id` to place in specific folder.
+
+### List Blocks
+
+```json
+{ "action": "list_blocks", "document_id": "ABC123def" }
+```
+
+Returns full block data including tables, images. Use this to read structured content.
+
+### Get Single Block
+
+```json
+{ "action": "get_block", "document_id": "ABC123def", "block_id": "doxcnXXX" }
+```
+
+### Update Block Text
+
+```json
+{ "action": "update_block", "document_id": "ABC123def", "block_id": "doxcnXXX", "content": "New text" }
+```
+
+### Delete Block
+
+```json
+{ "action": "delete_block", "document_id": "ABC123def", "block_id": "doxcnXXX" }
+```
+
+## Reading Workflow
+
+1. Start with `action: "read"` - get plain text + statistics
+2. Check `block_types` in response for Table, Image, Code, etc.
+3. If structured content exists, use `action: "list_blocks"` for full data
+
+## Permissions
+
+Required: `docx:document`, `docx:document:readonly`, `drive:drive`
+
+**Note:** `feishu_wiki` depends on this tool - wiki page content is read/written via `feishu_doc`.

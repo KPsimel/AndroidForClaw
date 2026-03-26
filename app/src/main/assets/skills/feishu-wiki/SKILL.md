@@ -62,36 +62,37 @@ With type and parent:
 
 `obj_type`: `docx` (default), `sheet`, `bitable`, `mindnote`, `file`, `doc`, `slides`
 
+### Move Node
+
+```json
+{ "action": "move", "space_id": "7xxx", "node_token": "wikcnXXX" }
+```
+
+To different location:
+
+```json
+{
+  "action": "move",
+  "space_id": "7xxx",
+  "node_token": "wikcnXXX",
+  "target_space_id": "7yyy",
+  "target_parent_token": "wikcnYYY"
+}
+```
+
+### Rename Node
+
+```json
+{ "action": "rename", "space_id": "7xxx", "node_token": "wikcnXXX", "title": "New Title" }
+```
+
 ## Wiki-Doc Workflow
 
 To edit a wiki page:
 
 1. Get node: `{ "action": "get", "token": "wiki_token" }` → returns `obj_token`
-2. Read doc: `feishu_doc { "action": "read", "doc_token": "obj_token" }`
-3. Write doc: `feishu_doc { "action": "write", "doc_token": "obj_token", "content": "..." }`
-
-## AndroidForClaw Implementation
-
-**Tool Class**: `FeishuWikiTools.kt`
-
-**Available Tools**:
-- `feishu_wiki_spaces` - List knowledge spaces
-- `feishu_wiki_nodes` - List nodes in space
-- `feishu_wiki_get` - Get node details
-- `feishu_wiki_create` - Create new node
-
-**Example Usage**:
-```kotlin
-// List spaces
-val result = feishuWikiTools.listSpaces()
-
-// Create wiki page
-val result = feishuWikiTools.createNode(
-    spaceId = "7xxx",
-    title = "New Page",
-    objType = "docx"
-)
-```
+2. Read doc: `feishu_doc { "action": "read", "document_id": "obj_token" }`
+3. Write doc: `feishu_doc { "action": "write", "document_id": "obj_token", "content": "..." }`
 
 **Dependency:** This tool requires `feishu_doc` to be enabled. Wiki pages are documents - use `feishu_wiki` to navigate, then `feishu_doc` to read/edit content.
 

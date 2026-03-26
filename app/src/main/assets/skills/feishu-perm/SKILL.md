@@ -103,34 +103,7 @@ Share folder with group:
 }
 ```
 
-## AndroidForClaw Implementation
-
-**Tool Class**: `FeishuPermTools.kt`
-
-**Available Tools**:
-- `feishu_perm_list` - List collaborators
-- `feishu_perm_add` - Add collaborator
-- `feishu_perm_remove` - Remove collaborator
-
-**Example Usage**:
-```kotlin
-// List collaborators
-val result = feishuPermTools.listCollaborators(
-    token = "doxcnXXX",
-    type = "docx"
-)
-
-// Add collaborator
-val result = feishuPermTools.addCollaborator(
-    token = "doxcnXXX",
-    type = "docx",
-    memberType = "email",
-    memberId = "user@example.com",
-    perm = "edit"
-)
-```
-
-**Note:** This tool is sensitive - use with caution. Always verify user intent before modifying permissions.
+**Note:** This tool is sensitive - always verify user intent before modifying permissions.
 
 ## Permissions
 
