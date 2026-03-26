@@ -35,6 +35,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import com.xiaomo.androidforclaw.logging.Log
+import com.xiaomo.androidforclaw.util.SPHelper
 import java.io.IOException
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
@@ -61,6 +62,9 @@ class GatewayController(
     private val authToken: String? = null
 ) {
     private val TAG = "GatewayController"
+    private companion object {
+        private const val PREF_THINKING_LEVEL = "chat_thinking_level"
+    }
     private var server: GatewayWebSocketServer? = null
     private var tokenAuth: TokenAuth? = null
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
@@ -149,6 +153,7 @@ class GatewayController(
                     val sessionKey = p["sessionKey"] as? String ?: "default"
                     val userMsg = p["message"] as? String ?: ""
                     val thinking = p["thinking"] as? String ?: "off"
+                    SPHelper.getInstance(context).saveData(PREF_THINKING_LEVEL, thinking)
                     val reasoningEnabled = thinking != "off"
                     @Suppress("UNCHECKED_CAST")
                     val attachments = p["attachments"] as? List<Map<String, Any?>> ?: emptyList()
@@ -352,10 +357,13 @@ class GatewayController(
                             "timestamp" to ts
                         )
                     } ?: emptyList()
+                    val savedThinking = SPHelper.getInstance(context)
+                        .getData(PREF_THINKING_LEVEL, "off")
+                        ?.takeIf { it.isNotBlank() } ?: "off"
                     mapOf(
                         "sessionKey" to sessionKey,
                         "sessionId" to session?.sessionId,
-                        "thinkingLevel" to null,
+                        "thinkingLevel" to savedThinking,
                         "messages" to messageList
                     )
                 }
