@@ -7,7 +7,9 @@
 package com.xiaomo.androidforclaw.agent.tools
 
 import com.xiaomo.androidforclaw.agent.loop.AgentLoop
+import com.xiaomo.androidforclaw.agent.subagent.InlineAttachment
 import com.xiaomo.androidforclaw.agent.subagent.SPAWN_ACCEPTED_NOTE
+import com.xiaomo.androidforclaw.agent.subagent.SPAWN_SESSION_ACCEPTED_NOTE
 import com.xiaomo.androidforclaw.agent.subagent.SpawnMode
 import com.xiaomo.androidforclaw.agent.subagent.SpawnStatus
 import com.xiaomo.androidforclaw.agent.subagent.SpawnSubagentParams
@@ -71,6 +73,40 @@ class SessionsSpawnTool(
                             type = "string",
                             description = "Thinking/reasoning level: 'none', 'brief', 'verbose'. Default: inherit from parent."
                         ),
+                        "runtime" to PropertySchema(
+                            type = "string",
+                            description = "Runtime: 'subagent' (default) or 'acp' (not supported on Android)."
+                        ),
+                        "thread" to PropertySchema(
+                            type = "boolean",
+                            description = "If true, spawn as thread-bound session."
+                        ),
+                        "cleanup" to PropertySchema(
+                            type = "string",
+                            description = "Cleanup strategy after completion. Default: 'delete'.",
+                            enum = listOf("delete", "keep")
+                        ),
+                        "sandbox" to PropertySchema(
+                            type = "string",
+                            description = "Sandbox mode. Default: 'inherit'.",
+                            enum = listOf("inherit", "require")
+                        ),
+                        "attachments" to PropertySchema(
+                            type = "array",
+                            description = "Inline file attachments for the subagent (max 50 items)."
+                        ),
+                        "cwd" to PropertySchema(
+                            type = "string",
+                            description = "Working directory for the subagent."
+                        ),
+                        "resume_session_id" to PropertySchema(
+                            type = "string",
+                            description = "Resume an existing session (not yet supported)."
+                        ),
+                        "stream_to" to PropertySchema(
+                            type = "string",
+                            description = "Stream output to parent (ACP only, not supported)."
+                        ),
                     ),
                     required = listOf("task")
                 )
@@ -93,10 +129,44 @@ class SessionsSpawnTool(
             "session" -> SpawnMode.SESSION
             else -> SpawnMode.RUN
         }
-
-        Log.i(TAG, "Spawning subagent: label=$label, model=$model, timeout=$timeoutSeconds, mode=$mode")
-
         val thinking = args["thinking"] as? String
+
+        // New parameters aligned with OpenClaw
+        val runtime = args["runtime"] as? String
+        val thread = args["thread"] as? Boolean
+        val cleanup = (args["cleanup"] as? String)?.lowercase() ?: "delete"
+        val sandbox = args["sandbox"] as? String
+        val cwd = args["cwd"] as? String
+
+        // Parse inline attachments if present
+        val attachments = (args["attachments"] as? List<*>)?.mapNotNull { item ->
+            val map = item as? Map<*, *> ?: return@mapNotNull null
+            val name = map["name"] as? String ?: return@mapNotNull null
+            val content = map["content"] as? String ?: return@mapNotNull null
+            val encoding = map["encoding"] as? String ?: "utf8"
+            val mimeType = map["mime_type"] as? String ?: map["mimeType"] as? String
+            InlineAttachment(
+                name = name,
+                content = content,
+                encoding = encoding,
+                mimeType = mimeType,
+            )
+        }?.takeIf { it.isNotEmpty() }
+
+        // Parse attachAs.mountPath if present
+        val attachMountPath = (args["attachAs"] as? Map<*, *>)?.get("mountPath") as? String
+
+        // Warn about unsupported parameters
+        val resumeSessionId = args["resume_session_id"] as? String
+        if (resumeSessionId != null) {
+            Log.w(TAG, "resume_session_id is not yet supported, ignoring: $resumeSessionId")
+        }
+        val streamTo = args["stream_to"] as? String
+        if (streamTo != null) {
+            Log.w(TAG, "stream_to is not supported on Android, ignoring: $streamTo")
+        }
+
+        Log.i(TAG, "Spawning subagent: label=$label, model=$model, timeout=$timeoutSeconds, mode=$mode, runtime=$runtime, thread=$thread, cleanup=$cleanup, sandbox=$sandbox")
 
         val params = SpawnSubagentParams(
             task = task,
@@ -105,6 +175,13 @@ class SessionsSpawnTool(
             thinking = thinking,
             runTimeoutSeconds = timeoutSeconds,
             mode = mode,
+            runtime = runtime,
+            thread = thread,
+            cleanup = cleanup,
+            sandbox = sandbox,
+            attachments = attachments,
+            attachMountPath = attachMountPath,
+            cwd = cwd,
         )
 
         val result = spawner.spawn(params, parentSessionKey, parentAgentLoop, parentDepth)
@@ -121,7 +198,11 @@ class SessionsSpawnTool(
                         appendLine("Model: ${result.modelApplied}")
                     }
                     appendLine()
-                    appendLine(SPAWN_ACCEPTED_NOTE)
+                    if (mode == SpawnMode.SESSION) {
+                        appendLine(SPAWN_SESSION_ACCEPTED_NOTE)
+                    } else {
+                        appendLine(SPAWN_ACCEPTED_NOTE)
+                    }
                 },
                 metadata = mapOf(
                     "status" to "accepted",

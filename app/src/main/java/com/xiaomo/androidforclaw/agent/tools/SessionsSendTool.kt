@@ -10,6 +10,7 @@
 package com.xiaomo.androidforclaw.agent.tools
 
 import com.xiaomo.androidforclaw.agent.loop.AgentLoop
+import com.xiaomo.androidforclaw.agent.subagent.SpawnMode
 import com.xiaomo.androidforclaw.agent.subagent.SubagentSpawner
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
 import com.xiaomo.androidforclaw.providers.ParametersSchema
@@ -20,7 +21,8 @@ import com.xiaomo.androidforclaw.providers.ToolDefinition
  * sessions_send — Send a message to a running subagent (steer = abort + restart).
  * Aligned with OpenClaw steerControlledSubagentRun + sendControlledSubagentMessage.
  *
- * Target resolution supports: "last", numeric index, session key, label, label prefix, runId prefix.
+ * Target resolution supports: session_key, label, or generic target token
+ * ("last", numeric index, label prefix, runId prefix).
  */
 class SessionsSendTool(
     private val spawner: SubagentSpawner,
@@ -31,7 +33,7 @@ class SessionsSendTool(
     override val name = "sessions_send"
     override val description = "Send a message to a running subagent to steer or redirect its work. " +
         "This aborts the subagent's current run and restarts it with the new message. " +
-        "Target can be 'last', a numeric index, a label, or a run ID."
+        "Identify the target via session_key, label, or the generic target token."
 
     override fun getToolDefinition(): ToolDefinition {
         return ToolDefinition(
@@ -42,9 +44,21 @@ class SessionsSendTool(
                 parameters = ParametersSchema(
                     type = "object",
                     properties = mapOf(
+                        "session_key" to PropertySchema(
+                            type = "string",
+                            description = "Target session key (alternative to target)"
+                        ),
+                        "label" to PropertySchema(
+                            type = "string",
+                            description = "Target subagent label (alternative to target)"
+                        ),
+                        "agent_id" to PropertySchema(
+                            type = "string",
+                            description = "Target agent ID for cross-agent messaging"
+                        ),
                         "target" to PropertySchema(
                             type = "string",
-                            description = "Target subagent: 'last', numeric index (1-based), label, label prefix, run ID, or session key."
+                            description = "Target subagent: 'last', numeric index (1-based), label prefix, run ID, or session key."
                         ),
                         "message" to PropertySchema(
                             type = "string",
@@ -52,29 +66,58 @@ class SessionsSendTool(
                         ),
                         "timeout_seconds" to PropertySchema(
                             type = "number",
-                            description = "Wait timeout in seconds. 0 = fire-and-forget (default). >0 = wait for completion."
+                            description = "Wait timeout in seconds. 0 = fire-and-forget. >0 = wait for completion. Default: 30."
                         ),
                     ),
-                    required = listOf("target", "message")
+                    required = listOf("message")
                 )
             )
         )
     }
 
     override suspend fun execute(args: Map<String, Any?>): ToolResult {
+        val sessionKey = args["session_key"] as? String
+        val label = args["label"] as? String
+        val agentId = args["agent_id"] as? String
         val target = args["target"] as? String
-        if (target.isNullOrBlank()) {
-            return ToolResult.error("Missing required parameter: target")
-        }
         val message = args["message"] as? String
         if (message.isNullOrBlank()) {
             return ToolResult.error("Missing required parameter: message")
         }
-        val timeoutSeconds = (args["timeout_seconds"] as? Number)?.toInt() ?: 0
+        val timeoutSeconds = (args["timeout_seconds"] as? Number)?.toInt() ?: 30
 
-        // Resolve target using multi-strategy resolution
-        val record = spawner.registry.resolveTarget(target, parentSessionKey)
-            ?: return ToolResult(success = false, content = "No matching subagent found for target: $target")
+        // Resolve target: session_key > label > target, error if none provided
+        val record = when {
+            !sessionKey.isNullOrBlank() -> {
+                spawner.registry.getRunByChildSessionKey(sessionKey)
+                    ?: return ToolResult(success = false, content = "No subagent found for session_key: $sessionKey")
+            }
+            !label.isNullOrBlank() -> {
+                spawner.registry.resolveTarget(label, parentSessionKey)
+                    ?: return ToolResult(success = false, content = "No subagent found for label: $label")
+            }
+            !target.isNullOrBlank() -> {
+                spawner.registry.resolveTarget(target, parentSessionKey)
+                    ?: return ToolResult(success = false, content = "No matching subagent found for target: $target")
+            }
+            else -> {
+                return ToolResult.error("Must provide one of: session_key, label, or target")
+            }
+        }
+
+        // If target is completed SESSION mode, reactivate instead of steer
+        if (!record.isActive && record.spawnMode == SpawnMode.SESSION) {
+            val (reactivateSuccess, reactivateInfo) = spawner.reactivateSession(
+                childSessionKey = record.childSessionKey,
+                message = message,
+                callerSessionKey = parentSessionKey,
+                parentAgentLoop = parentAgentLoop,
+            )
+            if (!reactivateSuccess) {
+                return ToolResult(success = false, content = "Session reactivation failed: $reactivateInfo")
+            }
+            return ToolResult(success = true, content = "Session '${record.label}' reactivated: $reactivateInfo")
+        }
 
         // Steer (abort + restart, aligned with OpenClaw)
         val (success, info) = spawner.steer(

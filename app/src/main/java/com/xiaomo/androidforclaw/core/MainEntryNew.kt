@@ -207,7 +207,9 @@ object MainEntryNew {
             val subagentsConfig = config.agents?.defaults?.subagents
                 ?: com.xiaomo.androidforclaw.config.SubagentsConfig()
             if (subagentsConfig.enabled) {
-                val registry = com.xiaomo.androidforclaw.agent.subagent.SubagentRegistry()
+                val registryStore = com.xiaomo.androidforclaw.agent.subagent.SubagentRegistryStore()
+                val registry = com.xiaomo.androidforclaw.agent.subagent.SubagentRegistry(registryStore)
+                registry.restoreFromDisk()
                 val spawner = com.xiaomo.androidforclaw.agent.subagent.SubagentSpawner(
                     registry = registry,
                     configLoader = configLoader,

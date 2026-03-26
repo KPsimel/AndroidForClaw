@@ -5,8 +5,61 @@
  * - ../openclaw/src/agents/subagent-lifecycle-events.ts (ended reason, ended outcome)
  * - ../openclaw/src/agents/subagent-spawn.ts (SpawnSubagentParams, SpawnSubagentResult, SpawnSubagentMode)
  * - ../openclaw/src/agents/subagent-announce.ts (SubagentRunOutcome)
+ * - ../openclaw/src/agents/subagent-registry.ts (announce constants)
+ * - ../openclaw/src/agents/subagent-control.ts (steer/control constants)
+ * - ../openclaw/src/agents/subagent-attachments.ts (attachment types)
  */
 package com.xiaomo.androidforclaw.agent.subagent
+
+// ==================== Constants (aligned with OpenClaw) ====================
+
+/** Aligned with OpenClaw DEFAULT_SUBAGENT_MAX_SPAWN_DEPTH = 1 */
+const val DEFAULT_MAX_SPAWN_DEPTH = 1
+
+/** Aligned with OpenClaw maxChildrenPerAgent default */
+const val DEFAULT_MAX_CHILDREN_PER_AGENT = 5
+
+/** Aligned with OpenClaw STEER_RATE_LIMIT_MS */
+const val STEER_RATE_LIMIT_MS = 2000L
+
+/** Aligned with OpenClaw STEER_ABORT_SETTLE_TIMEOUT_MS */
+const val STEER_ABORT_SETTLE_TIMEOUT_MS = 5_000L
+
+/** Aligned with OpenClaw MAX_STEER_MESSAGE_CHARS */
+const val MAX_STEER_MESSAGE_CHARS = 4_000
+
+/** Aligned with OpenClaw SUBAGENT_ANNOUNCE_TIMEOUT_MS */
+const val SUBAGENT_ANNOUNCE_TIMEOUT_MS = 120_000L
+
+/** Aligned with OpenClaw DEFAULT_SUBAGENT_ANNOUNCE_TIMEOUT_MS */
+const val DEFAULT_SUBAGENT_ANNOUNCE_TIMEOUT_MS = 90_000L
+
+/** Aligned with OpenClaw MIN_ANNOUNCE_RETRY_DELAY_MS */
+const val MIN_ANNOUNCE_RETRY_DELAY_MS = 1_000L
+
+/** Aligned with OpenClaw MAX_ANNOUNCE_RETRY_DELAY_MS */
+const val MAX_ANNOUNCE_RETRY_DELAY_MS = 8_000L
+
+/** Aligned with OpenClaw MAX_ANNOUNCE_RETRY_COUNT */
+const val MAX_ANNOUNCE_RETRY_COUNT = 3
+
+/** Aligned with OpenClaw ANNOUNCE_EXPIRY_MS (5 min for non-completion flows) */
+const val ANNOUNCE_EXPIRY_MS = 5 * 60_000L
+
+/** Aligned with OpenClaw ANNOUNCE_COMPLETION_HARD_EXPIRY_MS (30 min for completion flows) */
+const val ANNOUNCE_COMPLETION_HARD_EXPIRY_MS = 30 * 60_000L
+
+/** Aligned with OpenClaw LIFECYCLE_ERROR_RETRY_GRACE_MS */
+const val LIFECYCLE_ERROR_RETRY_GRACE_MS = 15_000L
+
+/** Aligned with OpenClaw FROZEN_RESULT_TEXT_MAX_BYTES (100 KB) */
+const val FROZEN_RESULT_TEXT_MAX_BYTES = 100 * 1024
+
+/** Aligned with OpenClaw DEFAULT_RECENT_MINUTES */
+const val DEFAULT_RECENT_MINUTES = 30
+
+/** Archive completed runs after 1 hour */
+const val ARCHIVE_AFTER_MS = 60 * 60 * 1000L
 
 // ==================== Spawn Mode ====================
 
@@ -82,6 +135,37 @@ enum class SubagentRunStatus {
     val wireValue: String get() = name.lowercase()
 }
 
+/**
+ * Aligned with OpenClaw lifecycle ended outcome values.
+ * Separate from SubagentRunStatus — these are lifecycle event outcomes.
+ */
+enum class SubagentLifecycleEndedOutcome {
+    OK,
+    ERROR,
+    TIMEOUT,
+    KILLED,
+    RESET,
+    DELETED;
+
+    val wireValue: String get() = name.lowercase()
+}
+
+/** Aligned with OpenClaw SUBAGENT_TARGET_KIND */
+enum class SubagentLifecycleTargetKind {
+    SUBAGENT,
+    ACP;
+
+    val wireValue: String get() = name.lowercase()
+}
+
+/** Aligned with OpenClaw SpawnSubagentSandboxMode ("inherit" | "require") */
+enum class SpawnSubagentSandboxMode {
+    INHERIT,
+    REQUIRE;
+
+    val wireValue: String get() = name.lowercase()
+}
+
 // ==================== Data Classes ====================
 
 /** Aligned with OpenClaw SubagentRunOutcome */
@@ -91,35 +175,54 @@ data class SubagentRunOutcome(
 )
 
 /**
- * Aligned with OpenClaw SubagentRunRecord.
+ * Aligned with OpenClaw SubagentRunRecord (subagent-registry.types.ts).
  * Tracks a single subagent run from spawn to completion/cleanup.
  */
 data class SubagentRunRecord(
     val runId: String,
     val childSessionKey: String,
+    /** Who controls this subagent (can differ from requester in cross-agent scenarios) */
+    val controllerSessionKey: String? = null,
     val requesterSessionKey: String,
+    /** Aligned with OpenClaw requesterOrigin — simplified for Android */
+    val requesterDisplayKey: String = "",
     val task: String,
     val label: String,
     val model: String?,
-    val cleanup: Boolean,
+    /** Aligned with OpenClaw cleanup: "delete" | "keep" */
+    val cleanup: String = "delete",
     val spawnMode: SpawnMode,
+    val workspaceDir: String? = null,
+    val runTimeoutSeconds: Int? = null,
     val createdAt: Long,
     var startedAt: Long? = null,
+    /** Stable across follow-up runs (preserved on steer restart) */
+    var sessionStartedAt: Long? = null,
+    /** Runtime carried from previous steer-restarted runs */
+    var accumulatedRuntimeMs: Long = 0L,
     var endedAt: Long? = null,
     var outcome: SubagentRunOutcome? = null,
-    var frozenResultText: String? = null,
-    var endedReason: SubagentLifecycleEndedReason? = null,
-    // --- Announce retry tracking (aligned with OpenClaw announceRetryCount/lastAnnounceRetryAt) ---
+    /** When to auto-archive this run record */
+    var archiveAtMs: Long? = null,
+    var cleanupCompletedAt: Long? = null,
+    var cleanupHandled: Boolean = false,
     var suppressAnnounceReason: String? = null,
+    /** Whether to send a completion message to the requester */
+    var expectsCompletionMessage: Boolean = true,
     var announceRetryCount: Int = 0,
     var lastAnnounceRetryAt: Long? = null,
-    // --- Descendant tracking (aligned with OpenClaw wakeOnDescendantSettle) ---
+    var endedReason: SubagentLifecycleEndedReason? = null,
     var wakeOnDescendantSettle: Boolean = false,
-    // --- Steer restart: accumulated runtime from previous runs ---
-    var accumulatedRuntimeMs: Long = 0L,
-    // --- Timeout config preservation across steer restarts ---
-    var runTimeoutSeconds: Int? = null,
-    // --- Depth: stored for steer restart prompt rebuilding ---
+    var frozenResultText: String? = null,
+    var frozenResultCapturedAt: Long? = null,
+    var fallbackFrozenResultText: String? = null,
+    var fallbackFrozenResultCapturedAt: Long? = null,
+    var endedHookEmittedAt: Long? = null,
+    /** Filesystem path where materialized attachments reside */
+    var attachmentsDir: String? = null,
+    var attachmentsRootDir: String? = null,
+    var retainAttachmentsOnKeep: Boolean = false,
+    /** Spawn depth — stored for steer restart prompt rebuilding */
     val depth: Int = 0,
 ) {
     val isActive: Boolean get() = endedAt == null
@@ -130,6 +233,29 @@ data class SubagentRunRecord(
     }
 }
 
+/** Aligned with OpenClaw SubagentInlineAttachment */
+data class InlineAttachment(
+    val name: String,
+    val content: String,
+    val encoding: String = "utf8",
+    val mimeType: String? = null,
+)
+
+/** Aligned with OpenClaw SubagentAttachmentReceiptFile */
+data class AttachmentReceiptFile(
+    val name: String,
+    val bytes: Int,
+    val sha256: String,
+)
+
+/** Aligned with OpenClaw SubagentAttachmentReceipt */
+data class AttachmentReceipt(
+    val count: Int,
+    val totalBytes: Int,
+    val files: List<AttachmentReceiptFile>,
+    val relDir: String,
+)
+
 /** Aligned with OpenClaw SpawnSubagentParams */
 data class SpawnSubagentParams(
     val task: String,
@@ -139,7 +265,15 @@ data class SpawnSubagentParams(
     val thinking: String? = null,
     val runTimeoutSeconds: Int? = null,
     val mode: SpawnMode = SpawnMode.RUN,
-    val cleanup: Boolean = true,
+    /** "delete" | "keep" — aligned with OpenClaw (NOT Boolean) */
+    val cleanup: String = "delete",
+    val thread: Boolean? = null,
+    val sandbox: String? = null,
+    val attachments: List<InlineAttachment>? = null,
+    val attachMountPath: String? = null,
+    val cwd: String? = null,
+    /** "subagent" | "acp" — ACP not supported on Android, defaults to "subagent" */
+    val runtime: String? = null,
 )
 
 /** Aligned with OpenClaw SpawnSubagentResult */
@@ -151,6 +285,7 @@ data class SpawnSubagentResult(
     val note: String? = null,
     val error: String? = null,
     val modelApplied: String? = null,
+    val attachments: AttachmentReceipt? = null,
 )
 
 /** Resolved capabilities for a given depth. Aligned with OpenClaw resolveSubagentCapabilities return. */
@@ -163,15 +298,6 @@ data class SubagentCapabilities(
 )
 
 // ==================== Capability Resolution ====================
-
-/** Default max spawn depth (aligned with OpenClaw DEFAULT_SUBAGENT_MAX_SPAWN_DEPTH = 1) */
-const val DEFAULT_MAX_SPAWN_DEPTH = 1
-
-/** Default max concurrent children per parent (aligned with OpenClaw) */
-const val DEFAULT_MAX_CHILDREN_PER_AGENT = 5
-
-/** Steer rate limit: minimum interval between steers on the same caller-target pair (aligned with OpenClaw STEER_RATE_LIMIT_MS) */
-const val STEER_RATE_LIMIT_MS = 2000L
 
 /**
  * Aligned with OpenClaw resolveSubagentRoleForDepth.
@@ -203,5 +329,46 @@ fun resolveSubagentCapabilities(depth: Int, maxSpawnDepth: Int = DEFAULT_MAX_SPA
     )
 }
 
+/**
+ * Aligned with OpenClaw resolveLifecycleOutcomeFromRunOutcome.
+ * Maps SubagentRunOutcome to SubagentLifecycleEndedOutcome.
+ */
+fun resolveLifecycleOutcome(outcome: SubagentRunOutcome?): SubagentLifecycleEndedOutcome {
+    return when (outcome?.status) {
+        SubagentRunStatus.OK -> SubagentLifecycleEndedOutcome.OK
+        SubagentRunStatus.ERROR -> SubagentLifecycleEndedOutcome.ERROR
+        SubagentRunStatus.TIMEOUT -> SubagentLifecycleEndedOutcome.TIMEOUT
+        SubagentRunStatus.UNKNOWN, null -> SubagentLifecycleEndedOutcome.ERROR
+    }
+}
+
+/**
+ * Cap frozen result text to FROZEN_RESULT_TEXT_MAX_BYTES (100KB).
+ * Aligned with OpenClaw freezeRunResultAtCompletion truncation.
+ */
+fun capFrozenResultText(text: String?): String? {
+    if (text == null) return null
+    val bytes = text.toByteArray(Charsets.UTF_8)
+    if (bytes.size <= FROZEN_RESULT_TEXT_MAX_BYTES) return text
+    val notice = "\n\n[truncated: frozen output exceeded ${FROZEN_RESULT_TEXT_MAX_BYTES / 1024}KB]"
+    val noticeBytes = notice.toByteArray(Charsets.UTF_8).size
+    val maxContent = FROZEN_RESULT_TEXT_MAX_BYTES - noticeBytes
+    if (maxContent <= 0) return notice
+    val truncated = String(bytes, 0, maxContent, Charsets.UTF_8)
+    return truncated + notice
+}
+
+/**
+ * Compute announce retry delay with exponential backoff.
+ * Aligned with OpenClaw transient retry pattern.
+ */
+fun computeAnnounceRetryDelayMs(retryCount: Int): Long {
+    val baseDelay = MIN_ANNOUNCE_RETRY_DELAY_MS * (1L shl retryCount)
+    return minOf(baseDelay, MAX_ANNOUNCE_RETRY_DELAY_MS)
+}
+
 /** Note returned to LLM after successful spawn (aligned with OpenClaw SUBAGENT_SPAWN_ACCEPTED_NOTE) */
 const val SPAWN_ACCEPTED_NOTE = "Auto-announce is push-based. After spawning children, do NOT call sessions_list, sessions_history, exec sleep, or any polling tool. Wait for completion events to arrive as user messages, track expected child session keys, and only send your final answer after ALL expected completions arrive. If a child completion event arrives AFTER your final answer, reply ONLY with NO_REPLY."
+
+/** Note for session-mode spawn (aligned with OpenClaw SUBAGENT_SPAWN_SESSION_ACCEPTED_NOTE) */
+const val SPAWN_SESSION_ACCEPTED_NOTE = "Thread-bound session stays active after task completion. Use sessions_send to interact further."
