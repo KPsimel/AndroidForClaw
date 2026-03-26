@@ -123,7 +123,6 @@ class SubagentRegistryStore {
         }
     }
 
-    @Suppress("UNUSED_PARAMETER")
     private fun jsonToRecord(j: JSONObject, version: Int): SubagentRunRecord? {
         return try {
             val outcomeJson = j.optJSONObject("outcome")
@@ -142,6 +141,16 @@ class SubagentRegistryStore {
             val spawnModeStr = j.optString("spawnMode", "run")
             val spawnMode = if (spawnModeStr == "session") SpawnMode.SESSION else SpawnMode.RUN
 
+            // V1→V2 migration: cleanup was boolean in V1 (true="delete", false="keep")
+            // V2 uses string "delete"/"keep". Default to "keep" for V2+.
+            val cleanupRaw = j.opt("cleanup")
+            val cleanup = when {
+                cleanupRaw is Boolean -> if (cleanupRaw) "delete" else "keep"
+                cleanupRaw is String -> cleanupRaw
+                version < 2 -> "delete" // V1 default was delete
+                else -> "keep" // V2+ default is keep
+            }
+
             SubagentRunRecord(
                 runId = j.getString("runId"),
                 childSessionKey = j.getString("childSessionKey"),
@@ -151,7 +160,7 @@ class SubagentRegistryStore {
                 task = j.optString("task", ""),
                 label = j.optString("label", ""),
                 model = j.optString("model", null),
-                cleanup = j.optString("cleanup", "delete"),
+                cleanup = cleanup,
                 spawnMode = spawnMode,
                 workspaceDir = j.optString("workspaceDir", null),
                 runTimeoutSeconds = if (j.has("runTimeoutSeconds")) j.optInt("runTimeoutSeconds") else null,

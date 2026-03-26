@@ -427,6 +427,12 @@ class SubagentRegistry(
         if (!record.isActive) return false
 
         Log.i(TAG, "Killing subagent run: $runId")
+
+        // Set suppressAnnounceReason and cleanupHandled BEFORE cancelling
+        // Aligned with OpenClaw markSubagentRunTerminated
+        record.suppressAnnounceReason = "killed"
+        record.cleanupHandled = true
+
         job.cancel()
 
         markCompleted(
@@ -466,6 +472,9 @@ class SubagentRegistry(
 
             // Kill this run if still active
             if (record.isActive) {
+                // Set suppressAnnounceReason/cleanupHandled BEFORE cancel (aligned with killRun)
+                record.suppressAnnounceReason = "killed"
+                record.cleanupHandled = true
                 val job = jobs[currentRunId]
                 job?.cancel()
                 markCompleted(
@@ -492,6 +501,13 @@ class SubagentRegistry(
      * Aligned with OpenClaw replaceSubagentRunAfterSteer.
      */
     fun replaceRun(oldRunId: String, newRecord: SubagentRunRecord, loop: AgentLoop, job: Job) {
+        // Preserve frozen result as fallback (aligned with OpenClaw preserveFrozenResultFallback)
+        val oldRecord = runs[oldRunId]
+        if (oldRecord?.frozenResultText != null && newRecord.fallbackFrozenResultText == null) {
+            newRecord.fallbackFrozenResultText = oldRecord.frozenResultText
+            newRecord.fallbackFrozenResultCapturedAt = oldRecord.frozenResultCapturedAt
+        }
+
         // Remove old runtime references (record stays for history)
         agentLoops.remove(oldRunId)
         jobs.remove(oldRunId)

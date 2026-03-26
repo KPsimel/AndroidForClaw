@@ -83,7 +83,7 @@ class SessionsSpawnTool(
                         ),
                         "cleanup" to PropertySchema(
                             type = "string",
-                            description = "Cleanup strategy after completion. Default: 'delete'.",
+                            description = "Cleanup strategy after completion. Default: 'keep'.",
                             enum = listOf("delete", "keep")
                         ),
                         "sandbox" to PropertySchema(
@@ -134,7 +134,7 @@ class SessionsSpawnTool(
         // New parameters aligned with OpenClaw
         val runtime = args["runtime"] as? String
         val thread = args["thread"] as? Boolean
-        val cleanup = (args["cleanup"] as? String)?.lowercase() ?: "delete"
+        val cleanup = (args["cleanup"] as? String)?.lowercase() ?: "keep"
         val sandbox = args["sandbox"] as? String
         val cwd = args["cwd"] as? String
 

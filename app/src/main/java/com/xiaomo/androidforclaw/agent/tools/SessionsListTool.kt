@@ -9,6 +9,7 @@
 package com.xiaomo.androidforclaw.agent.tools
 
 import android.util.Log
+import com.xiaomo.androidforclaw.agent.subagent.SessionVisibilityGuard
 import com.xiaomo.androidforclaw.agent.subagent.SubagentRegistry
 import com.xiaomo.androidforclaw.agent.subagent.SubagentRunStatus
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
@@ -123,8 +124,16 @@ class SessionsListTool(
 
         val cutoffMs = System.currentTimeMillis() - activeMinutes * 60_000L
 
+        // Visibility guard (aligned with OpenClaw controlScope filtering)
+        val visibility = SessionVisibilityGuard.resolveVisibility(parentSessionKey, registry)
+
         // Use indexed list (active first, then recent) — aligned with OpenClaw
-        var runs = registry.buildIndexedList(parentSessionKey)
+        var runs = SessionVisibilityGuard.filterVisible(
+            parentSessionKey,
+            registry.buildIndexedList(parentSessionKey),
+            visibility,
+            registry,
+        )
 
         // Filter by status
         if (statusFilter == "active") {

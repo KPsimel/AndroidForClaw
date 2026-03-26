@@ -10,6 +10,8 @@
 package com.xiaomo.androidforclaw.agent.tools
 
 import com.xiaomo.androidforclaw.agent.loop.AgentLoop
+import com.xiaomo.androidforclaw.agent.subagent.SessionAccessResult
+import com.xiaomo.androidforclaw.agent.subagent.SessionVisibilityGuard
 import com.xiaomo.androidforclaw.agent.subagent.SpawnMode
 import com.xiaomo.androidforclaw.agent.subagent.SubagentSpawner
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
@@ -103,6 +105,15 @@ class SessionsSendTool(
             else -> {
                 return ToolResult.error("Must provide one of: session_key, label, or target")
             }
+        }
+
+        // Visibility guard (aligned with OpenClaw controlScope)
+        val visibility = SessionVisibilityGuard.resolveVisibility(parentSessionKey, spawner.registry)
+        val access = SessionVisibilityGuard.checkAccess(
+            "send to", parentSessionKey, record.childSessionKey, visibility, spawner.registry
+        )
+        if (access is SessionAccessResult.Denied) {
+            return ToolResult(success = false, content = access.reason)
         }
 
         // If target is completed SESSION mode, reactivate instead of steer

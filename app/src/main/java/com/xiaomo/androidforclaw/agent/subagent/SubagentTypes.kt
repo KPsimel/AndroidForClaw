@@ -265,8 +265,9 @@ data class SpawnSubagentParams(
     val thinking: String? = null,
     val runTimeoutSeconds: Int? = null,
     val mode: SpawnMode = SpawnMode.RUN,
-    /** "delete" | "keep" — aligned with OpenClaw (NOT Boolean) */
-    val cleanup: String = "delete",
+    /** "delete" | "keep" — aligned with OpenClaw default "keep" */
+    val cleanup: String = "keep",
+    val expectsCompletionMessage: Boolean? = null,
     val thread: Boolean? = null,
     val sandbox: String? = null,
     val attachments: List<InlineAttachment>? = null,
@@ -284,7 +285,7 @@ data class SpawnSubagentResult(
     val mode: SpawnMode? = null,
     val note: String? = null,
     val error: String? = null,
-    val modelApplied: String? = null,
+    val modelApplied: Boolean? = null,
     val attachments: AttachmentReceipt? = null,
 )
 
@@ -371,4 +372,58 @@ fun computeAnnounceRetryDelayMs(retryCount: Int): Long {
 const val SPAWN_ACCEPTED_NOTE = "Auto-announce is push-based. After spawning children, do NOT call sessions_list, sessions_history, exec sleep, or any polling tool. Wait for completion events to arrive as user messages, track expected child session keys, and only send your final answer after ALL expected completions arrive. If a child completion event arrives AFTER your final answer, reply ONLY with NO_REPLY."
 
 /** Note for session-mode spawn (aligned with OpenClaw SUBAGENT_SPAWN_SESSION_ACCEPTED_NOTE) */
-const val SPAWN_SESSION_ACCEPTED_NOTE = "Thread-bound session stays active after task completion. Use sessions_send to interact further."
+const val SPAWN_SESSION_ACCEPTED_NOTE = "thread-bound session stays active after this task; continue in-thread for follow-ups."
+
+/** Maximum recentMinutes for subagent list queries (24 hours). Aligned with OpenClaw MAX_RECENT_MINUTES. */
+const val MAX_RECENT_MINUTES = 24 * 60
+
+// ==================== Missing Utility Functions ====================
+
+/**
+ * Resolve human-readable session status from a run record.
+ * Aligned with OpenClaw resolveSubagentSessionStatus.
+ */
+fun resolveSubagentSessionStatus(record: SubagentRunRecord?): String {
+    if (record == null) return "unknown"
+    if (record.endedAt == null) return "running"
+    return when (record.endedReason) {
+        SubagentLifecycleEndedReason.SUBAGENT_KILLED -> "killed"
+        else -> when (record.outcome?.status) {
+            SubagentRunStatus.ERROR -> "failed"
+            SubagentRunStatus.TIMEOUT -> "timeout"
+            else -> "done"
+        }
+    }
+}
+
+/**
+ * Compare two SubagentRunOutcome objects for equality.
+ * Aligned with OpenClaw runOutcomesEqual.
+ */
+fun runOutcomesEqual(a: SubagentRunOutcome?, b: SubagentRunOutcome?): Boolean {
+    if (a == null && b == null) return true
+    if (a == null || b == null) return false
+    if (a.status != b.status) return false
+    if (a.status == SubagentRunStatus.ERROR && a.error != b.error) return false
+    return true
+}
+
+/**
+ * Resolve the cleanup completion reason from a run record.
+ * Aligned with OpenClaw resolveCleanupCompletionReason.
+ */
+fun resolveCleanupCompletionReason(record: SubagentRunRecord): SubagentLifecycleEndedReason {
+    return record.endedReason ?: SubagentLifecycleEndedReason.SUBAGENT_COMPLETE
+}
+
+/**
+ * Resolve session-ended reason to outcome.
+ * Aligned with OpenClaw resolveSubagentSessionEndedOutcome.
+ */
+fun resolveSubagentSessionEndedOutcome(reason: SubagentLifecycleEndedReason): SubagentLifecycleEndedOutcome {
+    return when (reason) {
+        SubagentLifecycleEndedReason.SESSION_RESET -> SubagentLifecycleEndedOutcome.RESET
+        SubagentLifecycleEndedReason.SESSION_DELETE -> SubagentLifecycleEndedOutcome.DELETED
+        else -> SubagentLifecycleEndedOutcome.DELETED
+    }
+}

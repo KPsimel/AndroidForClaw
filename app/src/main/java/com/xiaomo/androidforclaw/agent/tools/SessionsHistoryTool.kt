@@ -10,6 +10,8 @@
  */
 package com.xiaomo.androidforclaw.agent.tools
 
+import com.xiaomo.androidforclaw.agent.subagent.SessionAccessResult
+import com.xiaomo.androidforclaw.agent.subagent.SessionVisibilityGuard
 import com.xiaomo.androidforclaw.agent.subagent.SubagentRegistry
 import com.xiaomo.androidforclaw.providers.FunctionDefinition
 import com.xiaomo.androidforclaw.providers.ParametersSchema
@@ -67,6 +69,8 @@ class SessionsHistoryTool(
                 Regex("""(pplx-[A-Za-z0-9]{10,})"""),
                 // npm tokens: npm_...
                 Regex("""(npm_[A-Za-z0-9]{10,})"""),
+                // Telegram bot tokens: 123456789:ABC-DEF...
+                Regex("""(\d{8,10}:[A-Za-z0-9_\-]{30,})"""),
             )
         }
 
@@ -204,6 +208,15 @@ class SessionsHistoryTool(
         val record = registry.resolveTarget(target, parentSessionKey)
             ?: return ToolResult(success = false, content = "No matching subagent found for target: $target")
 
+        // Visibility guard (aligned with OpenClaw controlScope)
+        val visibility = SessionVisibilityGuard.resolveVisibility(parentSessionKey, registry)
+        val access = SessionVisibilityGuard.checkAccess(
+            "read history of", parentSessionKey, record.childSessionKey, visibility, registry
+        )
+        if (access is SessionAccessResult.Denied) {
+            return ToolResult(success = false, content = access.reason)
+        }
+
         // Get messages from AgentLoop (active) or frozenResultText (completed)
         val loop = registry.getAgentLoop(record.runId)
         val messages = loop?.conversationMessages
@@ -242,26 +255,33 @@ class SessionsHistoryTool(
         var anyRedacted = false
         var droppedMessages = false
 
+        // Build lines newest→oldest to cap correctly (drop oldest first, aligned with OpenClaw)
+        val lines = mutableListOf<String>()
+        for (msg in filtered.reversed()) {
+            val (sanitizedContent, truncated, redacted) = truncateHistoryText(msg.content)
+            if (truncated) anyTruncated = true
+            if (redacted) anyRedacted = true
+
+            val line = "[${msg.role}] $sanitizedContent\n\n"
+            val lineBytes = line.toByteArray(Charsets.UTF_8).size
+
+            if (totalBytes + lineBytes > MAX_BYTES) {
+                droppedMessages = true
+                break
+            }
+            lines.add(line)
+            totalBytes += lineBytes
+        }
+        lines.reverse() // Back to chronological order
+
         val formatted = buildString {
             appendLine("Session: ${record.childSessionKey} (${if (record.isActive) "active" else "completed"})")
-            appendLine("Messages: ${filtered.size}/${messages.size}")
+            appendLine("Messages: ${lines.size}/${messages.size}")
+            if (droppedMessages) appendLine("(oldest messages dropped, exceeded ${MAX_BYTES / 1024}KB limit)")
             appendLine()
 
-            for (msg in filtered) {
-                val (sanitizedContent, truncated, redacted) = truncateHistoryText(msg.content)
-                if (truncated) anyTruncated = true
-                if (redacted) anyRedacted = true
-
-                val line = "[${msg.role}] $sanitizedContent\n\n"
-                val lineBytes = line.toByteArray(Charsets.UTF_8).size
-
-                if (totalBytes + lineBytes > MAX_BYTES) {
-                    droppedMessages = true
-                    appendLine("...(truncated, exceeded ${MAX_BYTES / 1024}KB limit)")
-                    break
-                }
+            for (line in lines) {
                 append(line)
-                totalBytes += lineBytes
             }
         }.trimEnd()
 

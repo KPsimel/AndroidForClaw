@@ -49,6 +49,7 @@ class SubagentSpawner(
     private val llmProvider: UnifiedLLMProvider,
     private val toolRegistry: ToolRegistry,
     private val androidToolRegistry: AndroidToolRegistry,
+    val hooks: SubagentHooks = SubagentHooks(),
 ) {
     companion object {
         private const val TAG = "SubagentSpawner"
@@ -150,6 +151,22 @@ class SubagentSpawner(
         val runId = UUID.randomUUID().toString()
         val childSessionKey = "agent:main:subagent:$runId"
 
+        // 3a. Run SUBAGENT_SPAWNING hook (can deny spawn, aligned with OpenClaw)
+        val label = params.label ?: params.task.take(40).replace('\n', ' ')
+        val spawningResult = hooks.runSpawning(SubagentSpawningEvent(
+            childSessionKey = childSessionKey,
+            label = label,
+            mode = params.mode,
+            requesterSessionKey = parentSessionKey,
+            threadRequested = params.thread == true,
+        ))
+        if (spawningResult is SubagentSpawningResult.Error) {
+            return SpawnSubagentResult(
+                status = SpawnStatus.FORBIDDEN,
+                note = "Spawn denied by hook: ${spawningResult.error}"
+            )
+        }
+
         // 4. Resolve model
         val model = params.model ?: config.model
             ?: try { configLoader.loadOpenClawConfig().resolveDefaultModel() } catch (_: Exception) { null }
@@ -158,7 +175,6 @@ class SubagentSpawner(
         val childCapabilities = resolveSubagentCapabilities(childDepth, config.maxSpawnDepth)
 
         // 6. Build system prompt
-        val label = params.label ?: params.task.take(40).replace('\n', ' ')
         val systemPrompt = SubagentPromptBuilder.build(
             task = params.task,
             label = label,
@@ -284,13 +300,28 @@ class SubagentSpawner(
 
         Log.i(TAG, "Subagent spawned: $runId → $childSessionKey depth=$childDepth role=${childCapabilities.role}")
 
+        // Fire SUBAGENT_SPAWNED hook (aligned with OpenClaw)
+        scope.launch {
+            try {
+                hooks.runSpawned(SubagentSpawnedEvent(
+                    runId = runId,
+                    childSessionKey = childSessionKey,
+                    label = label,
+                    mode = params.mode,
+                    requesterSessionKey = parentSessionKey,
+                ))
+            } catch (e: Exception) {
+                Log.w(TAG, "Error running subagent spawned hook: ${e.message}")
+            }
+        }
+
         return SpawnSubagentResult(
             status = SpawnStatus.ACCEPTED,
             childSessionKey = childSessionKey,
             runId = runId,
             mode = params.mode,
             note = if (params.mode == SpawnMode.SESSION) SPAWN_SESSION_ACCEPTED_NOTE else SPAWN_ACCEPTED_NOTE,
-            modelApplied = model,
+            modelApplied = model != null,
         )
     }
 
@@ -320,9 +351,24 @@ class SubagentSpawner(
     ) {
         if (record.endedHookEmittedAt != null) return
         record.endedHookEmittedAt = System.currentTimeMillis()
-        // Hook emission delegated to SubagentHooks (Batch 7)
-        // For now, just log
         Log.d(TAG, "Subagent ended hook: ${record.runId} status=${outcome.status} reason=$reason")
+
+        // Fire hooks asynchronously (aligned with OpenClaw emitSubagentEndedHookOnce)
+        scope.launch {
+            try {
+                hooks.runEnded(SubagentEndedEvent(
+                    targetSessionKey = record.childSessionKey,
+                    targetKind = SubagentLifecycleTargetKind.SUBAGENT,
+                    reason = reason.wireValue,
+                    runId = record.runId,
+                    endedAt = record.endedHookEmittedAt,
+                    outcome = resolveLifecycleOutcome(outcome),
+                    error = outcome.error,
+                ))
+            } catch (e: Exception) {
+                Log.w(TAG, "Error running subagent ended hook: ${e.message}")
+            }
+        }
     }
 
     // ==================== Announce ====================
