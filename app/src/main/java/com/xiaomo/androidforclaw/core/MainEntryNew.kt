@@ -67,6 +67,7 @@ object MainEntryNew {
     private lateinit var contextBuilder: ContextBuilder
     private lateinit var sessionManager: SessionManager
     private lateinit var configLoader: ConfigLoader
+    private var subagentSpawner: com.xiaomo.androidforclaw.agent.subagent.SubagentSpawner? = null
 
     // ================ State Management ================
     var user: String = ""
@@ -201,6 +202,33 @@ object MainEntryNew {
                 configLoader = configLoader  // Gap 2: context window resolution
             )
             Log.d(TAG, "✓ AgentLoop initialized (maxIterations: $maxIterations)")
+
+            // 8. Initialize Subagent system (aligned with OpenClaw subagent-spawn.ts)
+            val subagentsConfig = config.agents?.defaults?.subagents
+                ?: com.xiaomo.androidforclaw.config.SubagentsConfig()
+            if (subagentsConfig.enabled) {
+                val registry = com.xiaomo.androidforclaw.agent.subagent.SubagentRegistry()
+                val spawner = com.xiaomo.androidforclaw.agent.subagent.SubagentSpawner(
+                    registry = registry,
+                    configLoader = configLoader,
+                    llmProvider = llmProvider,
+                    toolRegistry = toolRegistry,
+                    androidToolRegistry = androidToolRegistry,
+                )
+                subagentSpawner = spawner
+
+                // Wire subagent tools into main AgentLoop (depth=0)
+                val subagentTools = com.xiaomo.androidforclaw.agent.subagent.SubagentSpawner.buildSubagentTools(
+                    spawner = spawner,
+                    parentSessionKey = "agent:main:main",
+                    parentAgentLoop = agentLoop,
+                    parentDepth = 0,
+                )
+                agentLoop.extraTools = subagentTools
+                Log.d(TAG, "✓ Subagent system initialized (${subagentTools.size} tools)")
+            } else {
+                Log.d(TAG, "⏭ Subagent system disabled in config")
+            }
 
             Log.d(TAG, "========== Initialization Complete ==========")
 
@@ -650,6 +678,33 @@ object MainEntryNew {
                     title = "消息注入",
                     content = update.content.take(100) + if (update.content.length > 100) "..." else ""
                 )
+            }
+
+            is ProgressUpdate.SubagentSpawned -> {
+                Log.i(TAG, "🚀 Subagent spawned: ${update.label} (${update.runId})")
+                SessionFloatWindow.updateSessionInfo(
+                    title = "子代理已启动",
+                    content = update.label
+                )
+                emitProgressToUi("subagent_spawned", "子代理已启动", update.label)
+            }
+
+            is ProgressUpdate.SubagentAnnounced -> {
+                Log.i(TAG, "📣 Subagent announced: ${update.label} status=${update.status} (${update.runId})")
+                SessionFloatWindow.updateSessionInfo(
+                    title = "子代理完成",
+                    content = "${update.label}: ${update.status}"
+                )
+                emitProgressToUi("subagent_announced", "子代理完成", "${update.label}: ${update.status}")
+            }
+
+            is ProgressUpdate.Yielded -> {
+                Log.i(TAG, "⏸️ Agent loop yielded, waiting for subagent results")
+                SessionFloatWindow.updateSessionInfo(
+                    title = "等待子代理",
+                    content = "已暂停，等待子代理结果..."
+                )
+                emitProgressToUi("yielded", "等待子代理", "已暂停，等待子代理结果...")
             }
         }
     }

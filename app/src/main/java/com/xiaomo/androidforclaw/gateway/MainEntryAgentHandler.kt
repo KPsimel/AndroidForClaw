@@ -211,6 +211,21 @@ class MainEntryAgentHandler(
                 "type" to "steer_message_injected",
                 "content" to update.content
             )
+            is ProgressUpdate.SubagentSpawned -> mapOf(
+                "type" to "subagent_spawned",
+                "runId" to update.runId,
+                "label" to update.label,
+                "childSessionKey" to update.childSessionKey
+            )
+            is ProgressUpdate.SubagentAnnounced -> mapOf(
+                "type" to "subagent_announced",
+                "runId" to update.runId,
+                "label" to update.label,
+                "status" to update.status
+            )
+            is ProgressUpdate.Yielded -> mapOf(
+                "type" to "yielded"
+            )
         }
     }
 }

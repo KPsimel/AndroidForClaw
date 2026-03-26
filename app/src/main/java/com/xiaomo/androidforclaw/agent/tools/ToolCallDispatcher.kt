@@ -19,7 +19,8 @@ import com.xiaomo.androidforclaw.logging.Log
  */
 class ToolCallDispatcher(
     private val toolRegistry: ToolRegistry,
-    private val androidToolRegistry: AndroidToolRegistry
+    private val androidToolRegistry: AndroidToolRegistry,
+    private val extraTools: Map<String, Tool> = emptyMap()
 ) {
     companion object {
         private const val TAG = "ToolCallDispatcher"
@@ -27,6 +28,7 @@ class ToolCallDispatcher(
 
     fun resolve(name: String): DispatchTarget? {
         return when {
+            extraTools.containsKey(name) -> DispatchTarget.Extra(name)
             toolRegistry.contains(name) -> DispatchTarget.Universal(name)
             androidToolRegistry.contains(name) -> DispatchTarget.Android(name)
             else -> null
@@ -35,6 +37,10 @@ class ToolCallDispatcher(
 
     suspend fun execute(name: String, args: Map<String, Any?>): SkillResult {
         return when (val target = resolve(name)) {
+            is DispatchTarget.Extra -> {
+                Log.d(TAG, "Dispatch → extra tool: ${target.name}")
+                extraTools[target.name]!!.execute(args)
+            }
             is DispatchTarget.Universal -> {
                 Log.d(TAG, "Dispatch → universal tool: ${target.name}")
                 toolRegistry.execute(target.name, args)
@@ -53,5 +59,6 @@ class ToolCallDispatcher(
     sealed class DispatchTarget(open val name: String) {
         data class Universal(override val name: String) : DispatchTarget(name)
         data class Android(override val name: String) : DispatchTarget(name)
+        data class Extra(override val name: String) : DispatchTarget(name)
     }
 }

@@ -284,7 +284,29 @@ data class AgentDefaultsConfig(
     val model: ModelSelectionConfig? = null,
     val bootstrapMaxChars: Int = 20_000,
     val bootstrapTotalMaxChars: Int = 150_000,
-    val maxConcurrent: Int = 5
+    val maxConcurrent: Int = 5,
+    val subagents: SubagentsConfig = SubagentsConfig()
+)
+
+/**
+ * Subagent configuration — aligned with OpenClaw agents.defaults.subagents
+ * (src/config/types.agent-defaults.ts)
+ */
+data class SubagentsConfig(
+    /** Max concurrent subagent runs per parent session */
+    val maxConcurrent: Int = 1,
+    /** Max nesting depth (1 = first-level subagents are leaves, cannot spawn further) */
+    val maxSpawnDepth: Int = 1,
+    /** Max children a single parent session can spawn */
+    val maxChildrenPerAgent: Int = 5,
+    /** Default per-run timeout in seconds (0 = no timeout) */
+    val defaultTimeoutSeconds: Int = 300,
+    /** Default model override for subagents (null = use parent model) */
+    val model: String? = null,
+    /** Default thinking level for subagents */
+    val thinking: String? = null,
+    /** Master switch */
+    val enabled: Boolean = true
 )
 
 data class ModelSelectionConfig(

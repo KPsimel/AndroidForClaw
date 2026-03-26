@@ -376,10 +376,22 @@ class ConfigLoader private constructor() {
                     }
                 )
             }
+            val subagentsJson = defaultsJson.optJSONObject("subagents")
+            val subagents = if (subagentsJson != null) SubagentsConfig(
+                maxConcurrent = subagentsJson.optInt("maxConcurrent", 1),
+                maxSpawnDepth = subagentsJson.optInt("maxSpawnDepth", 1),
+                maxChildrenPerAgent = subagentsJson.optInt("maxChildrenPerAgent", 5),
+                defaultTimeoutSeconds = subagentsJson.optInt("defaultTimeoutSeconds", 300),
+                model = subagentsJson.optString("model", null)?.takeIf { it.isNotBlank() },
+                thinking = subagentsJson.optString("thinking", null)?.takeIf { it.isNotBlank() },
+                enabled = subagentsJson.optBoolean("enabled", true)
+            ) else SubagentsConfig()
+
             AgentDefaultsConfig(
                 model = model,
                 bootstrapMaxChars = defaultsJson.optInt("bootstrapMaxChars", 20_000),
-                bootstrapTotalMaxChars = defaultsJson.optInt("bootstrapTotalMaxChars", 150_000)
+                bootstrapTotalMaxChars = defaultsJson.optInt("bootstrapTotalMaxChars", 150_000),
+                subagents = subagents
             )
         } else AgentDefaultsConfig()
         return AgentsConfig(defaults = defaults)

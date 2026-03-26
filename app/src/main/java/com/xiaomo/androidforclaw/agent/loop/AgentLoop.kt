@@ -25,6 +25,7 @@ import com.xiaomo.androidforclaw.config.ConfigLoader
 import com.xiaomo.androidforclaw.agent.tools.AndroidToolRegistry
 import com.xiaomo.androidforclaw.workspace.StoragePaths
 import com.xiaomo.androidforclaw.agent.tools.SkillResult
+import com.xiaomo.androidforclaw.agent.tools.Tool
 import com.xiaomo.androidforclaw.agent.tools.ToolCallDispatcher
 import com.xiaomo.androidforclaw.agent.tools.ToolRegistry
 import com.xiaomo.androidforclaw.providers.UnifiedLLMProvider
@@ -37,10 +38,12 @@ import com.xiaomo.androidforclaw.providers.llm.assistantMessage
 import com.xiaomo.androidforclaw.providers.llm.toolMessage
 import com.xiaomo.androidforclaw.util.LayoutExceptionLogger
 import com.google.gson.Gson
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.withTimeoutOrNull
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -108,7 +111,23 @@ class AgentLoop(
     }
 
     private val gson = Gson()
-    private val toolCallDispatcher = ToolCallDispatcher(toolRegistry, androidToolRegistry)
+
+    /**
+     * Extra per-session tools (e.g. subagent tools: sessions_spawn, sessions_list, etc.)
+     * Set after construction to resolve circular dependency (tools need AgentLoop ref).
+     * Aligned with OpenClaw per-session tool injection.
+     */
+    var extraTools: List<Tool> = emptyList()
+        set(value) {
+            field = value
+            _extraToolsMap = value.associateBy { it.name }
+            // Invalidate cached tool definitions
+            _allToolDefinitionsCache = null
+        }
+    private var _extraToolsMap: Map<String, Tool> = emptyMap()
+
+    private val toolCallDispatcher: ToolCallDispatcher
+        get() = ToolCallDispatcher(toolRegistry, androidToolRegistry, _extraToolsMap)
 
     /**
      * Resolve context window tokens from config (Gap 2).
@@ -135,11 +154,16 @@ class AgentLoop(
     private var sessionLogFile: File? = null
     private val logBuffer = StringBuilder()
 
-    // ✅ Cache Tool Definitions to avoid rebuilding on each iteration
-    // Merge universal tools and Android platform tools
-    private val allToolDefinitions by lazy {
-        toolRegistry.getToolDefinitions() + androidToolRegistry.getToolDefinitions()
-    }
+    // Cache Tool Definitions — invalidated when extraTools changes
+    @Volatile private var _allToolDefinitionsCache: List<com.xiaomo.androidforclaw.providers.ToolDefinition>? = null
+    private val allToolDefinitions: List<com.xiaomo.androidforclaw.providers.ToolDefinition>
+        get() {
+            _allToolDefinitionsCache?.let { return it }
+            val defs = toolRegistry.getToolDefinitions() + androidToolRegistry.getToolDefinitions() +
+                extraTools.map { it.getToolDefinition() }
+            _allToolDefinitionsCache = defs
+            return defs
+        }
 
     // Progress update flow
     private val _progressFlow = MutableSharedFlow<ProgressUpdate>(
@@ -168,6 +192,24 @@ class AgentLoop(
 
     // Timeout compaction counter (aligned with OpenClaw timeoutCompactionAttempts)
     private var timeoutCompactionAttempts = 0
+
+    /**
+     * Live conversation messages, accessible for sessions_history.
+     * Set to the mutable list used inside runInternal(). After run() completes,
+     * contains the full conversation. Thread-safe for read-only access.
+     */
+    @Volatile
+    var conversationMessages: List<Message> = emptyList()
+        private set
+
+    /**
+     * Yield signal for sessions_yield tool.
+     * When set, the loop pauses after the current tool execution round
+     * and waits until the deferred is completed (by announce or timeout).
+     * Aligned with OpenClaw sessions_yield behavior.
+     */
+    @Volatile
+    var yieldSignal: CompletableDeferred<String?>? = null
 
     /**
      * Write log to file and buffer
@@ -301,6 +343,7 @@ class AgentLoop(
     ): AgentResult {
         shouldStop = false
         val messages = mutableListOf<Message>()
+        conversationMessages = messages  // Expose for sessions_history
 
         // Initialize session log
         initSessionLog(userMessage)
@@ -610,6 +653,7 @@ class AgentLoop(
                             when (target) {
                                 is ToolCallDispatcher.DispatchTarget.Universal -> writeLog("   → Universal tool")
                                 is ToolCallDispatcher.DispatchTarget.Android -> writeLog("   → Android tool")
+                                is ToolCallDispatcher.DispatchTarget.Extra -> writeLog("   → Extra tool (subagent)")
                                 null -> writeLog("   ❌ Unknown function: $functionName")
                             }
                             toolCallDispatcher.execute(functionName, args)
@@ -674,6 +718,23 @@ class AgentLoop(
                         writeLog("🎯 [STEER] Injecting mid-run user message: ${steerMsg.take(100)}")
                         messages.add(userMessage(steerMsg))
                         _progressFlow.emit(ProgressUpdate.SteerMessageInjected(steerMsg))
+                    }
+
+                    // Check for yield signal (sessions_yield tool)
+                    // If set, pause the loop until subagent announcements arrive or timeout.
+                    // Aligned with OpenClaw sessions_yield behavior.
+                    yieldSignal?.let { deferred ->
+                        writeLog("⏸️ Yield signal detected, pausing loop...")
+                        _progressFlow.emit(ProgressUpdate.Yielded)
+                        // Wait up to 300s to prevent deadlock
+                        val yieldMessage = withTimeoutOrNull(300_000L) { deferred.await() }
+                        yieldSignal = null
+                        if (!yieldMessage.isNullOrBlank()) {
+                            messages.add(userMessage(yieldMessage))
+                            writeLog("▶️ Resumed from yield with message: ${yieldMessage.take(100)}")
+                        } else {
+                            writeLog("▶️ Resumed from yield (timeout or no message)")
+                        }
                     }
 
                     val iterationDuration = System.currentTimeMillis() - iterationStartTime
@@ -950,6 +1011,24 @@ class AgentLoop(
         shouldStop = true
         Log.d(TAG, "Stop signal received")
     }
+
+    /**
+     * Reset internal loop state for steer-restart.
+     * Called after the coroutine Job is cancelled and before re-launching run().
+     * Clears: shouldStop, loopDetectionState, timeoutCompactionAttempts, steerChannel.
+     * Aligned with OpenClaw steer abort+restart flow.
+     */
+    fun reset() {
+        shouldStop = false
+        timeoutCompactionAttempts = 0
+        loopDetectionState.toolCallHistory.clear()
+        loopDetectionState.reportedWarnings.clear()
+        // Drain steer channel to remove stale messages
+        while (steerChannel.tryReceive().isSuccess) { /* drain */ }
+        // Clear yield signal
+        yieldSignal = null
+        Log.d(TAG, "AgentLoop reset for steer-restart")
+    }
 }
 
 /**
@@ -1013,4 +1092,13 @@ sealed class ProgressUpdate {
 
     /** A steer message was injected into the conversation mid-run */
     data class SteerMessageInjected(val content: String) : ProgressUpdate()
+
+    /** A subagent was spawned (for observability) */
+    data class SubagentSpawned(val runId: String, val label: String, val childSessionKey: String) : ProgressUpdate()
+
+    /** A subagent completed and its result was announced to the parent */
+    data class SubagentAnnounced(val runId: String, val label: String, val status: String) : ProgressUpdate()
+
+    /** The agent loop yielded (sessions_yield) to wait for subagent results */
+    data object Yielded : ProgressUpdate()
 }

@@ -291,6 +291,27 @@ Instructions:
                                 "content" to progress.content.take(200)
                             ))
                         }
+                        is ProgressUpdate.SubagentSpawned -> {
+                            broadcastEvent("agent.subagent_spawned", mapOf(
+                                "runId" to runId,
+                                "subagentRunId" to progress.runId,
+                                "label" to progress.label,
+                                "childSessionKey" to progress.childSessionKey
+                            ))
+                        }
+                        is ProgressUpdate.SubagentAnnounced -> {
+                            broadcastEvent("agent.subagent_announced", mapOf(
+                                "runId" to runId,
+                                "subagentRunId" to progress.runId,
+                                "label" to progress.label,
+                                "status" to progress.status
+                            ))
+                        }
+                        is ProgressUpdate.Yielded -> {
+                            broadcastEvent("agent.yielded", mapOf(
+                                "runId" to runId
+                            ))
+                        }
                     }
                 }
                 .launchIn(agentScope)
