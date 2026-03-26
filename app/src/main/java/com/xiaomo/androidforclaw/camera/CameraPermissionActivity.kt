@@ -17,11 +17,11 @@ import kotlinx.coroutines.CompletableDeferred
  * 透明 Activity，用于在后台 Skill 调用时弹出相机权限请求。
  *
  * 流程:
- * 1. CameraSkill 检测到没有 CAMERA 权限
+ * 1. EyeSkill 检测到没有 CAMERA 权限
  * 2. 启动 CameraPermissionActivity（透明、无UI）
  * 3. 弹出系统权限弹窗
  * 4. 如果用户之前拒绝过且选了"不再询问"，弹 Toast 引导去设置页
- * 5. 结果通过 CompletableDeferred 回传给 CameraSkill
+ * 5. 结果通过 CompletableDeferred 回传给 EyeSkill
  */
 class CameraPermissionActivity : Activity() {
 

@@ -22,7 +22,7 @@ import org.junit.runner.RunWith
  *
  * 流程：
  * 1. 向 AgentLoop 发送"拍照看看有什么"
- * 2. Agent 调用 camera skill（action=snap）
+ * 2. Agent 调用 eye skill（action=look）
  * 3. Agent 根据拍到的照片描述内容
  * 4. 验证：使用了 camera 工具 + 最终输出有实质内容（非错误）= 通过
  *
@@ -102,10 +102,10 @@ class CameraE2ETest {
         println("📄 最终输出: ${result.finalContent.take(500)}")
         println("═".repeat(60))
 
-        // 验证 1: 使用了 camera 工具
+        // 验证 1: 使用了 eye 工具
         assertTrue(
-            "Agent 应该调用 camera 工具，实际使用: ${result.toolsUsed}",
-            result.toolsUsed.any { it == "camera" }
+            "Agent 应该调用 eye 工具，实际使用: ${result.toolsUsed}",
+            result.toolsUsed.any { it == "eye" }
         )
 
         // 验证 2: 最终输出有实质内容（不是空的，也不是纯错误信息）

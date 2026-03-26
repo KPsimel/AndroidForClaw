@@ -70,11 +70,11 @@ class AndroidToolRegistry(
         // === Feishu image (kept as direct tool — media upload needs special handling) ===
         register(FeishuSendImageSkill(context))
 
-        // === Camera (对齐 OpenClaw camera.list/snap/clip) ===
+        // === Eye (对齐 OpenClaw camera — 手机摄像头作为 Agent 的眼睛) ===
         if (cameraCaptureManager != null) {
-            register(CameraSkill(context, cameraCaptureManager))
+            register(EyeSkill(context, cameraCaptureManager))
         } else {
-            Log.d(TAG, "⚠️ CameraCaptureManager not provided, skipping camera skill")
+            Log.d(TAG, "⚠️ CameraCaptureManager not provided, skipping eye skill")
         }
 
         Log.d(TAG, "✅ Registered ${tools.size} Android platform tools")
