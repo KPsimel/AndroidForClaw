@@ -13,7 +13,7 @@ import androidx.test.uiautomator.Until
 import com.xiaomo.androidforclaw.agent.tools.AndroidToolRegistry
 import com.xiaomo.androidforclaw.core.MyApplication
 import com.xiaomo.androidforclaw.data.model.TaskDataManager
-import com.xiaomo.androidforclaw.ui.activity.MainActivity
+import com.xiaomo.androidforclaw.ui.activity.MainActivityCompose
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
 import org.junit.Assume.assumeTrue
@@ -76,7 +76,7 @@ class AccessibilityE2ETest {
         @JvmStatic
         fun launchApp() {
             val intent = Intent(Intent.ACTION_MAIN).apply {
-                setClassName(PKG, MainActivity::class.java.name)
+                setClassName(PKG, MainActivityCompose::class.java.name)
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
             }
             context.startActivity(intent)

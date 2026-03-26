@@ -10,7 +10,7 @@ import androidx.test.uiautomator.By
 import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.Until
 import com.xiaomo.androidforclaw.core.MyApplication
-import com.xiaomo.androidforclaw.ui.activity.MainActivity
+import com.xiaomo.androidforclaw.ui.activity.MainActivityCompose
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test

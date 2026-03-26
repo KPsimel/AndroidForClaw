@@ -8,7 +8,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.By
 import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.Until
-import com.xiaomo.androidforclaw.ui.activity.MainActivity
+import com.xiaomo.androidforclaw.ui.activity.MainActivityCompose
 import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Test
@@ -27,7 +27,7 @@ class PermissionsEntryFlowUITest {
     fun setup() {
         device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
         val context = ApplicationProvider.getApplicationContext<android.content.Context>()
-        val intent = Intent(context, MainActivity::class.java).apply {
+        val intent = Intent(context, MainActivityCompose::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
         }
         context.startActivity(intent)

@@ -14,7 +14,6 @@ import androidx.test.uiautomator.UiObject
 import androidx.test.uiautomator.UiSelector
 import androidx.test.uiautomator.Until
 import com.xiaomo.androidforclaw.core.MyApplication
-import com.xiaomo.androidforclaw.ui.activity.MainActivity
 import com.xiaomo.androidforclaw.ui.activity.MainActivityCompose
 import org.junit.*
 import org.junit.Ignore

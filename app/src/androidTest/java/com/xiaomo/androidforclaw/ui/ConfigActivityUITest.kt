@@ -8,7 +8,7 @@ import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import androidx.test.filters.SdkSuppress
-import com.xiaomo.androidforclaw.ui.activity.ConfigActivity
+import com.xiaomo.androidforclaw.ui.activity.MainActivityCompose
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -26,7 +26,7 @@ import org.junit.runner.RunWith
 class ConfigActivityUITest {
 
     @get:Rule
-    val activityRule = ActivityScenarioRule(ConfigActivity::class.java)
+    val activityRule = ActivityScenarioRule(MainActivityCompose::class.java)
 
     @Test
     fun testConfigActivity_launches() {

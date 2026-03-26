@@ -12,7 +12,7 @@ import androidx.test.uiautomator.Until
 import com.xiaomo.androidforclaw.agent.tools.AndroidToolRegistry
 import com.xiaomo.androidforclaw.core.MyApplication
 import com.xiaomo.androidforclaw.data.model.TaskDataManager
-import com.xiaomo.androidforclaw.ui.activity.MainActivity
+import com.xiaomo.androidforclaw.ui.activity.MainActivityCompose
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.BeforeClass
@@ -70,7 +70,7 @@ class SkillE2ETest {
         @JvmStatic
         fun launchApp() {
             val intent = Intent(Intent.ACTION_MAIN).apply {
-                setClassName(PACKAGE_NAME, MainActivity::class.java.name)
+                setClassName(PACKAGE_NAME, MainActivityCompose::class.java.name)
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
             }
             context.startActivity(intent)

@@ -1,6 +1,6 @@
 package com.xiaomo.androidforclaw
 
-import com.xiaomo.androidforclaw.e2e.ChatFixesE2ETest
+import com.xiaomo.androidforclaw.e2e.CameraE2ETest
 import com.xiaomo.androidforclaw.integration.AgentIntegrationTest
 import com.xiaomo.androidforclaw.ui.*
 import org.junit.runner.RunWith
@@ -24,10 +24,9 @@ import org.junit.runners.Suite
     ConfigActivityUITest::class,
     FloatingWindowUITest::class,
     ForClawMainTabsUITest::class,
-    ChatScreenUITest::class,
 
     // E2E 测试
-    ChatFixesE2ETest::class,
+    CameraE2ETest::class,
 
     // 集成测试
     AgentIntegrationTest::class
