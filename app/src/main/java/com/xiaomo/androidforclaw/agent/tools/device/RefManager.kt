@@ -3,26 +3,42 @@ package com.xiaomo.androidforclaw.agent.tools.device
 /**
  * OpenClaw Source Reference:
  * - ../openclaw/src/browser/pw-role-snapshot.ts
+ * - ../openclaw/src/browser/cdp.ts (AriaSnapshotNode)
+ * - Playwright aria snapshot format: role "name" [ref=eN] [attribute=value]
+ *
+ * Field naming aligned with Playwright's accessibility snapshot:
+ * - role: ARIA role (button, textbox, heading, link, checkbox, etc.)
+ * - name: accessible name (visible text, content description, or aria-label)
+ * - ref: unique reference ID in "eN" format
+ * - value: current value for inputs/sliders
+ * - description: additional accessible description
+ * - checked/disabled/expanded/pressed/selected/level: ARIA state attributes
+ * - depth: tree depth (rendered as indentation in YAML output)
+ *
+ * Android-specific extension fields (not in Playwright, prefixed for clarity):
+ * - bounds: screen bounds for coordinate resolution
  */
 
 import android.graphics.Rect
 import com.xiaomo.androidforclaw.logging.Log
 
 data class RefNode(
-    val ref: String,
-    val role: String,        // Button, Input, Text, List, Image, etc.
-    val text: String?,       // Visible text or content description
-    val bounds: Rect,        // Screen bounds
-    val clickable: Boolean = false,
-    val editable: Boolean = false,
-    val scrollable: Boolean = false,
-    val focusable: Boolean = false,
-    val checkable: Boolean = false,
-    val checked: Boolean = false,
-    val selected: Boolean = false,
-    val depth: Int = 0,
-    val className: String? = null,
-    val packageName: String? = null
+    // ── Playwright-aligned fields ──
+    val ref: String,              // "e1", "e2", ... — unique element reference
+    val role: String,             // ARIA role: button, textbox, heading, link, checkbox, etc.
+    val name: String? = null,     // Accessible name (text / contentDescription / aria-label)
+    val value: String? = null,    // Current value (for input, slider, etc.)
+    val description: String? = null, // Accessible description
+    val checked: Boolean? = null, // null = not checkable, true/false = state
+    val disabled: Boolean = false,
+    val expanded: Boolean? = null, // null = not expandable
+    val level: Int? = null,       // Heading level, tree item level
+    val pressed: Boolean? = null, // null = not pressable (toggle button state)
+    val selected: Boolean? = null, // null = not selectable
+    val depth: Int = 0,           // Tree depth for indentation
+
+    // ── Android-specific extensions ──
+    val bounds: Rect,             // Screen bounds for tap coordinate resolution
 )
 
 class RefManager {

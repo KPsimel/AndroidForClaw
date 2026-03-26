@@ -296,7 +296,7 @@ class DeviceTool(private val context: Context) : Tool {
                 }
                 return ToolResult.error("Type failed: $hint")
             }
-            val refLabel = (args["ref"] as? String)?.let { refManager.getRefNode(it)?.text }
+            val refLabel = (args["ref"] as? String)?.let { refManager.getRefNode(it)?.name }
             return ToolResult.success("Typed '${text.take(100)}'${refLabel?.let { " into '$it'" } ?: ""} (via $method)")
         } catch (e: Exception) {
             return ToolResult.error("Type failed: ${e.message}")
@@ -459,7 +459,7 @@ class DeviceTool(private val context: Context) : Tool {
         if (ref != null) {
             val coord = refManager.resolveRef(ref)
             if (coord != null) {
-                val label = refManager.getRefNode(ref)?.text
+                val label = refManager.getRefNode(ref)?.name
                 return ResolvedCoordinate(coord.first, coord.second, label)
             }
             Log.w(TAG, "Ref '$ref' not found in cache, trying coordinate fallback")
