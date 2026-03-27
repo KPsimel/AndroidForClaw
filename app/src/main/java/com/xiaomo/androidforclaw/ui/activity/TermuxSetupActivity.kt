@@ -35,6 +35,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.xiaomo.androidforclaw.agent.tools.TermuxBridgeTool
+import com.xiaomo.androidforclaw.core.TermuxSshdLauncher
 import com.xiaomo.androidforclaw.agent.tools.TermuxSetupStep
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -66,6 +67,8 @@ fun TermuxSetupScreen(onBack: () -> Unit) {
     var sshAuthOk by remember { mutableStateOf(false) }
     var checking by remember { mutableStateOf(true) }
     var publicKey by remember { mutableStateOf<String?>(null) }
+    var launchingSshd by remember { mutableStateOf(false) }
+    var sshdLaunchMessage by remember { mutableStateOf<String?>(null) }
 
     fun refreshStatus() {
         scope.launch {
@@ -258,6 +261,52 @@ fun TermuxSetupScreen(onBack: () -> Unit) {
                     command = "sshd",
                     context = context
                 )
+                Spacer(Modifier.height(8.dp))
+                // 一键启动 sshd 按钮
+                Button(
+                    onClick = {
+                        launchingSshd = true
+                        sshdLaunchMessage = null
+                        scope.launch {
+                            try {
+                                TermuxSshdLauncher.ensureAndLaunch(context)
+                                sshdLaunchMessage = "\u5df2\u53d1\u9001\u542f\u52a8\u547d\u4ee4\uff0c\u7b49\u5f85 sshd \u542f\u52a8..."
+                                // 等待 sshd 启动后刷新状态
+                                delay(3000)
+                                refreshStatus()
+                            } catch (e: Exception) {
+                                sshdLaunchMessage = "\u542f\u52a8\u5931\u8d25: ${e.message}\n\u8bf7\u624b\u52a8\u5728 Termux \u4e2d\u6267\u884c sshd"
+                            } finally {
+                                launchingSshd = false
+                            }
+                        }
+                    },
+                    enabled = !launchingSshd && termuxInstalled,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    if (launchingSshd) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            strokeWidth = 2.dp,
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text("\u542f\u52a8\u4e2d...")
+                    } else {
+                        Text("\u4e00\u952e\u542f\u52a8 sshd")
+                    }
+                }
+                if (sshdLaunchMessage != null) {
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = sshdLaunchMessage!!,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (sshdLaunchMessage!!.startsWith("\u542f\u52a8\u5931\u8d25"))
+                            MaterialTheme.colorScheme.error
+                        else
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
                 Spacer(Modifier.height(4.dp))
                 Text(
                     "\u63d0\u793a\uff1a\u6bcf\u6b21\u91cd\u542f Termux \u540e\u9700\u91cd\u65b0\u8fd0\u884c sshd",
