@@ -1,5 +1,6 @@
 package com.xiaomo.androidforclaw.agent.loop
 
+import com.xiaomo.androidforclaw.agent.subagent.SubagentPromptBuilder
 import com.xiaomo.androidforclaw.util.ReasoningTagFilter
 
 /**
@@ -85,6 +86,11 @@ class AgentLoop(
          * Android: 180s default for free/slow models, generous enough for long generations.
          */
         private const val LLM_TIMEOUT_MS = 180_000L
+
+        /**
+         * Transient HTTP retry delay (aligned with OpenClaw TRANSIENT_HTTP_RETRY_DELAY_MS).
+         */
+        private const val TRANSIENT_HTTP_RETRY_DELAY_MS = 2_500L
 
         /**
          * Timeout compaction: when LLM times out and context usage is high (>65%),
@@ -192,6 +198,9 @@ class AgentLoop(
 
     // Timeout compaction counter (aligned with OpenClaw timeoutCompactionAttempts)
     private var timeoutCompactionAttempts = 0
+
+    // Transient HTTP retry guard (aligned with OpenClaw didRetryTransientHttpError)
+    private var didRetryTransientHttpError = false
 
     /**
      * Live conversation messages, accessible for sessions_history.
@@ -525,9 +534,9 @@ class AgentLoop(
                     writeLog("Function calls: ${response.toolCalls.size}")
 
                     // ✅ Block Reply: emit intermediate text immediately
-                    // Aligned with OpenClaw blockReplyBreak="text_end"
+                    // Aligned with OpenClaw blockReplyBreak="text_end" + normalizeStreamingText
                     val intermediateText = response.content?.trim()
-                    if (!intermediateText.isNullOrEmpty()) {
+                    if (!intermediateText.isNullOrEmpty() && !SubagentPromptBuilder.isSilentReplyText(intermediateText)) {
                         writeLog("📤 Block reply (intermediate text): ${intermediateText.take(200)}...")
                         _progressFlow.emit(ProgressUpdate.BlockReply(intermediateText, iteration))
                     }
@@ -573,13 +582,13 @@ class AgentLoop(
                         )
 
                         when (loopDetection) {
-                            is ToolLoopDetection.LoopDetectionResult.LoopDetected -> {
-                                val logLevel = if (loopDetection.level == ToolLoopDetection.LoopDetectionResult.Level.CRITICAL) "🚨" else "⚠️"
+                            is LoopDetectionResult.LoopDetected -> {
+                                val logLevel = if (loopDetection.level == LoopDetectionResult.Level.CRITICAL) "🚨" else "⚠️"
                                 writeLog("$logLevel Loop detected: ${loopDetection.detector} (count: ${loopDetection.count})")
                                 writeLog("   ${loopDetection.message}")
 
                                 // Critical level: abort execution
-                                if (loopDetection.level == ToolLoopDetection.LoopDetectionResult.Level.CRITICAL) {
+                                if (loopDetection.level == LoopDetectionResult.Level.CRITICAL) {
                                     writeLog("🛑 Critical loop detected, stopping execution")
                                     Log.e(TAG, "🛑 Critical loop detected: ${loopDetection.message}")
 
@@ -625,7 +634,7 @@ class AgentLoop(
                                 // Skip this tool call after warning
                                 continue
                             }
-                            ToolLoopDetection.LoopDetectionResult.NoLoop -> {
+                            LoopDetectionResult.NoLoop -> {
                                 // No loop, continue execution
                             }
                         }
@@ -752,8 +761,10 @@ class AgentLoop(
                 }
 
                 // 4.4 No tool calls, meaning LLM provided final answer
-                finalContent = response.content?.let { ReasoningTagFilter.stripReasoningTags(it) }
+                // Filter SILENT_REPLY_TOKEN (aligned with OpenClaw normalizeStreamingText)
+                val rawContent = response.content?.let { ReasoningTagFilter.stripReasoningTags(it) }
                     ?: response.content
+                finalContent = if (SubagentPromptBuilder.isSilentReplyText(rawContent)) null else rawContent
                 messages.add(assistantMessage(content = finalContent))
 
                 writeLog("Final content received (finish_reason: ${response.finishReason})")
@@ -810,24 +821,60 @@ class AgentLoop(
                         }
                     }
                 } else {
-                    // Non-context overflow error
+                    // Non-context overflow error — classify and decide recovery
+                    // Aligned with OpenClaw runAgentTurnWithFallback error classification
+                    val isBilling = ContextErrors.isBillingErrorMessage(errorMessage)
+                    val isRoleOrdering = ContextErrors.isRoleOrderingError(errorMessage)
+                    val isSessionCorruption = ContextErrors.isSessionCorruptionError(errorMessage)
+                    val isTransientHttp = ContextErrors.isTransientHttpError(errorMessage)
+
+                    // Role ordering conflict → reset conversation
+                    // Aligned with OpenClaw resetSessionAfterRoleOrderingConflict
+                    if (isRoleOrdering) {
+                        writeLog("⚠️ Role ordering conflict detected, resetting conversation")
+                        Log.w(TAG, "Role ordering conflict: $errorMessage")
+                        finalContent = "⚠️ Message ordering conflict. Conversation has been reset - please try again."
+                        break
+                    }
+
+                    // Gemini session corruption → reset conversation
+                    // Aligned with OpenClaw isSessionCorruption handling
+                    if (isSessionCorruption) {
+                        writeLog("⚠️ Session history corrupted (function call ordering), resetting")
+                        Log.w(TAG, "Session corruption: $errorMessage")
+                        finalContent = "⚠️ Session history was corrupted. Conversation has been reset - please try again!"
+                        break
+                    }
+
+                    // Transient HTTP error → single retry with delay
+                    // Aligned with OpenClaw: TRANSIENT_HTTP_RETRY_DELAY_MS = 2500, retry once
+                    if (isTransientHttp && !didRetryTransientHttpError) {
+                        didRetryTransientHttpError = true
+                        writeLog("⚠️ Transient HTTP error, retrying in ${TRANSIENT_HTTP_RETRY_DELAY_MS}ms... ($errorMessage)")
+                        Log.w(TAG, "Transient HTTP error, retrying: $errorMessage")
+                        kotlinx.coroutines.delay(TRANSIENT_HTTP_RETRY_DELAY_MS)
+                        continue
+                    }
+
                     _progressFlow.emit(ProgressUpdate.Error(e.message ?: "Unknown error"))
 
-                    // Classify error and decide retry vs abort (aligned with OpenClaw)
+                    // Timeout error: retry (no delay — already timed out)
                     if (e.message?.contains("timeout", ignoreCase = true) == true) {
-                        // Timeout error: retry (OpenClaw retries timeouts with profile rotation)
                         writeLog("⏰ Timeout error, retrying... (${e.message?.take(100)})")
                         continue
-                    } else {
-                        // Other errors, stop loop and format error message
-                        writeLog("❌ Agent loop failed: ${e.message}")
-                        Log.e(TAG, "Agent loop failed", e)
+                    }
 
-                        // Build friendly error message (aligned with OpenClaw error formatting)
-                        finalContent = buildString {
+                    // Other errors, stop loop and format error message
+                    writeLog("❌ Agent loop failed: ${e.message}")
+                    Log.e(TAG, "Agent loop failed", e)
+
+                    // Build friendly error message (aligned with OpenClaw error formatting)
+                    finalContent = buildString {
+                        if (isBilling) {
+                            append("⚠️ Billing error — please check your account balance or API key quota.")
+                        } else {
                             append("❌ 执行出错\n\n")
 
-                            // Error type
                             when (e) {
                                 is com.xiaomo.androidforclaw.providers.LLMException -> {
                                     append("**错误类型**: API 调用失败\n")
@@ -840,13 +887,12 @@ class AgentLoop(
                                 }
                             }
 
-                            // Add stack trace for debugging (first 800 chars)
                             append("\n**调试信息**:\n```\n")
                             append(e.stackTraceToString().take(800))
                             append("\n```")
                         }
-                        break
                     }
+                    break
                 }
             }
         }
@@ -1021,8 +1067,8 @@ class AgentLoop(
     fun reset() {
         shouldStop = false
         timeoutCompactionAttempts = 0
+        didRetryTransientHttpError = false
         loopDetectionState.toolCallHistory.clear()
-        loopDetectionState.reportedWarnings.clear()
         // Drain steer channel to remove stale messages
         while (steerChannel.tryReceive().isSuccess) { /* drain */ }
         // Clear yield signal

@@ -99,6 +99,69 @@ object ContextErrors {
                 isLikelyContextOverflowError(errorMessage)
     }
 
+    // ==================== Transient HTTP Error ====================
+
+    /**
+     * Transient HTTP error codes.
+     * Aligned with OpenClaw TRANSIENT_HTTP_ERROR_CODES.
+     */
+    private val TRANSIENT_HTTP_ERROR_CODES = setOf(499, 500, 502, 503, 504, 521, 522, 523, 524, 529)
+
+    /**
+     * Extract leading HTTP status code from error message.
+     * Aligned with OpenClaw HTTP_STATUS_CODE_PREFIX_RE: /^(?:http\s*)?(\d{3})(?:\s+[\s\S]+)?$/i
+     * Returns null if no status code found.
+     */
+    private val HTTP_STATUS_CODE_PREFIX_RE = Regex("^(?:http\\s*)?(\\d{3})(?:\\s+[\\s\\S]+)?$", RegexOption.IGNORE_CASE)
+
+    private fun extractLeadingHttpStatus(message: String): Int? {
+        val match = HTTP_STATUS_CODE_PREFIX_RE.find(message.trim()) ?: return null
+        return match.groupValues[1].toIntOrNull()
+    }
+
+    /**
+     * Detect transient HTTP errors (502, 521, etc.).
+     * Aligned with OpenClaw isTransientHttpError.
+     */
+    fun isTransientHttpError(errorMessage: String?): Boolean {
+        if (errorMessage.isNullOrBlank()) return false
+        val trimmed = errorMessage.trim()
+        val status = extractLeadingHttpStatus(trimmed) ?: return false
+        return status in TRANSIENT_HTTP_ERROR_CODES
+    }
+
+    // ==================== Role Ordering / Session Corruption ====================
+
+    /**
+     * Detect role ordering conflict errors.
+     * Aligned with OpenClaw: /incorrect role information|roles must alternate/i
+     */
+    fun isRoleOrderingError(errorMessage: String?): Boolean {
+        if (errorMessage.isNullOrBlank()) return false
+        return Regex("incorrect role information|roles must alternate", RegexOption.IGNORE_CASE)
+            .containsMatchIn(errorMessage)
+    }
+
+    /**
+     * Detect Gemini session corruption errors.
+     * Aligned with OpenClaw: /function call turn comes immediately after/i
+     */
+    fun isSessionCorruptionError(errorMessage: String?): Boolean {
+        if (errorMessage.isNullOrBlank()) return false
+        return Regex("function call turn comes immediately after", RegexOption.IGNORE_CASE)
+            .containsMatchIn(errorMessage)
+    }
+
+    // ==================== Billing Error ====================
+
+    /**
+     * Detect billing error with user-facing message.
+     * Aligned with OpenClaw isBillingErrorMessage.
+     */
+    fun isBillingErrorMessage(errorMessage: String?): Boolean {
+        return isBillingError(errorMessage?.lowercase() ?: return false)
+    }
+
     /**
      * Detect rate limit error
      */

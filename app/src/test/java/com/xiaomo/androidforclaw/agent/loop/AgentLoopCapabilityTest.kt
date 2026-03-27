@@ -226,7 +226,7 @@ class AgentLoopCapabilityTest {
             toolName = "read_file",
             params = mapOf("path" to "test.txt")
         )
-        assertTrue(result is ToolLoopDetection.LoopDetectionResult.NoLoop)
+        assertTrue(result is LoopDetectionResult.NoLoop)
     }
 
     @Test
@@ -284,24 +284,10 @@ class AgentLoopCapabilityTest {
     }
 
     @Test
-    fun `MAX_CONSECUTIVE_ERRORS is 3`() {
-        val field = AgentLoop::class.java.getDeclaredField("MAX_CONSECUTIVE_ERRORS")
-            .apply { isAccessible = true }
-        assertEquals(3, field.getInt(null))
-    }
-
-    @Test
     fun `LLM_TIMEOUT_MS is 180 seconds`() {
         val field = AgentLoop::class.java.getDeclaredField("LLM_TIMEOUT_MS")
             .apply { isAccessible = true }
         assertEquals(180_000L, field.getLong(null))
-    }
-
-    @Test
-    fun `AGENT_LOOP_TOTAL_TIMEOUT_MS is 4 minutes`() {
-        val field = AgentLoop::class.java.getDeclaredField("AGENT_LOOP_TOTAL_TIMEOUT_MS")
-            .apply { isAccessible = true }
-        assertEquals(4 * 60 * 1000L, field.getLong(null))
     }
 
 }
