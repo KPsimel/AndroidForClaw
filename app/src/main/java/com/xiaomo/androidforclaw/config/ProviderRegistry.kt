@@ -253,7 +253,7 @@ object ProviderRegistry {
             group = ProviderGroup.PRIMARY, order = 60
         ),
         ProviderDefinition(
-            id = "minimax", name = "MiniMax", description = "MiniMax M2.5 系列",
+            id = "minimax", name = "MiniMax", description = "MiniMax M2.7 系列",
             baseUrl = "https://api.minimax.io/anthropic", api = ModelApi.ANTHROPIC_MESSAGES,
             keyRequired = true, keyHint = "MiniMax API Key", envVarName = "MINIMAX_API_KEY",
             group = ProviderGroup.PRIMARY, order = 55
