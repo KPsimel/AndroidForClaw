@@ -1,6 +1,6 @@
 # 📱 AndroidForClaw
 
-[![Release](https://img.shields.io/badge/Release-v1.0.9-blue.svg)](https://github.com/SelectXn00b/AndroidForClaw/releases/latest)
+[![Release](https://img.shields.io/badge/Release-v1.3.0-blue.svg)](https://github.com/SelectXn00b/AndroidForClaw/releases/latest)
 [![Android](https://img.shields.io/badge/Android-8.0%2B-green.svg)](https://www.android.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -123,7 +123,7 @@ With Termux installed, AI can run Python/Node.js/Shell. Built-in one-click setup
 │  Signal · WhatsApp · In-app chat          │
 ├──────────────────────────────────────────┤
 │  Agent Runtime                            │
-│  AgentLoop · 19 Tools · 20 Skills ·       │
+│  AgentLoop · 20 Tools · 20 Skills ·       │
 │  Context Management (4-layer) · Memory    │
 ├──────────────────────────────────────────┤
 │  Providers                                │
@@ -143,6 +143,8 @@ With Termux installed, AI can run Python/Node.js/Shell. Built-in one-click setup
 | **Playwright Mode** | Screen ops aligned with Playwright — `snapshot` gets UI tree + ref → `act` operates elements |
 | **Unified exec** | Auto-routes to Termux (SSH) or built-in Shell, transparent to the model |
 | **Context Management** | 4-layer protection aligned with OpenClaw: limitHistoryTurns + tool result trimming + budget guard |
+| **Model Smart Routing** | Model ID normalization + Fallback Chain (multi-candidate degradation) + API Key rotation + Allowlist/Blocklist |
+| **Session Maintenance** | 30-day auto-cleanup, 500 entry cap, 10MB rotation, disk budget auto-reclaim |
 | **Skill System** | 20 built-in Skills editable on device, ClawHub online installation |
 | **Multi-model** | MiMo V2 Pro · DeepSeek R1 · Claude Sonnet 4 · Gemini 2.5 · GPT-4.1 |
 | **MCP Server** | Expose accessibility/screenshot to external agents (port 8399, Streamable HTTP) |
@@ -153,7 +155,7 @@ With Termux installed, AI can run Python/Node.js/Shell. Built-in one-click setup
 
 ## 📋 Full Capability Table
 
-### 🔧 19 Tools
+### 🔧 20 Tools
 
 | Tool | Function | Alignment |
 |------|----------|-----------|
@@ -166,6 +168,7 @@ With Termux installed, AI can run Python/Node.js/Shell. Built-in one-click setup
 | `web_search` | Brave search engine | OpenClaw |
 | `web_fetch` | Fetch web page content | OpenClaw |
 | `javascript` | Execute JavaScript (QuickJS) | OpenClaw |
+| `tts` | Text-to-speech (device TTS engine) | OpenClaw |
 | `skills_search` | Search ClawHub skills | OpenClaw |
 | `skills_install` | Install skills from ClawHub | OpenClaw |
 | `memory_search` | Semantic memory search | OpenClaw |
@@ -270,7 +273,7 @@ git clone https://github.com/SelectXn00b/AndroidForClaw.git
 cd AndroidForClaw
 export JAVA_HOME=/path/to/jdk17
 ./gradlew assembleRelease
-adb install releases/AndroidForClaw-v1.0.9-release.apk
+adb install releases/AndroidForClaw-v1.3.0-release.apk
 ```
 
 ---

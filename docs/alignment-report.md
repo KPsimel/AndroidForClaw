@@ -1,14 +1,15 @@
 # AndroidForClaw ↔ OpenClaw 对齐报告
 
-> 更新时间: 2026-03-20
+> 更新时间: 2026-03-27
 > OpenClaw 版本: 2026.3.11 (29dc654)
 > MAPPING.md 路径校验: 2026-03-20 (所有路径已对照 OpenClaw 源码矫正)
 
-## 总体对齐度: ~78%
+## 总体对齐度: ~83%
 
-> 注: 此前报告为 88%,经 2026-03-20 逐文件对照 OpenClaw 源码重新评估后下调。
-> 主要差距来自: Security (15%)、Channels (60%)、Sessions/Subagent 工具 (0%)。
-> 核心 Agent Loop/Context/Tools 路径对齐度仍为 85-95%。
+> 注: 2026-03-27 补齐 Model 智能路由（ID 标准化 + Compat + Fallback Chain + API Key 轮换）、
+> Session 维护（Store Maintenance + Disk Budget）、Config 增强（Merge + Allowlist）、TTS Tool。
+> 主要剩余差距: Security (15%)、Channels (60%)、PDF/Image 工具 (0%)。
+> 核心 Agent Loop/Context/Tools/Providers 路径对齐度为 85-95%。
 
 ## 模块对齐详情
 
@@ -75,24 +76,23 @@
 | Streaming | SSE 流式 | 非流式（batch） | ⚠️ |
 | Subagent / spawn | sessions_spawn | 未实现 | ❌ |
 
-### 4. 工具 (Tools) — 80%
+### 4. 工具 (Tools) — 85%
 
 | 分类 | OpenClaw 工具 | AndroidForClaw 工具 | 状态 |
 |------|-------------|-------------------|------|
 | 文件 | read, write, edit | read_file, write_file, edit_file, list_dir | ✅ 名称不同但功能等价 |
 | 执行 | exec | exec (auto/termux/internal) | ✅ |
 | 网络 | web_fetch, web_search | web_fetch, web_search | ✅ |
-| 记忆 | memory_search, memory_get | memory_search, memory_get | ✅ (注册但未启用) |
+| 记忆 | memory_search, memory_get | memory_search, memory_get | ✅ |
 | 浏览器 | browser (Playwright) | device (Playwright-aligned) | ✅ Android 适配 |
 | 消息 | message | send_image | ⚠️ 部分实现 |
 | 配置 | N/A (CLI) | config_get, config_set | ✅ Android 独有 |
-| 会话工具 | sessions_spawn/send/list/history/yield | 未实现 | ❌ |
-| 子代理 | subagents, agents_list | 未实现 | ❌ |
+| TTS | tts | tts | ✅ 2026-03-27 补齐 |
+| 会话工具 | sessions_spawn/send/list/history/yield | 已实现 | ✅ 2026-03-26 补齐 |
+| 子代理 | subagents, agents_list | 已实现 | ✅ 2026-03-26 补齐 |
 | 图片 | image, image_generate | 未实现 | ❌ |
 | 技能商店 | skills (gateway RPC) | skills_search, skills_install | ✅ |
 | PDF | pdf | 未实现 | ❌ |
-| TTS | tts | 未实现 | ❌ |
-| Canvas | canvas | 未实现 | ❌ |
 
 ### 5. Cron 定时任务 — 90%
 

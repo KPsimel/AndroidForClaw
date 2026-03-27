@@ -132,7 +132,7 @@ AI：→ skills_search("") → 展示可用技能列表
 │  Signal · WhatsApp · 设备内对话            │
 ├──────────────────────────────────────────┤
 │  Agent Runtime                            │
-│  AgentLoop · 19 Tools · 20 Skills ·       │
+│  AgentLoop · 20 Tools · 20 Skills ·       │
 │  Context 管理 (4层防护) · Memory           │
 ├──────────────────────────────────────────┤
 │  Providers                                │
@@ -152,6 +152,8 @@ AI：→ skills_search("") → 展示可用技能列表
 | **Playwright 模式** | 屏幕操作对齐 Playwright —— `snapshot` 获取 UI 树 + ref → `act` 操作元素 |
 | **统一 exec** | 自动路由 Termux（SSH 连接池，3 次重试）或内置 Shell，对模型透明 |
 | **Context 管理** | 4 层防护对齐 OpenClaw：limitHistoryTurns + 工具结果裁剪 + budget guard |
+| **Model 智能路由** | Model ID 标准化 + Fallback Chain（多候选降级）+ API Key 轮换 + Allowlist/Blocklist |
+| **Session 维护** | 30 天自动清理、500 条上限、10MB 轮转、磁盘预算自动回收 |
 | **Skill 体系** | 20 个内置 Skill 可在设备上自由编辑，支持 ClawHub 在线安装 |
 | **多模型** | MiMo V2 Pro · DeepSeek R1 · Claude Sonnet 4 · Gemini 2.5 · GPT-4.1 |
 | **MCP Server** | 将无障碍/截屏能力暴露给外部 Agent（端口 8399，Streamable HTTP） |
@@ -162,7 +164,7 @@ AI：→ skills_search("") → 展示可用技能列表
 
 ## 📋 完整能力表
 
-### 🔧 19 个 Tools
+### 🔧 20 个 Tools
 
 | Tool | 功能 | 对齐 |
 |------|------|------|
@@ -175,6 +177,7 @@ AI：→ skills_search("") → 展示可用技能列表
 | `web_search` | Brave 搜索引擎 | OpenClaw |
 | `web_fetch` | 抓取网页内容 | OpenClaw |
 | `javascript` | 执行 JavaScript（QuickJS） | OpenClaw |
+| `tts` | 文本转语音（设备 TTS 引擎） | OpenClaw |
 | `skills_search` | 搜索 ClawHub 技能 | OpenClaw |
 | `skills_install` | 从 ClawHub 安装技能 | OpenClaw |
 | `memory_search` | 语义搜索记忆 | OpenClaw |

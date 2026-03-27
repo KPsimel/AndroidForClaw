@@ -1,6 +1,6 @@
 # AndroidForClaw 测试体系
 
-> 总计: **306 个测试用例** (单元测试 70 + 设备测试 236)
+> 总计: **327 个测试用例** (单元测试 91 + 设备测试 236)
 
 ## 一、单元测试 (Unit Tests)
 
@@ -24,7 +24,7 @@
 
 | 分组 | 用例数 | 验证内容 |
 |------|-------|---------|
-| 能力目录 | 4 | 13 分类、39 工具、无重复、snake_case |
+| 能力目录 | 4 | 14 分类、40 工具、无重复、snake_case |
 | 工具分类 | 2 | Universal/Android 不重叠、覆盖完整 |
 | SkillResult | 4 | success/error/toString/metadata 格式 |
 | AgentResult | 1 | 迭代数据结构完整性 |
@@ -52,7 +52,28 @@
 | 4-5 | 参数类型 | query=string, limit=number |
 | 6 | install 工具 | 名称 = skills_install |
 
-### 6. CronTypesTest (3 cases)
+### 6. ModelIdNormalizationTest (11 cases)
+> 验证 Model ID 标准化逻辑与 OpenClaw model-id-normalization.ts 对齐
+
+| # | 用例 | 验证内容 |
+|---|------|---------|
+| 1-6 | Google ID 标准化 | gemini-3-pro → preview, gemini-3.1-flash → gemini-3-flash-preview 等 |
+| 7 | Google 未知模型透传 | gemini-2.0-flash 不变 |
+| 8-9 | xAI ID 标准化 | grok 长名称 → 短名称 |
+| 10 | xAI 未知模型透传 | grok-3 不变 |
+| 11 | Provider 分发 | normalizeModelId 按 provider 路由 |
+
+### 7. ModelAllowlistTest (10 cases)
+> 验证 Model Allowlist/Blocklist 的通配符匹配和 allow/block 逻辑
+
+| # | 用例 | 验证内容 |
+|---|------|---------|
+| 1-6 | Glob 匹配 | 精确匹配、前缀/后缀/中间通配符、大小写不敏感 |
+| 7-8 | 空配置 | null/empty config 允许所有 |
+| 9 | Allow 列表 | 仅允许匹配的模型 |
+| 10 | Block 优先级 | block 优先于 allow |
+
+### 8. CronTypesTest (3 cases)
 > 验证定时任务配置默认值与 OpenClaw 对齐
 
 | # | 用例 | 验证内容 |
@@ -177,12 +198,14 @@ adb shell am instrument -w \
 ## 四、测试架构图
 
 ```
-AndroidForClaw Tests (306 total)
-├── Unit Tests (70) ─── JVM, 无需设备
+AndroidForClaw Tests (327 total)
+├── Unit Tests (91) ─── JVM, 无需设备
 │   ├── ContextBuilderConstantsTest (5)   — OpenClaw 常量对齐
 │   ├── AgentLoopCapabilityTest (23)      — 能力目录 + 数据结构
 │   ├── ExecFacadeToolTest (3)            — exec 路由逻辑
 │   ├── SkillsHubToolTest (6)            — 技能商店
+│   ├── ModelIdNormalizationTest (11)     — Model ID 标准化
+│   ├── ModelAllowlistTest (10)           — Model Allowlist/Blocklist
 │   └── CronTypesTest (3)                — 定时任务配置
 │
 └── Instrumented Tests (236) ─── 真机/模拟器

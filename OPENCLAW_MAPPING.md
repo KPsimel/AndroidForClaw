@@ -70,7 +70,7 @@
 | `agents/tools/browser-tool.ts` | `agent/tools/device/DeviceTool.kt` | **Aligned** | Playwright-style snapshot+act |
 | `agents/tool-catalog.ts` | `agent/tools/ToolRegistry.kt` + `AndroidToolRegistry.kt` | **Aligned** | |
 | `agents/openclaw-tools.ts` | `agent/tools/ToolCallDispatcher.kt` | **Aligned** | |
-| `agents/tools/tts-tool.ts` | N/A | **Missing** | No LLM-facing TTS tool |
+| `agents/tools/tts-tool.ts` | `agent/tools/TtsTool.kt` | **Aligned** | LLM-callable TTS via Android TTS engine |
 | `agents/tools/pdf-tool.ts` | N/A | **Missing** | No PDF tool |
 | `agents/tools/image-generate-tool.ts` | N/A | **Missing** | No image generation tool |
 | `agents/tools/image-tool.ts` | N/A | **Missing** | No image handling tool |
@@ -99,19 +99,19 @@
 | `agents/model-catalog.ts` | `config/ProviderRegistry.kt` | **Partial** | Loads from assets/providers.json |
 | `agents/model-selection.ts` | `config/ConfigLoader.kt` | **Partial** | Simplified selection |
 | `agents/model-auth.ts` | `providers/ApiAdapter.kt` | **Partial** | API key header shaping |
-| `agents/model-fallback.ts` | N/A | **Missing** | No model fallback chain |
-| `agents/model-fallback.types.ts` | N/A | **Missing** | |
+| `agents/model-fallback.ts` | `providers/ModelFallback.kt` | **Aligned** | Fallback chain with 30s cooldown |
+| `agents/model-fallback.types.ts` | `providers/ModelFallback.kt` | **Aligned** | Types in same file |
 | `agents/models-config.ts` | `config/ModelConfig.kt` | **Partial** | Simplified |
 | `agents/defaults.ts` | `config/OpenClawConfig.kt` | **Aligned** | Default model config |
-| `agents/pi-embedded-runner/model.ts` | `providers/UnifiedLLMProvider.kt` | **Partial** | No provider normalization |
+| `agents/pi-embedded-runner/model.ts` | `providers/UnifiedLLMProvider.kt` | **Aligned** | With normalization + compat + fallback |
 | `agents/pi-embedded-payloads.ts` | `providers/ApiAdapter.kt` | **Partial** | Basic request shaping |
-| `agents/model-id-normalization.ts` | N/A | **Missing** | |
-| `agents/model-compat.ts` | N/A | **Missing** | |
+| `agents/model-id-normalization.ts` | `providers/ModelIdNormalization.kt` | **Aligned** | Google + xAI ID normalization |
+| `agents/model-compat.ts` | `providers/ModelCompat.kt` | **Aligned** | xAI/Anthropic/non-native OpenAI compat |
 | `agents/model-ref-profile.ts` | N/A | **Missing** | |
 | `agents/model-scan.ts` | N/A | **Missing** | |
 | `agents/model-suppression.ts` | N/A | **Missing** | |
 | `agents/model-tool-support.ts` | N/A | **Missing** | |
-| `agents/api-key-rotation.ts` | N/A | **Missing** | No API key rotation on rate limit |
+| `agents/api-key-rotation.ts` | `providers/ApiKeyRotation.kt` | **Aligned** | Comma-separated key rotation on 429 |
 | `agents/fast-mode.ts` | N/A | **Missing** | |
 | Provider-specific (anthropic-vertex, bedrock, cloudflare, etc.) | N/A | **N/A** | Server-side only |
 
@@ -126,8 +126,8 @@
 | `config/sessions/group.ts` | N/A | **Missing** | No group session |
 | `config/sessions/artifacts.ts` | N/A | **Missing** | No session artifacts |
 | `config/sessions/metadata.ts` | N/A | **Missing** | No session metadata store |
-| `config/sessions/disk-budget.ts` | N/A | **Missing** | No disk budget |
-| `config/sessions/store-maintenance.ts` | N/A | **Missing** | No store maintenance |
+| `config/sessions/disk-budget.ts` | `agent/session/SessionDiskBudget.kt` | **Aligned** | Two-phase sweep (orphans → oldest) |
+| `config/sessions/store-maintenance.ts` | `agent/session/SessionStoreMaintenance.kt` | **Aligned** | Prune/cap/rotate |
 | `config/sessions/store-migrations.ts` | N/A | **Missing** | No store migrations |
 
 ## 7. Memory System
@@ -147,7 +147,7 @@
 | `config/paths.ts` | `workspace/StoragePaths.kt` | **Aligned** | /sdcard/.androidforclaw/ |
 | `config/agent-limits.ts` | `config/OpenClawConfig.kt` | **Aligned** | Concurrent/depth limits |
 | `config/env-substitution.ts` | N/A | **Missing** | No ${ENV_VAR} substitution |
-| `config/merge-config.ts` | N/A | **Missing** | No config merging |
+| `config/merge-config.ts` | `config/ConfigMerge.kt` | **Aligned** | Deep JSON merge + model alias |
 | `config/includes.ts` | N/A | **Missing** | No config includes |
 | `config/legacy.ts` | N/A | **Missing** | No legacy migration |
 | `config/zod-schema.ts` | N/A | **Missing** | No schema validation |

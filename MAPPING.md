@@ -2,7 +2,7 @@
 
 **纯粹的文件和文件夹映射关系,方便快速查找对应实现。**
 
-> 最后更新: 2026-03-22
+> 最后更新: 2026-03-27
 > OpenClaw 版本: 2026.3.11 (29dc654)
 
 ## 对齐统计
@@ -12,14 +12,14 @@
 | 常量 | 95% | 核心常量完全一致 |
 | System Prompt | 85% | 22 段中 16 段已实现,3 段平台不适用 |
 | Agent Loop | 85% | 核心循环/溢出恢复完整,缺 streaming/subagent |
-| Tools | 80% | 文件/exec/web 工具完整,缺 PDF/TTS/Canvas/Sessions |
+| Tools | 85% | 文件/exec/web/TTS 工具完整,缺 PDF/Image |
 | Cron | 90% | 调度/载荷/重试完整,实现方式不同 (WorkManager) |
 | Skills | 90% | 文档格式/加载/ClawHub 完整 |
 | Bootstrap | 100% | 8 个文件、预算、截断策略完全一致 |
 | Context 管理 | 85% | 窗口/裁剪/压缩完整,缺 compaction safeguard |
 | Channels | 75% | Feishu 三功能完整 (Content Parser/Reply Dispatcher/Streaming Card),Discord 完整,其余为框架 |
 | Security | 15% | 仅 TokenAuth,缺 Pairing/DM-Policy/External-Content |
-| **总体** | **~80%** | 核心 Agent 路径高度对齐,Feishu 渠道完善,安全/高级工具待补 |
+| **总体** | **~83%** | 核心 Agent 路径高度对齐,Model 智能路由/Session 维护/TTS 已补齐,安全待补 |
 
 ---
 
@@ -73,6 +73,15 @@
 | `src/agents/memory-search.ts` | `agent/tools/memory/MemorySearchSkill.kt` | ✅ |
 | `src/agents/skills-status.ts` | `agent/skills/SkillStatusBuilder.kt` | ✅ |
 | `src/agents/skills-install.ts` | `agent/skills/SkillInstaller.kt` | ✅ |
+| `src/agents/model-id-normalization.ts` | `providers/ModelIdNormalization.kt` | ✅ Google/xAI ID 标准化 |
+| `src/agents/model-compat.ts` | `providers/ModelCompat.kt` | ✅ xAI/Anthropic/非官方 OpenAI compat |
+| `src/agents/model-fallback.ts` | `providers/ModelFallback.kt` | ✅ Fallback chain + 30s cooldown |
+| `src/agents/api-key-rotation.ts` | `providers/ApiKeyRotation.kt` | ✅ 逗号分隔 key 轮换 |
+| - | `config/ModelAllowlist.kt` | ✅ Model allowlist/blocklist (通配符匹配) |
+| - | `config/ConfigMerge.kt` | ✅ Config 深度合并 + model alias |
+| - | `agent/session/SessionStoreMaintenance.kt` | ✅ Session prune/cap/rotate |
+| - | `agent/session/SessionDiskBudget.kt` | ✅ Session 磁盘预算 |
+| - | `agent/tools/TtsTool.kt` | ✅ LLM 可调用 TTS 工具 |
 | `src/agents/agent-scope.ts` | - | ❌ 未实现 |
 | `src/agents/acp-spawn.ts` | - | ❌ 未实现 |
 | `src/agents/subagent-*.ts` | - | ❌ 未实现 (Subagent 体系) |

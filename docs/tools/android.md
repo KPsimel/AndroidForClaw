@@ -583,5 +583,5 @@ class SkillRegistry(private val context: Context) {
 
 ---
 
-**Last Updated**: 2026-03-06
-**Total Tools**: 14
+**Last Updated**: 2026-03-27
+**Total Tools**: 40 (16 Universal + 24 Android-specific)
