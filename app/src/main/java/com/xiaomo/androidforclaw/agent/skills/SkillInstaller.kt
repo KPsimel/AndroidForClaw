@@ -72,12 +72,16 @@ class SkillInstaller(private val context: Context) {
             val details = detailsResult.getOrNull()!!
             Log.d(TAG, "Skill details: ${details.name} - ${details.description}")
 
+            // Resolve version: "latest" → actual version number from skill details
+            val resolvedVersion = if (version == "latest") details.version else version
+            Log.d(TAG, "Resolved version: $version → $resolvedVersion")
+
             // 3. Download skill package
             progressCallback?.invoke(InstallProgress.Downloading(0, 0))
-            val downloadFile = File(downloadCacheDir, "$slug-$version.zip")
+            val downloadFile = File(downloadCacheDir, "$slug-$resolvedVersion.zip")
             val downloadResult = clawHubClient.downloadSkill(
                 slug = slug,
-                version = version,
+                version = resolvedVersion,
                 targetFile = downloadFile
             ) { downloaded, total ->
                 progressCallback?.invoke(InstallProgress.Downloading(downloaded, total))
@@ -114,7 +118,7 @@ class SkillInstaller(private val context: Context) {
             val lockEntry = SkillLockEntry(
                 name = details.name,
                 slug = slug,
-                version = version,
+                version = resolvedVersion,
                 hash = hash,
                 installedAt = DATE_FORMAT.format(Date()),
                 source = "clawhub"
@@ -125,13 +129,13 @@ class SkillInstaller(private val context: Context) {
             downloadFile.delete()
 
             progressCallback?.invoke(InstallProgress.Complete)
-            Log.i(TAG, "✅ Skill installed successfully: $slug@$version")
+            Log.i(TAG, "✅ Skill installed successfully: $slug@$resolvedVersion")
 
             Result.success(
                 InstallResult(
                     slug = slug,
                     name = details.name,
-                    version = version,
+                    version = resolvedVersion,
                     path = targetDir.absolutePath,
                     hash = hash
                 )
