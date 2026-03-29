@@ -161,7 +161,9 @@ data class DiscordChannelConfig(
     val groupPolicy: String? = null,
     val guilds: Map<String, GuildPolicyConfig>? = null,
     val replyToMode: String? = null,
-    val accounts: Map<String, DiscordAccountPolicyConfig>? = null
+    val accounts: Map<String, DiscordAccountPolicyConfig>? = null,
+    val historyLimit: Int? = null,
+    val dmHistoryLimit: Int? = null
 )
 
 data class DmPolicyConfig(
@@ -198,6 +200,7 @@ data class SlackChannelConfig(
     val groupPolicy: String = "open",
     val requireMention: Boolean = true,
     val historyLimit: Int? = null,
+    val dmHistoryLimit: Int? = null,
     /** 流式回复模式: off / partial / block / progress */
     val streaming: String = "partial",
     /** Android 扩展：覆盖该渠道使用的模型，格式 "providerId/modelId"，为空则使用全局默认 */
@@ -213,6 +216,7 @@ data class TelegramChannelConfig(
     val groupPolicy: String = "open",
     val requireMention: Boolean = true,
     val historyLimit: Int? = null,
+    val dmHistoryLimit: Int? = null,
     /** 流式回复模式: off / partial / block / progress */
     val streaming: String = "partial",
     /** Webhook URL (可选，不填则使用长轮询) */
@@ -230,6 +234,7 @@ data class WhatsAppChannelConfig(
     val groupPolicy: String = "open",
     val requireMention: Boolean = true,
     val historyLimit: Int? = null,
+    val dmHistoryLimit: Int? = null,
     /** Android 扩展：覆盖该渠道使用的模型，格式 "providerId/modelId"，为空则使用全局默认 */
     val model: String? = null
 )
@@ -247,6 +252,7 @@ data class SignalChannelConfig(
     val groupPolicy: String = "open",
     val requireMention: Boolean = true,
     val historyLimit: Int? = null,
+    val dmHistoryLimit: Int? = null,
     /** Android 扩展：覆盖该渠道使用的模型，格式 "providerId/modelId"，为空则使用全局默认 */
     val model: String? = null
 )
