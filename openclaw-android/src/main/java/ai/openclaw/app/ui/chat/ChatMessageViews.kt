@@ -79,7 +79,6 @@ fun ChatMessageBubble(message: ChatMessage) {
   ChatBubbleContainer(style = style, roleLabel = roleLabel(role), timestampMs = message.timestampMs) {
     ChatMessageBody(content = displayableContent, textColor = mobileText)
   }
-  }
 }
 
 @Composable
