@@ -115,6 +115,17 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
 
         // Weixin agent loop tracking moved to MessageQueueManager (channel-agnostic)
 
+        // Cron heartbeat delivery: last active chat
+        private var lastActiveChatId: String? = null
+        private var lastActiveChannel: String? = null
+
+        fun getLastActiveChat(): Pair<String?, String?> = Pair(lastActiveChannel, lastActiveChatId)
+
+        fun setLastActiveChat(channel: String, chatId: String) {
+            lastActiveChannel = channel
+            lastActiveChatId = chatId
+        }
+
         // Accessibility Health Monitor
         private var healthMonitor: AccessibilityHealthMonitor? = null
 
@@ -1160,6 +1171,9 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
     private suspend fun processFeishuMessage(event: com.xiaomo.feishu.FeishuEvent.Message): String {
         return withContext(Dispatchers.IO) {
             try {
+                // Track last active chat for cron delivery
+                setLastActiveChat("feishu", event.chatId)
+
                 Log.i(TAG, "🤖 开始处理消息: ${event.content}")
 
                 // 📎 Download media attachment if present (aligned with OpenClaw resolveFeishuMediaList)
@@ -2138,6 +2152,9 @@ class MyApplication : ai.openclaw.app.NodeApp(), Application.ActivityLifecycleCa
         val toUser = msg.fromUserId
 
         try {
+            // Track last active chat for cron delivery
+            setLastActiveChat("weixin", msg.fromUserId)
+
             // Send typing indicator
             sender?.sendTyping(toUser)
 

@@ -89,12 +89,12 @@ object CronInitializer {
                 wakeMode = WakeMode.NOW,
                 payload = CronPayload.AgentTurn(
                     message = heartbeatMessage,
-                    channel = "feishu",
+                    channel = null,  // Use last active channel
                     deliver = true
                 ),
                 delivery = CronDelivery(
                     mode = DeliveryMode.ANNOUNCE,
-                    channel = "feishu"
+                    channel = null  // Use last active channel
                 ),
                 enabled = true,
                 createdAtMs = System.currentTimeMillis(),

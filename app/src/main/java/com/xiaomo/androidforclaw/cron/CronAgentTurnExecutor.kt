@@ -139,15 +139,24 @@ object CronAgentTurnExecutor {
                     .replace(Regex("(?:^|\\s+|\\*+)HEARTBEAT_OK\\s*$"), "")
                     .trim()
 
-                if (sanitized.isNotBlank() && channel != null && to != null) {
-                    deliver(context, channel, to, sanitized)
+                if (sanitized.isNotBlank()) {
+                    // Resolve delivery target: explicit → last active chat
+                    val (lastChannel, lastChatId) = MyApplication.getLastActiveChat()
+                    val deliveryChannel = channel ?: lastChannel
+                    val deliveryTo = to ?: lastChatId
+
+                    if (deliveryChannel != null && deliveryTo != null) {
+                        deliver(context, deliveryChannel, deliveryTo, sanitized)
+                    } else {
+                        Log.w(TAG, "No delivery target configured (no 'to' and no last active chat)")
+                    }
                 }
             }
 
             CronRunResult(
                 status = RunStatus.OK,
                 summary = result.finalContent.take(200),
-                delivered = channel != null && to != null
+                delivered = channel != null || to != null || MyApplication.getLastActiveChat().second != null
             )
         } catch (e: Exception) {
             Log.e(TAG, "Cron agent turn failed", e)
